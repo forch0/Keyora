@@ -29,7 +29,7 @@
 | # | Module | Status | Completed | Notes |
 |---|---|---|---|---|
 | 01 | Project Setup & Foundation | ✅ Complete | 2026-09-01 | Laravel project in `src/`, Docker setup, packages installed (Sanctum, Nimbus, Telescope, Laravel-Brain, Laravel-Lang), API-only mode, code quality tools, test helpers |
-| 02 | Authentication | ⬜ Not Started | — | — |
+| 02 | Authentication | ✅ Complete | 2026-09-01 | Sanctum token auth, register/login/logout, profile update, password change, password reset, rate limiting, 31 tests passing |
 | 03 | Multi-Tenancy | ⬜ Not Started | — | — |
 | 04 | Company Workspace | ⬜ Not Started | — | — |
 | 05 | Personal Vault — Part 1 | ⬜ Not Started | — | — |
@@ -182,10 +182,118 @@ docker compose ps
 
 ## Next Module
 
-**Module 02 — Authentication**
-- User model with UUIDs
-- Registration, login, logout, password reset
-- Sanctum token generation
-- Email verification
-- Password change endpoints
-- Dependencies: Module 01 ✅
+**Module 03 — Multi-Tenancy**
+- Tenant model and migrations
+- `BelongsToTenant` trait + `TenantScope` global scope
+- `TenantManager` singleton service
+- `ResolveTenant` middleware (token scope → X-Tenant-ID header → URL param)
+- Tenant-aware models vs non-tenant models
+- Dependencies: Module 02 ✅
+
+---
+
+## Module 02 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 2.1 | Modified `users` migration — added `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at` columns | `php artisan migrate:fresh` → all tables created |
+| 2.2 | Updated `User` model — added `HasApiTokens` trait (Sanctum), two-factor casts, hidden fields | Model loads without errors |
+| 2.3 | Published Sanctum config (`config/sanctum.php`) and `personal_access_tokens` migration | `php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"` → config + migration published |
+| 2.4 | Set Sanctum `guard` to `[]` (API-only, bearer-token-only — no session fallback per ADR-001) | Logout test confirms revoked tokens return 401 |
+| 2.5 | Removed `EnsureFrontendRequestsAreStateful` middleware from `bootstrap/app.php` (API-only, no SPA cookie auth) | `php artisan route:list` loads without middleware |
+| 2.6 | Created 5 Action classes: `RegisterUserAction`, `LoginUserAction`, `ChangePasswordAction`, `RequestPasswordResetAction`, `ResetPasswordAction` | Each is invokable, single use case, delegates to model/Sanctum/broker |
+| 2.7 | Created 6 Form Requests: `RegisterRequest`, `LoginRequest`, `UpdateProfileRequest`, `ChangePasswordRequest`, `ForgotPasswordRequest`, `ResetPasswordRequest` | Validation rules match module spec |
+| 2.8 | Created `UserResource` (API Resource) — exposes id, name, email, email_verified_at, timestamps; never exposes password, two_factor_secret, remember_token | Profile test confirms sensitive fields absent |
+| 2.9 | Created `AuthController` (thin) — delegates to actions, returns API Resources with correct status codes | All 8 endpoints respond correctly |
+| 2.10 | Added auth routes to `routes/api.php` with rate limiting (5/min for register+login, 3/min for forgot-password) | `php artisan route:list --path=api/v1/auth` → 8 routes listed |
+| 2.11 | Created `PasswordResetNotification` and `WelcomeNotification` (queued, mail channel) | Password reset test confirms notification sent |
+| 2.12 | Wrote 31 feature tests across 6 test classes covering all acceptance criteria | `php artisan test` → 31 passed, 89 assertions |
+| 2.13 | Ran verification: Pint (54 files, 0 issues), PHPStan level 8 (0 errors), tests (31 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Auth | Rate Limit | Status | Description |
+|---|---|---|---|---|---|
+| POST | `/api/v1/auth/register` | No | 5/min | 201 | Create user + return token |
+| POST | `/api/v1/auth/login` | No | 5/min | 200 | Verify credentials + return token |
+| POST | `/api/v1/auth/forgot-password` | No | 3/min | 200 | Send reset email (always 200, doesn't leak user existence) |
+| POST | `/api/v1/auth/reset-password` | No | — | 200/422 | Reset password with token |
+| POST | `/api/v1/auth/logout` | Yes | — | 204 | Revoke current token |
+| GET | `/api/v1/auth/me` | Yes | — | 200 | Get current user |
+| PUT | `/api/v1/auth/me` | Yes | — | 200 | Update name/email |
+| POST | `/api/v1/auth/password` | Yes | — | 200/422 | Change password |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Action classes over a single AuthService | Each auth operation is a distinct use case (not reusable cross-cutting logic). Matches ARCHITECTURE.md §6.5 pattern. |
+| Thin controller | Controller only receives request → delegates to action → returns resource. No business logic. Per ARCHITECTURE.md §6.3. |
+| Sanctum guard set to `[]` | API-only project (ADR-001: "No session-based auth"). Default `['web']` falls back to sessions, which caused token revocation to not work. |
+| Removed `EnsureFrontendRequestsAreStateful` | That middleware is for SPA cookie-based auth. Not needed for API-only. Its presence caused session-persisted auth between test requests. |
+| `Auth::forgetGuards()` in logout test | `RequestGuard` caches the authenticated user in memory and doesn't reset between requests in the same test. Must manually reset to test token revocation. |
+| `authenticatedUser()` helper in controller | `$request->user()` returns `User\|null` but `auth:sanctum` guarantees non-null. Helper satisfies PHPStan level 8 without lying about runtime. |
+| Forgot-password always returns 200 | Doesn't leak which emails are registered (security best practice). Notification only sent if user exists. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/database/migrations/0001_01_01_000000_create_users_table.php` | Modified — added 2FA columns |
+| `src/database/migrations/2026_09_01_133153_create_personal_access_tokens_table.php` | Created (published from Sanctum) |
+| `src/app/Models/User.php` | Modified — added `HasApiTokens`, 2FA casts, hidden fields |
+| `src/config/sanctum.php` | Created (published) + modified (`guard` → `[]`) |
+| `src/bootstrap/app.php` | Modified — removed `EnsureFrontendRequestsAreStateful` |
+| `src/app/Actions/RegisterUserAction.php` | Created |
+| `src/app/Actions/LoginUserAction.php` | Created |
+| `src/app/Actions/ChangePasswordAction.php` | Created |
+| `src/app/Actions/RequestPasswordResetAction.php` | Created |
+| `src/app/Actions/ResetPasswordAction.php` | Created |
+| `src/app/Http/Requests/Auth/RegisterRequest.php` | Created |
+| `src/app/Http/Requests/Auth/LoginRequest.php` | Created |
+| `src/app/Http/Requests/Auth/UpdateProfileRequest.php` | Created |
+| `src/app/Http/Requests/Auth/ChangePasswordRequest.php` | Created |
+| `src/app/Http/Requests/Auth/ForgotPasswordRequest.php` | Created |
+| `src/app/Http/Requests/Auth/ResetPasswordRequest.php` | Created |
+| `src/app/Http/Resources/V1/UserResource.php` | Created |
+| `src/app/Http/Controllers/Api/V1/AuthController.php` | Created |
+| `src/routes/api.php` | Modified — added 8 auth endpoints with rate limiting |
+| `src/app/Notifications/PasswordResetNotification.php` | Created |
+| `src/app/Notifications/WelcomeNotification.php` | Created |
+| `src/tests/Feature/Api/V1/Auth/RegisterTest.php` | Created (6 tests) |
+| `src/tests/Feature/Api/V1/Auth/LoginTest.php` | Created (6 tests) |
+| `src/tests/Feature/Api/V1/Auth/ProfileTest.php` | Created (5 tests) |
+| `src/tests/Feature/Api/V1/Auth/LogoutTest.php` | Created (2 tests) |
+| `src/tests/Feature/Api/V1/Auth/ChangePasswordTest.php` | Created (4 tests) |
+| `src/tests/Feature/Api/V1/Auth/PasswordResetTest.php` | Created (6 tests) |
+| `docs/learnings/01-authentication.md` | Created — build walkthrough + build order reference |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `RegisterTest` | 6 | 14 | Registration, duplicate email, password hashing, validation |
+| `LoginTest` | 6 | 12 | Valid/invalid login, validation, rate limiting (429) |
+| `ProfileTest` | 5 | 17 | Get profile, 401 without token, update, duplicate email, no sensitive fields |
+| `LogoutTest` | 2 | 4 | Token revocation, auth required |
+| `ChangePasswordTest` | 4 | 10 | Change password, wrong current, confirmation, auth required |
+| `PasswordResetTest` | 6 | 12 | Request reset, no user leak, valid/invalid token, validation |
+| **Total** | **31** | **89** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| All tests returning 404 | Stale route cache from previous state | `php artisan route:clear` + `php artisan config:clear` |
+| Logout test failing — revoked token still authenticates | Sanctum `guard` set to `['web']` (session fallback) + `RequestGuard` caches user in memory | Set `guard` to `[]`, removed `EnsureFrontendRequestsAreStateful`, added `Auth::forgetGuards()` in test |
+| PHPStan level 8 errors (9) | `$request->user()` returns `User\|null`; notification `object` type hints; `Password::getRepository()->create()` wrong arg count | Added `authenticatedUser()` helper, typed notifications as `User`, used `Password::createToken()` |
+
+### Known Issues / Notes
+
+- Two-factor authentication columns are in the migration but not yet functional (Module 23)
+- `WelcomeNotification` is created but not yet triggered on registration (optional per module spec)
+- Tenant relationship on `User` (belongsToMany) deferred to Module 03
+- `Auth::forgetGuards()` needed in tests that make multiple authenticated requests — `RequestGuard` caches user across requests in the same test
+- Build walkthrough documented in `docs/learnings/01-authentication.md`
