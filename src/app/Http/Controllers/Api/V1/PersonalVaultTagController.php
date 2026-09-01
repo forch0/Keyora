@@ -49,6 +49,20 @@ class PersonalVaultTagController extends Controller
     }
 
     /**
+     * Show a single tag.
+     */
+    public function show(Request $request, PersonalVaultTag $tag): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        if ($tag->user_id !== $user->id) {
+            abort(404);
+        }
+
+        return (new PersonalVaultTagResource($tag))->response();
+    }
+
+    /**
      * Update a tag.
      */
     public function update(UpdateTagRequest $request, PersonalVaultTag $tag): JsonResponse
