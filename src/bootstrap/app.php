@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.resolve' => ResolveTenant::class,
             'reauth' => RequireReauthentication::class,
         ]);
+
+        // API-only app: no login route exists. Override Laravel's default
+        // redirect to route('login') so unauthenticated API requests get a
+        // 401 JSON response instead of a 500 "Route [login] not defined" error.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
