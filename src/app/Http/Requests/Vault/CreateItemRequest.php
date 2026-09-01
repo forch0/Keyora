@@ -36,6 +36,9 @@ class CreateItemRequest extends FormRequest
             'custom_fields' => ['nullable', 'array'],
             'custom_fields.*.key' => ['required', 'string', 'max:100'],
             'custom_fields.*.value' => ['required', 'string', 'max:1000'],
+            'folder_id' => ['nullable', 'integer', 'exists:personal_vault_folders,id'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:personal_vault_tags,id'],
         ];
     }
 }

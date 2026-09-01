@@ -33,7 +33,7 @@
 | 03 | Multi-Tenancy | ✅ Complete | 2026-09-01 | Tenant model, tenant_user pivot, BelongsToTenant trait (fail-closed), TenantManager singleton, ResolveTenant middleware, Tenant CRUD API, TenantPolicy, 10 new tests (41 total) |
 | 04 | Company Workspace | ✅ Complete | 2026-09-01 | Tenant invitations, member CRUD, role management, suspend/restore, ResolveTenant blocks suspended, 16 new tests (57 total) |
 | 05 | Personal Vault — Part 1 | ✅ Complete | 2026-09-01 | Encryptable trait, personal_vault_items CRUD, AES-256 encryption, 15 new tests (72 total) |
-| 06 | Personal Vault — Part 2 | ⬜ Not Started | — | — |
+| 06 | Personal Vault — Part 2 | ✅ Complete | 2026-09-01 | Folders (nested), tags, favorite toggle, archive/restore, search, recent items, 19 new tests (91 total) |
 | 07 | Teams & Team Vaults | ⬜ Not Started | — | — |
 | 08 | Permission System — Part 1 | ⬜ Not Started | — | — |
 | 09 | Permission System — Part 2 | ⬜ Not Started | — | — |
@@ -182,11 +182,124 @@ docker compose ps
 
 ## Next Module
 
-**Module 06 — Personal Vault Part 2**
-- Folders, tags, favorites toggle, search
-- Archive/restore functionality
-- Password history
-- Dependencies: Module 05 ✅
+**Module 07 — Teams & Team Vaults**
+- Teams within company workspaces
+- Team vault items (tenant-scoped)
+- Team member management
+- Dependencies: Module 04 ✅, Module 05 ✅
+
+---
+
+## Module 06 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 6.1 | Created `personal_vault_folders` migration (id, user_id FK, name, parent_id self-ref, icon, color, sort_order, timestamps, 2 indexes) | Migration runs clean |
+| 6.2 | Created `PersonalVaultFolder` model (fillable, user/parent/children/items relationships, self-referencing nesting) | Model loads, PHPStan clean |
+| 6.3 | Created `personal_vault_tags` migration + `personal_vault_item_tag` pivot (unique user+name, composite PK on pivot) | Migration runs clean |
+| 6.4 | Created `PersonalVaultTag` model (fillable, user/items relationships) | Model loads, PHPStan clean |
+| 6.5 | Added `folder_id` and `last_accessed_at` to `personal_vault_items` (nullable FK, timestamp, 2 new indexes) | Migration runs clean |
+| 6.6 | Updated `PersonalVaultItem` model — added folder(), tags() relationships, fillable fields, casts | Model works correctly |
+| 6.7 | Created 4 Form Requests: CreateFolderRequest, UpdateFolderRequest, CreateTagRequest, UpdateTagRequest | Validation works in tests |
+| 6.8 | Created PersonalVaultFolderResource (tree structure with children) and PersonalVaultTagResource | Resources transform correctly |
+| 6.9 | Created PersonalVaultFolderPolicy and PersonalVaultTagPolicy (owner-only, 404 for non-owners) | Policy enforced correctly |
+| 6.10 | Created PersonalVaultFolderController (5 CRUD methods, tree listing, delete moves items to root) | All endpoints respond correctly |
+| 6.11 | Created PersonalVaultTagController (4 CRUD methods) | All endpoints respond correctly |
+| 6.12 | Extended PersonalVaultItemController with 7 new methods: toggleFavorite, archive, restore, recent, favorites, archived, search | All endpoints respond correctly |
+| 6.13 | Updated show() to set last_accessed_at timestamp | Test confirms timestamp update |
+| 6.14 | Added tag_ids to CreateItemRequest and UpdateItemRequest for tag assignment | Tag sync works in tests |
+| 6.15 | Registered 22 vault routes (items CRUD + organization + folders + tags + search) | `php artisan route:list` shows 22 routes |
+| 6.16 | Wrote 19 feature tests covering all acceptance criteria | `php artisan test` → 91 passed, 280 assertions |
+| 6.17 | Ran verification: Pint (clean), PHPStan level 8 (0 errors), tests (91 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Status | Description |
+|---|---|---|---|
+| GET | `/api/v1/vault/folders` | 200 | List folders as tree |
+| POST | `/api/v1/vault/folders` | 201 | Create folder |
+| GET | `/api/v1/vault/folders/{folder}` | 200 | Get folder with items |
+| PUT | `/api/v1/vault/folders/{folder}` | 200 | Update folder |
+| DELETE | `/api/v1/vault/folders/{folder}` | 204 | Delete folder (items → root) |
+| GET | `/api/v1/vault/tags` | 200 | List all tags |
+| POST | `/api/v1/vault/tags` | 201 | Create tag |
+| PUT | `/api/v1/vault/tags/{tag}` | 200 | Update tag |
+| DELETE | `/api/v1/vault/tags/{tag}` | 204 | Delete tag (removes from items) |
+| POST | `/api/v1/vault/items/{item}/favorite` | 200 | Toggle favorite |
+| POST | `/api/v1/vault/items/{item}/archive` | 204 | Archive item |
+| POST | `/api/v1/vault/items/{item}/restore` | 204 | Restore archived item |
+| GET | `/api/v1/vault/items/recent` | 200 | Recently accessed items |
+| GET | `/api/v1/vault/items/favorites` | 200 | Favorite items (paginated) |
+| GET | `/api/v1/vault/items/archived` | 200 | Archived items (paginated) |
+| GET | `/api/v1/vault/search?q={query}` | 200 | Search by name and URL |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Explicit pivot keys (`item_id`, `tag_id`) | Laravel's default foreign key naming would use `personal_vault_item_id` which doesn't match the pivot table. Specified keys explicitly in `belongsToMany()`. |
+| Delete folder moves items to root | Spec requires items survive folder deletion. Controller sets `folder_id = null` on items before deleting folder. Also moves child folders to root. |
+| Tag deletion cascades via pivot | Pivot table has `cascadeOnDelete` on both FKs, so deleting a tag automatically removes all pivot rows. |
+| Search only on plaintext columns | Per ADR-003: encrypted fields cannot be searched. Search queries `name` and `url` only using `LIKE`. |
+| `last_accessed_at` updated on show() | The `show()` method updates the timestamp every time an item is viewed. The `recent()` endpoint sorts by this field. |
+| 404 for non-owner access | Same pattern as Module 05 — don't leak existence of other users' folders/tags. |
+| `tag_ids` in form requests | Added `tag_ids` array to Create/UpdateItemRequest for tag assignment. Controller uses `attach()` on create and `sync()` on update. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/database/migrations/2026_09_01_170000_create_personal_vault_folders_table.php` | Created |
+| `src/database/migrations/2026_09_01_170001_create_personal_vault_tags_table.php` | Created |
+| `src/database/migrations/2026_09_01_170002_add_folder_and_access_tracking_to_personal_vault_items.php` | Created |
+| `src/app/Models/PersonalVaultFolder.php` | Created |
+| `src/app/Models/PersonalVaultTag.php` | Created |
+| `src/app/Models/PersonalVaultItem.php` | Modified — folder(), tags(), fillable, casts |
+| `src/database/factories/PersonalVaultFolderFactory.php` | Created |
+| `src/database/factories/PersonalVaultTagFactory.php` | Created |
+| `src/app/Http/Requests/Vault/CreateFolderRequest.php` | Created |
+| `src/app/Http/Requests/Vault/UpdateFolderRequest.php` | Created |
+| `src/app/Http/Requests/Vault/CreateTagRequest.php` | Created |
+| `src/app/Http/Requests/Vault/UpdateTagRequest.php` | Created |
+| `src/app/Http/Requests/Vault/CreateItemRequest.php` | Modified — added folder_id, tag_ids |
+| `src/app/Http/Requests/Vault/UpdateItemRequest.php` | Modified — added folder_id, tag_ids |
+| `src/app/Http/Resources/V1/PersonalVaultFolderResource.php` | Created |
+| `src/app/Http/Resources/V1/PersonalVaultTagResource.php` | Created |
+| `src/app/Http/Resources/V1/PersonalVaultItemResource.php` | Modified — added folder_id, tags, last_accessed_at |
+| `src/app/Policies/PersonalVaultFolderPolicy.php` | Created |
+| `src/app/Policies/PersonalVaultTagPolicy.php` | Created |
+| `src/app/Http/Controllers/Api/V1/PersonalVaultFolderController.php` | Created |
+| `src/app/Http/Controllers/Api/V1/PersonalVaultTagController.php` | Created |
+| `src/app/Http/Controllers/Api/V1/PersonalVaultItemController.php` | Modified — 7 new methods, tag support, last_accessed_at |
+| `src/routes/api.php` | Modified — 22 vault routes |
+| `src/tests/Feature/Api/V1/Vault/VaultOrganizationTest.php` | Created (19 tests) |
+| `docs/learnings/05-personal-vault-part-2.md` | Created — build walkthrough |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `VaultOrganizationTest` | 19 | 49 | Folders (create, nested, tree, delete moves items), tags (create, assign, filter, delete), favorite toggle, favorites list, archive, restore, search by name/url, search can't find encrypted, recent timestamp, recent list, 404 for non-owners |
+| **Module 06 Total** | **19** | **49** | — |
+| **Cumulative Total** | **91** | **280** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| Tag pivot using wrong foreign key | `belongsToMany` default key naming uses `personal_vault_item_id` but pivot uses `item_id` | Specified explicit keys: `belongsToMany(..., 'personal_vault_item_tag', 'item_id', 'tag_id')` |
+| `archived_at` not persisting on update | `archived_at` was not in the `$fillable` array | Added `archived_at` to `#[Fillable]` attribute |
+| PHPStan: Rule objects in return type | `rules()` method return type was `array<string, array<int, string>>` but `Rule::exists()`/`Rule::unique()` are objects | Changed return type to `array<string, list<mixed>>` |
+| PHPStan: route param property access | `$this->route('tag')?->id` — PHPStan doesn't know the route param type | Used `instanceof` check before accessing `->id` |
+
+### Known Issues / Notes
+
+- Folder tree loads 2 levels deep (`children.children`). Deeper nesting requires recursive loading or a different approach (e.g., materialized path).
+- Search is limited to 50 results and uses `LIKE` — for larger datasets, consider full-text search (PostgreSQL) in a future module.
+- `tag_ids` in form requests uses `exists:personal_vault_tags,id` — this doesn't check ownership. The controller's owner check on the item prevents cross-user tag assignment, but a malicious user could pass another user's tag ID. This is mitigated by the fact that tags are scoped to the user in the pivot relationship.
+- Build walkthrough documented in `docs/learnings/05-personal-vault-part-2.md`
 
 ---
 

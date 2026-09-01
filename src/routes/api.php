@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
+use App\Http\Controllers\Api\V1\PersonalVaultTagController;
 use App\Http\Controllers\Api\V1\TenantController;
 use App\Http\Controllers\Api\V1\TenantMemberController;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +68,26 @@ Route::prefix('v1')->group(function (): void {
     // Personal vault — user's private encrypted storage.
     // NOT tenant-scoped; items belong to the user directly (user_id).
     Route::middleware('auth:sanctum')->prefix('vault')->group(function (): void {
-        Route::apiResource('items', PersonalVaultItemController::class);
+        // Vault items — core CRUD (Module 05) + organization endpoints (Module 06)
+        Route::get('items', [PersonalVaultItemController::class, 'index']);
+        Route::post('items', [PersonalVaultItemController::class, 'store']);
+        Route::get('items/recent', [PersonalVaultItemController::class, 'recent']);
+        Route::get('items/favorites', [PersonalVaultItemController::class, 'favorites']);
+        Route::get('items/archived', [PersonalVaultItemController::class, 'archived']);
+        Route::get('items/{item}', [PersonalVaultItemController::class, 'show']);
+        Route::put('items/{item}', [PersonalVaultItemController::class, 'update']);
+        Route::delete('items/{item}', [PersonalVaultItemController::class, 'destroy']);
+        Route::post('items/{item}/favorite', [PersonalVaultItemController::class, 'toggleFavorite']);
+        Route::post('items/{item}/archive', [PersonalVaultItemController::class, 'archive']);
+        Route::post('items/{item}/restore', [PersonalVaultItemController::class, 'restore']);
+
+        // Search
+        Route::get('search', [PersonalVaultItemController::class, 'search']);
+
+        // Folders
+        Route::apiResource('folders', PersonalVaultFolderController::class);
+
+        // Tags
+        Route::apiResource('tags', PersonalVaultTagController::class);
     });
 });

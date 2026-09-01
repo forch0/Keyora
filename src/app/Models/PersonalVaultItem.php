@@ -8,9 +8,11 @@ use App\Traits\Encryptable;
 use Database\Factories\PersonalVaultItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
@@ -26,12 +28,16 @@ use Illuminate\Support\Facades\Crypt;
  * @property array<string, mixed>|null $metadata
  * @property array<int, array{key: string, value: string}>|null $custom_fields
  * @property bool $favorite
+ * @property int|null $folder_id
  * @property Carbon|null $archived_at
+ * @property Carbon|null $last_accessed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
+ * @property-read PersonalVaultFolder|null $folder
+ * @property-read Collection<int, PersonalVaultTag> $tags
  */
-#[Fillable(['user_id', 'name', 'type', 'username', 'password', 'url', 'notes', 'metadata', 'custom_fields', 'favorite'])]
+#[Fillable(['user_id', 'name', 'type', 'username', 'password', 'url', 'notes', 'metadata', 'custom_fields', 'favorite', 'folder_id', 'last_accessed_at', 'archived_at'])]
 class PersonalVaultItem extends Model
 {
     /** @use HasFactory<PersonalVaultItemFactory> */
@@ -54,6 +60,7 @@ class PersonalVaultItem extends Model
             'metadata' => 'array',
             'favorite' => 'boolean',
             'archived_at' => 'datetime',
+            'last_accessed_at' => 'datetime',
         ];
     }
 
@@ -65,6 +72,26 @@ class PersonalVaultItem extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The folder this item belongs to (nullable — root items have no folder).
+     *
+     * @return BelongsTo<PersonalVaultFolder, $this>
+     */
+    public function folder(): BelongsTo
+    {
+        return $this->belongsTo(PersonalVaultFolder::class);
+    }
+
+    /**
+     * Tags associated with this item.
+     *
+     * @return BelongsToMany<PersonalVaultTag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(PersonalVaultTag::class, 'personal_vault_item_tag', 'item_id', 'tag_id');
     }
 
     /**

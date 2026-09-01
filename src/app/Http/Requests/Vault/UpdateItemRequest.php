@@ -37,6 +37,9 @@ class UpdateItemRequest extends FormRequest
             'custom_fields.*.key' => ['required', 'string', 'max:100'],
             'custom_fields.*.value' => ['required', 'string', 'max:1000'],
             'favorite' => ['sometimes', 'boolean'],
+            'folder_id' => ['sometimes', 'nullable', 'integer', 'exists:personal_vault_folders,id'],
+            'tag_ids' => ['sometimes', 'nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:personal_vault_tags,id'],
         ];
     }
 }

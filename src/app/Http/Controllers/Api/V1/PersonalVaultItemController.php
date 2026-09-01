@@ -27,7 +27,7 @@ class PersonalVaultItemController extends Controller
 
     /**
      * List the authenticated user's vault items.
-     * Supports filtering by type, favorite, and archived status.
+     * Supports filtering by type, favorite, archived, folder, and tag.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
@@ -36,10 +36,8 @@ class PersonalVaultItemController extends Controller
         $query = PersonalVaultItem::where('user_id', $user->id);
 
         if ($request->boolean('archived')) {
-            // Show only archived items
             $query->whereNotNull('archived_at');
         } else {
-            // Show only active (non-archived) items
             $query->whereNull('archived_at');
         }
 
@@ -49,6 +47,14 @@ class PersonalVaultItemController extends Controller
 
         if ($request->boolean('favorite')) {
             $query->favorite();
+        }
+
+        if ($folderId = $request->query('folder_id')) {
+            $query->where('folder_id', (int) $folderId);
+        }
+
+        if ($tagId = $request->query('tag_id')) {
+            $query->whereHas('tags', fn ($q) => $q->where('personal_vault_tags.id', (int) $tagId));
         }
 
         $items = $query->orderBy('favorite', 'desc')
@@ -67,6 +73,11 @@ class PersonalVaultItemController extends Controller
 
         $item = ($this->createVaultItem)($user, $request->validated());
 
+        // Attach tags if provided
+        if ($tagIds = $request->validated('tag_ids')) {
+            $item->tags()->attach($tagIds);
+        }
+
         return (new PersonalVaultItemResource($item))
             ->response()
             ->setStatusCode(201);
@@ -74,6 +85,7 @@ class PersonalVaultItemController extends Controller
 
     /**
      * Show a single vault item with decrypted sensitive fields.
+     * Updates last_accessed_at timestamp.
      */
     public function show(Request $request, PersonalVaultItem $item): JsonResponse
     {
@@ -82,6 +94,9 @@ class PersonalVaultItemController extends Controller
         if ($item->user_id !== $user->id) {
             abort(404);
         }
+
+        $item->update(['last_accessed_at' => now()]);
+        $item->refresh();
 
         return (new PersonalVaultItemResource($item))->response();
     }
@@ -98,6 +113,11 @@ class PersonalVaultItemController extends Controller
         }
 
         $item = ($this->updateVaultItem)($item, $request->validated());
+
+        // Sync tags if provided
+        if ($request->has('tag_ids')) {
+            $item->tags()->sync($request->validated('tag_ids', []));
+        }
 
         return (new PersonalVaultItemResource($item))->response();
     }
@@ -119,8 +139,134 @@ class PersonalVaultItemController extends Controller
     }
 
     /**
-     * Get the authenticated user or throw.
+     * Toggle the favorite status of an item.
      */
+    public function toggleFavorite(Request $request, PersonalVaultItem $item): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        if ($item->user_id !== $user->id) {
+            abort(404);
+        }
+
+        $item->update(['favorite' => ! $item->favorite]);
+        $item->refresh();
+
+        return (new PersonalVaultItemResource($item))->response();
+    }
+
+    /**
+     * Archive an item (set archived_at).
+     */
+    public function archive(Request $request, PersonalVaultItem $item): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        if ($item->user_id !== $user->id) {
+            abort(404);
+        }
+
+        $item->update(['archived_at' => now()]);
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Restore an archived item (clear archived_at).
+     */
+    public function restore(Request $request, PersonalVaultItem $item): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        if ($item->user_id !== $user->id) {
+            abort(404);
+        }
+
+        $item->update(['archived_at' => null]);
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * List recently accessed items (by last_accessed_at, limit 20).
+     */
+    public function recent(Request $request): AnonymousResourceCollection
+    {
+        $user = $this->authenticatedUser($request);
+
+        $items = PersonalVaultItem::where('user_id', $user->id)
+            ->whereNotNull('last_accessed_at')
+            ->whereNull('archived_at')
+            ->orderBy('last_accessed_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return PersonalVaultItemResource::collection($items);
+    }
+
+    /**
+     * List favorite items.
+     */
+    public function favorites(Request $request): AnonymousResourceCollection
+    {
+        $user = $this->authenticatedUser($request);
+
+        $items = PersonalVaultItem::where('user_id', $user->id)
+            ->where('favorite', true)
+            ->whereNull('archived_at')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(20);
+
+        return PersonalVaultItemResource::collection($items);
+    }
+
+    /**
+     * List archived items.
+     */
+    public function archived(Request $request): AnonymousResourceCollection
+    {
+        $user = $this->authenticatedUser($request);
+
+        $items = PersonalVaultItem::where('user_id', $user->id)
+            ->whereNotNull('archived_at')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(20);
+
+        return PersonalVaultItemResource::collection($items);
+    }
+
+    /**
+     * Search vault items by name and URL (plaintext columns only).
+     * Cannot search encrypted fields.
+     */
+    public function search(Request $request): AnonymousResourceCollection
+    {
+        $user = $this->authenticatedUser($request);
+
+        $query = $request->query('q', '');
+
+        if ($query === '') {
+            return PersonalVaultItemResource::collection(collect());
+        }
+
+        $items = PersonalVaultItem::where('user_id', $user->id)
+            ->whereNull('archived_at')
+            ->where(function ($q) use ($query): void {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('url', 'like', "%{$query}%");
+            });
+
+        if ($type = $request->query('type')) {
+            $items->ofType((string) $type);
+        }
+
+        $results = $items->orderBy('updated_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        return PersonalVaultItemResource::collection($results);
+    }
+
     private function authenticatedUser(Request $request): User
     {
         $user = $request->user();

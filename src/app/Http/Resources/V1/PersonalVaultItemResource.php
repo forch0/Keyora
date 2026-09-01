@@ -27,7 +27,10 @@ class PersonalVaultItemResource extends JsonResource
             'metadata' => $this->metadata,
             'custom_fields' => $this->custom_fields,
             'favorite' => $this->favorite,
+            'folder_id' => $this->folder_id,
+            'last_accessed_at' => $this->last_accessed_at,
             'archived_at' => $this->archived_at,
+            'tags' => $this->whenLoaded('tags', fn () => $this->tags->map(fn ($tag) => ['id' => $tag->id, 'name' => $tag->name, 'color' => $tag->color])),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
