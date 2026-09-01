@@ -1,4 +1,4 @@
-# 01 — How Module 02 (Authentication) Was Built
+# 02 — How Module 02 (Authentication) Was Built
 
 | Field | Value |
 |---|---|

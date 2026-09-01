@@ -1,4 +1,4 @@
-# 03 — How Module 04 (Company Workspace) Was Built
+# 04 — How Module 04 (Company Workspace) Was Built
 
 | Field | Value |
 |---|---|

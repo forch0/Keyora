@@ -1,4 +1,4 @@
-# 02 — How Module 03 (Multi-Tenancy) Was Built
+# 03 — How Module 03 (Multi-Tenancy) Was Built
 
 | Field | Value |
 |---|---|

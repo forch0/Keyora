@@ -1,4 +1,4 @@
-# 04 — How Module 05 (Personal Vault Part 1) Was Built
+# 05 — How Module 05 (Personal Vault Part 1) Was Built
 
 | Field | Value |
 |---|---|
