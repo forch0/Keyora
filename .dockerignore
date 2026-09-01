@@ -1,0 +1,8 @@
+.git
+docker
+node_modules
+src/vendor
+src/.env
+src/.env.backup
+*.md
+docs

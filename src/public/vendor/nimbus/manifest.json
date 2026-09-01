@@ -1,0 +1,120 @@
+{
+  "_AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js": {
+    "file": "assets/AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js",
+    "name": "AppPopoverContent.vue_vue_type_script_setup_true_lang",
+    "imports": [
+      "resources/js/app/app.ts"
+    ]
+  },
+  "_AppRoundIndicator.vue_vue_type_script_setup_true_lang-DP2f4VMl.js": {
+    "file": "assets/AppRoundIndicator.vue_vue_type_script_setup_true_lang-DP2f4VMl.js",
+    "name": "AppRoundIndicator.vue_vue_type_script_setup_true_lang",
+    "imports": [
+      "resources/js/app/app.ts",
+      "_AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js"
+    ]
+  },
+  "_CopyButton.vue_vue_type_script_setup_true_lang-D86_vAdi.js": {
+    "file": "assets/CopyButton.vue_vue_type_script_setup_true_lang-D86_vAdi.js",
+    "name": "CopyButton.vue_vue_type_script_setup_true_lang",
+    "imports": [
+      "resources/js/app/app.ts",
+      "_AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js"
+    ]
+  },
+  "_PageLayout.vue_vue_type_script_setup_true_lang-JAvx4qr9.js": {
+    "file": "assets/PageLayout.vue_vue_type_script_setup_true_lang-JAvx4qr9.js",
+    "name": "PageLayout.vue_vue_type_script_setup_true_lang",
+    "imports": [
+      "resources/js/app/app.ts"
+    ]
+  },
+  "node_modules/shiki/dist/langs/javascript.mjs": {
+    "file": "assets/javascript-ySlJ1b_l.js",
+    "name": "javascript",
+    "src": "node_modules/shiki/dist/langs/javascript.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/shiki/dist/themes/vitesse-dark.mjs": {
+    "file": "assets/vitesse-dark-D0r3Knsf.js",
+    "name": "vitesse-dark",
+    "src": "node_modules/shiki/dist/themes/vitesse-dark.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/shiki/dist/themes/vitesse-light.mjs": {
+    "file": "assets/vitesse-light-CVO1_9PV.js",
+    "name": "vitesse-light",
+    "src": "node_modules/shiki/dist/themes/vitesse-light.mjs",
+    "isDynamicEntry": true
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-JHUrrxHY.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app/app.ts": {
+    "file": "assets/app-MOHerbY3.js",
+    "name": "app",
+    "src": "resources/js/app/app.ts",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/pages/Main.vue",
+      "resources/js/pages/Settings.vue",
+      "resources/js/pages/Environment.vue"
+    ],
+    "css": [
+      "assets/app-JHUrrxHY.css"
+    ]
+  },
+  "resources/js/pages/Environment.vue": {
+    "file": "assets/Environment-Cj5ICgTL.js",
+    "name": "Environment",
+    "src": "resources/js/pages/Environment.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js",
+      "resources/js/app/app.ts",
+      "_AppRoundIndicator.vue_vue_type_script_setup_true_lang-DP2f4VMl.js",
+      "_PageLayout.vue_vue_type_script_setup_true_lang-JAvx4qr9.js"
+    ],
+    "css": [
+      "assets/app-JHUrrxHY.css"
+    ]
+  },
+  "resources/js/pages/Main.vue": {
+    "file": "assets/Main-6az9_Lhr.js",
+    "name": "Main",
+    "src": "resources/js/pages/Main.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app/app.ts",
+      "_AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js",
+      "_AppRoundIndicator.vue_vue_type_script_setup_true_lang-DP2f4VMl.js",
+      "_CopyButton.vue_vue_type_script_setup_true_lang-D86_vAdi.js"
+    ],
+    "dynamicImports": [
+      "node_modules/shiki/dist/themes/vitesse-light.mjs",
+      "node_modules/shiki/dist/themes/vitesse-dark.mjs",
+      "node_modules/shiki/dist/langs/javascript.mjs"
+    ],
+    "css": [
+      "assets/Main-Cy4bOnkL.css",
+      "assets/app-JHUrrxHY.css"
+    ]
+  },
+  "resources/js/pages/Settings.vue": {
+    "file": "assets/Settings-DkJNuwlF.js",
+    "name": "Settings",
+    "src": "resources/js/pages/Settings.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_AppPopoverContent.vue_vue_type_script_setup_true_lang-DRouJV4I.js",
+      "resources/js/app/app.ts",
+      "_CopyButton.vue_vue_type_script_setup_true_lang-D86_vAdi.js",
+      "_PageLayout.vue_vue_type_script_setup_true_lang-JAvx4qr9.js"
+    ],
+    "css": [
+      "assets/app-JHUrrxHY.css"
+    ]
+  }
+}
