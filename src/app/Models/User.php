@@ -125,4 +125,54 @@ class User extends Authenticatable
 
         return is_string($status) ? $status : null;
     }
+
+    /**
+     * Teams this user belongs to.
+     *
+     * @return BelongsToMany<Team, $this>
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user')
+            ->withPivot(['role', 'joined_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if the user is a member of the given team.
+     */
+    public function isTeamMember(Team $team): bool
+    {
+        return $this->teams()->where('teams.id', $team->id)->exists();
+    }
+
+    /**
+     * Get the user's role in the given team, or null if not a member.
+     */
+    public function teamRole(Team $team): ?string
+    {
+        $membership = $this->teams()->where('teams.id', $team->id)->first();
+
+        if ($membership === null) {
+            return null;
+        }
+
+        $pivot = $membership->getRelation('pivot');
+
+        if (! $pivot instanceof Pivot) {
+            return null;
+        }
+
+        $role = $pivot->getAttribute('role');
+
+        return is_string($role) ? $role : null;
+    }
+
+    /**
+     * Check if the user is a team lead of the given team.
+     */
+    public function isTeamLead(Team $team): bool
+    {
+        return $this->teamRole($team) === 'lead';
+    }
 }

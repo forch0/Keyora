@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\OrgVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
+use App\Http\Controllers\Api\V1\TeamController;
+use App\Http\Controllers\Api\V1\TeamMemberController;
+use App\Http\Controllers\Api\V1\TeamVaultItemController;
 use App\Http\Controllers\Api\V1\TenantController;
 use App\Http\Controllers\Api\V1\TenantMemberController;
 use Illuminate\Support\Facades\Route;
@@ -89,5 +93,35 @@ Route::prefix('v1')->group(function (): void {
 
         // Tags
         Route::apiResource('tags', PersonalVaultTagController::class);
+    });
+
+    // Teams & team/org vaults — tenant-scoped, require tenant context.
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->group(function (): void {
+        // Teams CRUD
+        Route::get('tenants/{tenant}/teams', [TeamController::class, 'index']);
+        Route::post('tenants/{tenant}/teams', [TeamController::class, 'store']);
+        Route::get('tenants/{tenant}/teams/{team}', [TeamController::class, 'show']);
+        Route::put('tenants/{tenant}/teams/{team}', [TeamController::class, 'update']);
+        Route::delete('tenants/{tenant}/teams/{team}', [TeamController::class, 'destroy']);
+
+        // Team members
+        Route::get('tenants/{tenant}/teams/{team}/members', [TeamMemberController::class, 'index']);
+        Route::post('tenants/{tenant}/teams/{team}/members', [TeamMemberController::class, 'store']);
+        Route::put('tenants/{tenant}/teams/{team}/members/{user}', [TeamMemberController::class, 'update']);
+        Route::delete('tenants/{tenant}/teams/{team}/members/{user}', [TeamMemberController::class, 'destroy']);
+
+        // Team vault items
+        Route::get('tenants/{tenant}/teams/{team}/vault/items', [TeamVaultItemController::class, 'index']);
+        Route::post('tenants/{tenant}/teams/{team}/vault/items', [TeamVaultItemController::class, 'store']);
+        Route::get('tenants/{tenant}/teams/{team}/vault/items/{item}', [TeamVaultItemController::class, 'show']);
+        Route::put('tenants/{tenant}/teams/{team}/vault/items/{item}', [TeamVaultItemController::class, 'update']);
+        Route::delete('tenants/{tenant}/teams/{team}/vault/items/{item}', [TeamVaultItemController::class, 'destroy']);
+
+        // Org-wide vault items (team_id = null)
+        Route::get('tenants/{tenant}/vault/items', [OrgVaultItemController::class, 'index']);
+        Route::post('tenants/{tenant}/vault/items', [OrgVaultItemController::class, 'store']);
+        Route::get('tenants/{tenant}/vault/items/{item}', [OrgVaultItemController::class, 'show']);
+        Route::put('tenants/{tenant}/vault/items/{item}', [OrgVaultItemController::class, 'update']);
+        Route::delete('tenants/{tenant}/vault/items/{item}', [OrgVaultItemController::class, 'destroy']);
     });
 });

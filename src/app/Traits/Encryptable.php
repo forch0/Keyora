@@ -80,11 +80,6 @@ trait Encryptable
      */
     private function isEncryptable(string $key): bool
     {
-        // @phpstan-ignore-next-line function.alreadyNarrowedType — trait is reusable; not all models declare $encryptable
-        if (! property_exists($this, 'encryptable')) {
-            return false;
-        }
-
         /** @var list<string> $encryptable */
         $encryptable = $this->encryptable;
 

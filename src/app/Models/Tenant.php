@@ -63,4 +63,52 @@ class Tenant extends Model
     {
         return $this->hasMany(TenantInvitation::class);
     }
+
+    /**
+     * Teams within this tenant workspace.
+     *
+     * @return HasMany<Team, $this>
+     */
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
+    }
+
+    /**
+     * Org-wide vault items (team_id = null) for this tenant.
+     *
+     * @return HasMany<VaultItem, $this>
+     */
+    public function vaultItems(): HasMany
+    {
+        return $this->hasMany(VaultItem::class);
+    }
+
+    /**
+     * Resolve child route binding without triggering the BelongsToTenant
+     * global scope on the child model (which would throw during route
+     * binding before the tenant context is set).
+     *
+     * @param  string  $childType
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return Model|null
+     */
+    public function resolveChildRouteBinding($childType, $value, $field = null)
+    {
+        $relation = $this->{$childType}();
+
+        /** @var Model $related */
+        $related = $relation->getRelated();
+
+        // Bypass the tenant global scope on the child model
+        if (method_exists($related, 'withoutTenant')) {
+            return $related->newQuery()
+                ->withoutGlobalScope('tenant')
+                ->where($field ?? $related->getKeyName(), $value)
+                ->first();
+        }
+
+        return parent::resolveChildRouteBinding($childType, $value, $field);
+    }
 }

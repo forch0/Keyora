@@ -74,4 +74,17 @@ trait BelongsToTenant
     {
         return $builder->withoutGlobalScope('tenant');
     }
+
+    /**
+     * Resolve route binding without the tenant global scope.
+     * The tenant check is enforced in the controller/policy, not during binding.
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return static|null
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return static::query()->withoutGlobalScope('tenant')->where($field ?? $this->getKeyName(), $value)->first();
+    }
 }

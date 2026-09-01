@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Vault;
 
+use App\Models\PersonalVaultTag;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class UpdateTagRequest extends FormRequest
         $tagId = $this->route('tag');
 
         return [
-            'name' => ['sometimes', 'string', 'max:50', Rule::unique('personal_vault_tags', 'name')->where('user_id', $userId)->ignore($tagId instanceof \App\Models\PersonalVaultTag ? $tagId->id : 0)],
+            'name' => ['sometimes', 'string', 'max:50', Rule::unique('personal_vault_tags', 'name')->where('user_id', $userId)->ignore($tagId instanceof PersonalVaultTag ? $tagId->id : 0)],
             'color' => ['sometimes', 'nullable', 'string', 'max:20'],
         ];
     }

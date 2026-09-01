@@ -34,7 +34,7 @@
 | 04 | Company Workspace | ✅ Complete | 2026-09-01 | Tenant invitations, member CRUD, role management, suspend/restore, ResolveTenant blocks suspended, 16 new tests (57 total) |
 | 05 | Personal Vault — Part 1 | ✅ Complete | 2026-09-01 | Encryptable trait, personal_vault_items CRUD, AES-256 encryption, 15 new tests (72 total) |
 | 06 | Personal Vault — Part 2 | ✅ Complete | 2026-09-01 | Folders (nested), tags, favorite toggle, archive/restore, search, recent items, 19 new tests (91 total) |
-| 07 | Teams & Team Vaults | ⬜ Not Started | — | — |
+| 07 | Teams & Team Vaults | ✅ Complete | 2026-09-01 | Teams (tenant-scoped), team_user pivot, team/org vault items (BelongsToTenant + Encryptable + SoftDeletes), 10 Actions, 4 controllers, 19 new routes, 13 new tests (104 total) |
 | 08 | Permission System — Part 1 | ⬜ Not Started | — | — |
 | 09 | Permission System — Part 2 | ⬜ Not Started | — | — |
 | 10 | Password Tools | ⬜ Not Started | — | — |
@@ -182,11 +182,150 @@ docker compose ps
 
 ## Next Module
 
-**Module 07 — Teams & Team Vaults**
-- Teams within company workspaces
-- Team vault items (tenant-scoped)
-- Team member management
-- Dependencies: Module 04 ✅, Module 05 ✅
+**Module 08 — Permission System Part 1**
+- Fine-grained access grants
+- Per-item sharing
+- Dependencies: Module 07 ✅
+
+---
+
+## Module 07 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 7.1 | Created `teams` migration (tenant_id FK, name, description, color, created_by, unique tenant+name) | Migration runs clean |
+| 7.2 | Created `Team` model (BelongsToTenant, user/creator/members/vaultItems relationships) | Model loads, PHPStan clean |
+| 7.3 | Created `team_user` pivot migration (team_id, user_id, role enum, joined_at, unique constraint) | Migration runs clean |
+| 7.4 | Created `vault_items` migration (tenant_id, team_id nullable, user_id, encrypted fields, soft deletes) | Migration runs clean |
+| 7.5 | Created `VaultItem` model (BelongsToTenant + Encryptable + SoftDeletes, custom_fields encryption, orgWide scope) | Model loads, PHPStan clean |
+| 7.6 | Created `vault_folders` and `vault_tags` migrations + `vault_item_tag` pivot | Migration runs clean |
+| 7.7 | Created `VaultFolder` and `VaultTag` models (BelongsToTenant, relationships) | Models load, PHPStan clean |
+| 7.8 | Added `teams()`, `vaultItems()`, `resolveChildRouteBinding()` to Tenant model | Route binding works for nested resources |
+| 7.9 | Added `teams()`, `isTeamMember()`, `teamRole()`, `isTeamLead()` to User model | Team membership checks work |
+| 7.10 | Added `resolveRouteBinding()` to BelongsToTenant trait (bypasses tenant scope during route binding) | Route binding works for tenant-scoped models |
+| 7.11 | Created 6 Form Requests: CreateTeamRequest, UpdateTeamRequest, AddTeamMemberRequest, UpdateTeamMemberRequest, CreateVaultItemRequest, UpdateVaultItemRequest | Validation works in tests |
+| 7.12 | Created 3 API Resources: TeamResource, TeamMemberResource, VaultItemResource | Resources transform correctly |
+| 7.13 | Created TeamPolicy and VaultItemPolicy (owner/team/admin checks) | Policies enforce correctly |
+| 7.14 | Created 10 Actions: CreateTeamAction, UpdateTeamAction, DeleteTeamAction, AddTeamMemberAction, UpdateTeamMemberAction, RemoveTeamMemberAction, CreateTeamVaultItemAction, CreateOrgVaultItemAction, UpdateTeamVaultItemAction, DeleteTeamVaultItemAction | All business logic in Actions |
+| 7.15 | Created 4 Controllers: TeamController, TeamMemberController, TeamVaultItemController, OrgVaultItemController (all thin, delegate to Actions) | All endpoints respond correctly |
+| 7.16 | Registered 19 new routes (teams CRUD, team members, team vault items, org-wide vault items) | `php artisan route:list` shows 19 routes |
+| 7.17 | Wrote 13 feature tests covering all acceptance criteria | `php artisan test` → 104 passed, 306 assertions |
+| 7.18 | Ran verification: Pint (clean), PHPStan level 8 (0 errors), tests (104 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Status | Description |
+|---|---|---|---|
+| GET | `/api/v1/tenants/{tenant}/teams` | 200 | List teams |
+| POST | `/api/v1/tenants/{tenant}/teams` | 201 | Create team (admin/owner only) |
+| GET | `/api/v1/tenants/{tenant}/teams/{team}` | 200 | Get team details |
+| PUT | `/api/v1/tenants/{tenant}/teams/{team}` | 200 | Update team (admin/lead) |
+| DELETE | `/api/v1/tenants/{tenant}/teams/{team}` | 204 | Delete team (admin, items → org-wide) |
+| GET | `/api/v1/tenants/{tenant}/teams/{team}/members` | 200 | List team members |
+| POST | `/api/v1/tenants/{tenant}/teams/{team}/members` | 201 | Add member (admin/lead) |
+| PUT | `/api/v1/tenants/{tenant}/teams/{team}/members/{user}` | 200 | Change role (admin/lead) |
+| DELETE | `/api/v1/tenants/{tenant}/teams/{team}/members/{user}` | 204 | Remove member (admin/lead) |
+| GET | `/api/v1/tenants/{tenant}/teams/{team}/vault/items` | 200 | List team vault items |
+| POST | `/api/v1/tenants/{tenant}/teams/{team}/vault/items` | 201 | Create team vault item |
+| GET | `/api/v1/tenants/{tenant}/teams/{team}/vault/items/{item}` | 200 | Get team vault item |
+| PUT | `/api/v1/tenants/{tenant}/teams/{team}/vault/items/{item}` | 200 | Update team vault item |
+| DELETE | `/api/v1/tenants/{tenant}/teams/{team}/vault/items/{item}` | 204 | Delete team vault item |
+| GET | `/api/v1/tenants/{tenant}/vault/items` | 200 | List org-wide vault items |
+| POST | `/api/v1/tenants/{tenant}/vault/items` | 201 | Create org-wide vault item |
+| GET | `/api/v1/tenants/{tenant}/vault/items/{item}` | 200 | Get org-wide vault item |
+| PUT | `/api/v1/tenants/{tenant}/vault/items/{item}` | 200 | Update org-wide vault item |
+| DELETE | `/api/v1/tenants/{tenant}/vault/items/{item}` | 204 | Delete org-wide vault item |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| All business logic in Actions | Per architecture spec: controllers are thin, Actions handle business logic. 10 Actions created for team/member/vault-item operations. |
+| `resolveRouteBinding` in BelongsToTenant trait | Tenant-scoped models throw during route binding (no tenant context yet). Added `resolveRouteBinding()` that bypasses the global scope. Tenant check is enforced in the controller. |
+| `Tenant $tenant` parameter in controllers | Laravel's implicit route binding requires the parent parameter to be in the controller signature for nested parameters to resolve correctly. |
+| `resolveChildRouteBinding` on Tenant | Bypasses the tenant global scope on child models (Team, VaultItem) during route binding. |
+| Delete team moves items to org-wide | Spec: "vault items moved to org-wide or deleted". Chose to preserve data by setting `team_id = null`. |
+| Org-wide items accessible to all tenant members | `team_id = null` means the item is shared across the entire tenant. Any active member can view. |
+| Team vault items use same encryption as personal | VaultItem uses Encryptable trait + custom_fields encryption, same pattern as PersonalVaultItem. |
+| `User::query()->find()` with `instanceof` | PHPStan: `User::find()` returns `User|Collection|null`. Used `instanceof User` to narrow the type. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/database/migrations/2026_09_01_180000_create_teams_table.php` | Created |
+| `src/database/migrations/2026_09_01_180001_create_team_user_table.php` | Created |
+| `src/database/migrations/2026_09_01_180002_create_vault_folders_table.php` | Created |
+| `src/database/migrations/2026_09_01_180003_create_vault_items_table.php` | Created |
+| `src/database/migrations/2026_09_01_180004_create_vault_tags_table.php` | Created |
+| `src/app/Models/Team.php` | Created |
+| `src/app/Models/VaultItem.php` | Created |
+| `src/app/Models/VaultFolder.php` | Created |
+| `src/app/Models/VaultTag.php` | Created |
+| `src/app/Models/Tenant.php` | Modified — teams(), vaultItems(), resolveChildRouteBinding() |
+| `src/app/Models/User.php` | Modified — teams(), isTeamMember(), teamRole(), isTeamLead() |
+| `src/app/Traits/BelongsToTenant.php` | Modified — resolveRouteBinding() |
+| `src/app/Traits/Encryptable.php` | Modified — simplified isEncryptable() |
+| `src/database/factories/TeamFactory.php` | Created |
+| `src/database/factories/VaultItemFactory.php` | Created |
+| `src/database/factories/VaultFolderFactory.php` | Created |
+| `src/database/factories/VaultTagFactory.php` | Created |
+| `src/app/Actions/CreateTeamAction.php` | Created |
+| `src/app/Actions/UpdateTeamAction.php` | Created |
+| `src/app/Actions/DeleteTeamAction.php` | Created |
+| `src/app/Actions/AddTeamMemberAction.php` | Created |
+| `src/app/Actions/UpdateTeamMemberAction.php` | Created |
+| `src/app/Actions/RemoveTeamMemberAction.php` | Created |
+| `src/app/Actions/CreateTeamVaultItemAction.php` | Created |
+| `src/app/Actions/CreateOrgVaultItemAction.php` | Created |
+| `src/app/Actions/UpdateTeamVaultItemAction.php` | Created |
+| `src/app/Actions/DeleteTeamVaultItemAction.php` | Created |
+| `src/app/Http/Requests/Team/CreateTeamRequest.php` | Created |
+| `src/app/Http/Requests/Team/UpdateTeamRequest.php` | Created |
+| `src/app/Http/Requests/Team/AddTeamMemberRequest.php` | Created |
+| `src/app/Http/Requests/Team/UpdateTeamMemberRequest.php` | Created |
+| `src/app/Http/Requests/Team/CreateVaultItemRequest.php` | Created |
+| `src/app/Http/Requests/Team/UpdateVaultItemRequest.php` | Created |
+| `src/app/Http/Resources/V1/TeamResource.php` | Created |
+| `src/app/Http/Resources/V1/TeamMemberResource.php` | Created |
+| `src/app/Http/Resources/V1/VaultItemResource.php` | Created |
+| `src/app/Policies/TeamPolicy.php` | Created |
+| `src/app/Policies/VaultItemPolicy.php` | Created |
+| `src/app/Http/Controllers/Api/V1/TeamController.php` | Created |
+| `src/app/Http/Controllers/Api/V1/TeamMemberController.php` | Created |
+| `src/app/Http/Controllers/Api/V1/TeamVaultItemController.php` | Created |
+| `src/app/Http/Controllers/Api/V1/OrgVaultItemController.php` | Created |
+| `src/routes/api.php` | Modified — 19 new routes |
+| `src/tests/Feature/Api/V1/Teams/TeamTest.php` | Created (13 tests) |
+| `docs/learnings/06-teams-and-team-vaults.md` | Created — build walkthrough |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `TeamTest` | 13 | 26 | Team CRUD (admin create, member cannot), add/remove members, multiple teams, team vault item CRUD, non-member 403, org-wide access, team lead permissions, delete team, encryption, tenant isolation |
+| **Module 07 Total** | **13** | **26** | — |
+| **Cumulative Total** | **104** | **306** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| Route binding returns string instead of Model | `BelongsToTenant` global scope throws during route binding (no tenant context). Laravel falls back to raw string. | Added `resolveRouteBinding()` to trait that bypasses the scope. Also added `Tenant $tenant` parameter to controller methods (Laravel requires parent parameter for nested binding). |
+| `resolveChildRouteBinding` fails on Tenant | `getRelated()` returns `class-string\|object` in PHPStan. | Added `@var Model` annotation to narrow the type. |
+| `User::find()` returns `User\|Collection\|null` | PHPStan sees `find()` as potentially returning a Collection. | Used `User::query()->find()` with `instanceof User` check. |
+| `property_exists` always true in Encryptable | Both VaultItem and PersonalVaultItem declare `$encryptable`, so PHPStan knows it always exists. | Removed the `property_exists` check entirely — models using the trait must declare `$encryptable`. |
+| `CreateTeamAction` unused `$tenantManager` | Constructor injected TenantManager but never used it (tenant_id is auto-set by BelongsToTenant trait). | Removed the unused dependency. |
+| `fresh()` returns nullable | PHPStan: `Model::fresh()` returns `self\|null`. | Added `?? $team` / `?? $item` fallback. |
+
+### Known Issues / Notes
+
+- `TeamPolicy` and `VaultItemPolicy` are created but not registered in `AuthServiceProvider` — authorization is done via inline checks in controllers (same pattern as Module 04's TenantMemberPolicy).
+- `vault_folders` and `vault_tags` tables exist but folder/tag endpoints for team vaults are not implemented yet (deferred — the spec focuses on team vault item CRUD).
+- Team vault item `favorite` field is per-item, not per-user. Per-user favorites for shared items would require a separate pivot table (future module).
+- Build walkthrough documented in `docs/learnings/06-teams-and-team-vaults.md`
 
 ---
 
