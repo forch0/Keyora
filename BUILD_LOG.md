@@ -30,8 +30,8 @@
 |---|---|---|---|---|
 | 01 | Project Setup & Foundation | ✅ Complete | 2026-09-01 | Laravel project in `src/`, Docker setup, packages installed (Sanctum, Nimbus, Telescope, Laravel-Brain, Laravel-Lang), API-only mode, code quality tools, test helpers |
 | 02 | Authentication | ✅ Complete | 2026-09-01 | Sanctum token auth, register/login/logout, profile update, password change, password reset, rate limiting, 31 tests passing |
-| 03 | Multi-Tenancy | ⬜ Not Started | — | — |
-| 04 | Company Workspace | ⬜ Not Started | — | — |
+| 03 | Multi-Tenancy | ✅ Complete | 2026-09-01 | Tenant model, tenant_user pivot, BelongsToTenant trait (fail-closed), TenantManager singleton, ResolveTenant middleware, Tenant CRUD API, TenantPolicy, 10 new tests (41 total) |
+| 04 | Company Workspace | ✅ Complete | 2026-09-01 | Tenant invitations, member CRUD, role management, suspend/restore, ResolveTenant blocks suspended, 16 new tests (57 total) |
 | 05 | Personal Vault — Part 1 | ⬜ Not Started | — | — |
 | 06 | Personal Vault — Part 2 | ⬜ Not Started | — | — |
 | 07 | Teams & Team Vaults | ⬜ Not Started | — | — |
@@ -182,13 +182,232 @@ docker compose ps
 
 ## Next Module
 
-**Module 03 — Multi-Tenancy**
-- Tenant model and migrations
-- `BelongsToTenant` trait + `TenantScope` global scope
-- `TenantManager` singleton service
-- `ResolveTenant` middleware (token scope → X-Tenant-ID header → URL param)
-- Tenant-aware models vs non-tenant models
-- Dependencies: Module 02 ✅
+**Module 05 — Personal Vault Part 1**
+- Personal vault items (secrets, credentials, notes) scoped by user_id
+- Vault item CRUD
+- Encryption at rest
+- Dependencies: Module 02 ✅, Module 03 ✅
+
+---
+
+## Module 04 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 4.1 | Created `tenant_invitations` table migration (id, tenant_id, email, role enum, token UUID, invited_by, accepted_at, expires_at, timestamps) | `php artisan migrate:fresh` → all tables created |
+| 4.2 | Updated `tenant_user` pivot — changed `status` to enum (active, suspended, left), added `suspended_at` | Migration runs clean |
+| 4.3 | Created `TenantInvitation` model — fillable, casts (accepted_at/expires_at → datetime), `tenant()` + `inviter()` relations, `isAccepted()`, `isExpired()`, `isPending()` helpers | Model loads, PHPStan clean |
+| 4.4 | Updated `Tenant` model — added `status`/`suspended_at` to pivot, `activeMembers()` scope, `invitations()` hasMany | Relationships work |
+| 4.5 | Updated `User` model — `isMemberOf()` now checks status='active', added `isAdminOf()`, `statusIn()` helpers | All helpers return correct values |
+| 4.6 | Created `EmployeeInvitation` notification — sent to invitee email with tenant name, inviter name, token link | Notification class loads |
+| 4.7 | Created `SendInviteEmail` job (ShouldQueue) — dispatches notification via anonymous notifiable route | Queue::fake() confirms dispatch in test |
+| 4.8 | Created `InviteEmployeeAction` — generates UUID token, creates invitation, dispatches SendInviteEmail job | Action works in tests |
+| 4.9 | Created `AcceptInvitationAction` — validates token (not expired, not accepted), attaches user to tenant, marks accepted | Action works in tests |
+| 4.10 | Created 3 Form Requests: `InviteMemberRequest`, `AcceptInvitationRequest`, `UpdateMemberRequest` | Validation works in tests |
+| 4.11 | Created `TenantMemberResource` (id, name, email, role, status, joined_at, suspended_at, teams_count) and `TenantInvitationResource` (id, email, role, invited_by, accepted_at, expires_at) | Resources transform correctly |
+| 4.12 | Created `TenantMemberPolicy` — view (member), invite (admin/owner), update/suspend/restore/remove (admin/owner, cannot act on owner), manageInvitations (admin/owner) | Policy enforced via gates |
+| 4.13 | Registered 7 gates in AppServiceProvider delegating to TenantMemberPolicy | Gates resolve correctly |
+| 4.14 | Added `AuthorizesRequests` trait to base Controller (Laravel 13 doesn't include it by default) | `$this->authorize()` works |
+| 4.15 | Created `TenantMemberController` — 10 methods (index, invite, accept, show, update, suspend, restore, destroy, invitations, cancelInvitation) | All endpoints respond correctly |
+| 4.16 | Registered 10 member/invitation routes nested under `tenants/{tenant}` | `php artisan route:list` shows 15 tenant routes total |
+| 4.17 | Updated `ResolveTenant` middleware — blocks suspended members with 403, extracts `ensureActiveMember()` helper | Suspended member test passes |
+| 4.18 | Updated `TenantHelper` — added `createInvitation()` helper, `attachUserToTenant()` now accepts extra pivot attributes | Test helpers work |
+| 4.19 | Wrote 16 feature tests across 2 test classes covering all acceptance criteria | `php artisan test` → 57 passed, 175 assertions |
+| 4.20 | Ran verification: Pint (88 files, 0 issues), PHPStan level 8 (0 errors), tests (57 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Auth | Role | Status | Description |
+|---|---|---|---|---|---|
+| GET | `/api/v1/tenants/{tenant}/members` | Yes | Member | 200 | List all members |
+| POST | `/api/v1/tenants/{tenant}/members/invite` | Yes | Admin/Owner | 201 | Invite employee via email |
+| POST | `/api/v1/tenants/{tenant}/members/accept` | Yes | Any user | 200/422 | Accept invitation with token |
+| GET | `/api/v1/tenants/{tenant}/members/{user}` | Yes | Member | 200 | View member profile |
+| PUT | `/api/v1/tenants/{tenant}/members/{user}` | Yes | Admin/Owner | 200 | Change member role |
+| POST | `/api/v1/tenants/{tenant}/members/{user}/suspend` | Yes | Admin/Owner | 204 | Suspend member |
+| POST | `/api/v1/tenants/{tenant}/members/{user}/restore` | Yes | Admin/Owner | 204 | Restore suspended member |
+| DELETE | `/api/v1/tenants/{tenant}/members/{user}` | Yes | Admin/Owner | 204 | Remove member |
+| GET | `/api/v1/tenants/{tenant}/invitations` | Yes | Admin/Owner | 200 | List pending invitations |
+| DELETE | `/api/v1/tenants/{tenant}/invitations/{invitation}` | Yes | Admin/Owner | 204 | Cancel invitation |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Gates instead of model policy for TenantMemberPolicy | The `can:` middleware resolves policy by model class. Both TenantPolicy and TenantMemberPolicy operate on `Tenant`, so only one can be the model policy. Registered TenantMemberPolicy methods as named gates in AppServiceProvider instead. |
+| `$this->authorize()` in controller instead of `can:` middleware | The gates need both `Tenant` and `User` (target member) arguments. `can:` middleware passes route params, but the gate lookup was ambiguous. Calling `$this->authorize('member.suspend', [$tenant, $user])` in the controller is explicit and clear. |
+| `AuthorizesRequests` trait on base Controller | Laravel 13's default Controller is empty (no traits). Added `AuthorizesRequests` to enable `$this->authorize()` across all controllers. |
+| `accept` endpoint has no membership check | The whole point of accepting an invitation is that the user is NOT yet a member. The invitation token itself is the authorization. |
+| Alter migration for pivot status | Created a separate migration to change `status` from string to enum rather than modifying the Module 03 migration. Preserves migration history. |
+| `isMemberOf()` now checks `status='active'` | Previously just checked `left_at IS NULL`. Now also excludes suspended members. This means suspended members fail all membership checks automatically. |
+| `ensureActiveMember()` in ResolveTenant | Extracted the membership/suspension check into a private method. Both token-based and header-based resolution use it. Suspended members get 403 with a specific message. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/database/migrations/2026_09_01_150000_create_tenant_invitations_table.php` | Created |
+| `src/database/migrations/2026_09_01_150001_update_tenant_user_pivot_status.php` | Created |
+| `src/app/Models/TenantInvitation.php` | Created |
+| `src/app/Models/Tenant.php` | Modified — added status/suspended_at to pivot, activeMembers(), invitations() |
+| `src/app/Models/User.php` | Modified — isMemberOf() checks status, added isAdminOf(), statusIn() |
+| `src/app/Notifications/EmployeeInvitation.php` | Created |
+| `src/app/Jobs/SendInviteEmail.php` | Created |
+| `src/app/Actions/InviteEmployeeAction.php` | Created |
+| `src/app/Actions/AcceptInvitationAction.php` | Created |
+| `src/app/Http/Requests/Tenant/InviteMemberRequest.php` | Created |
+| `src/app/Http/Requests/Tenant/AcceptInvitationRequest.php` | Created |
+| `src/app/Http/Requests/Tenant/UpdateMemberRequest.php` | Created |
+| `src/app/Http/Resources/V1/TenantMemberResource.php` | Created |
+| `src/app/Http/Resources/V1/TenantInvitationResource.php` | Created |
+| `src/app/Policies/TenantMemberPolicy.php` | Created |
+| `src/app/Http/Controllers/Controller.php` | Modified — added AuthorizesRequests trait |
+| `src/app/Http/Controllers/Api/V1/TenantMemberController.php` | Created |
+| `src/app/Http/Middleware/ResolveTenant.php` | Modified — blocks suspended members, extracted ensureActiveMember() |
+| `src/app/Providers/AppServiceProvider.php` | Modified — registered 7 TenantMemberPolicy gates |
+| `src/routes/api.php` | Modified — added 10 member/invitation routes |
+| `src/tests/Helpers/TenantHelper.php` | Modified — added createInvitation(), attachUserToTenant() accepts extra attributes |
+| `src/tests/Feature/Api/V1/Tenants/InvitationTest.php` | Created (7 tests) |
+| `src/tests/Feature/Api/V1/Tenants/MemberManagementTest.php` | Created (9 tests) |
+| `docs/learnings/03-company-workspace.md` | Created — build walkthrough |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `InvitationTest` | 7 | 22 | Invite, member cannot invite, accept, expired, already accepted, list pending, cancel |
+| `MemberManagementTest` | 9 | 28 | List members, view profile, change role, cannot change owner, suspend, suspended blocked, restore, remove, cannot remove owner |
+| **Module 04 Total** | **16** | **50** | — |
+| **Cumulative Total** | **57** | **175** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| All member endpoints return 403 | `can:` middleware resolves policy by model class. `can:invite,tenant` used TenantPolicy (not TenantMemberPolicy) since both operate on Tenant | Replaced `can:` middleware with `$this->authorize()` calls in controller using named gates registered in AppServiceProvider |
+| `authorize()` method undefined | Laravel 13's base Controller doesn't include `AuthorizesRequests` trait | Added `use AuthorizesRequests` to base Controller |
+| Accept endpoint returns 403 | `accept` had `$this->authorize('member.view', $tenant)` but the invitee isn't a member yet | Removed membership check from accept — the token IS the authorization |
+| PHPStan: nullable relations | `BelongsTo` returns `Tenant\|null`; accessing `->id` fails | Added null checks in AcceptInvitationAction and SendInviteEmail |
+| PHPStan: `expires_at` is string | Model casts not recognized without `@property` annotations | Added `@property` PHPDoc with Carbon types to TenantInvitation model |
+
+### Known Issues / Notes
+
+- `TenantMemberPolicy` is registered as gates (not a model policy) because `Tenant` already has `TenantPolicy` for CRUD. Future modules with the same pattern should use gates.
+- The `accept` endpoint is nested under `tenants/{tenant}` but doesn't require membership — the tenant in the URL is for routing context only; the actual tenant comes from the invitation token
+- `SendInviteEmail` uses `Notification::route('mail', ...)` because the invitee may not have a User account yet — can't use `$user->notify()`
+- `isMemberOf()` now checks `status='active'` — this is stricter than Module 03. All Module 03 tests still pass because the helper attaches with `status: 'active'`.
+- `Auth::forgetGuards()` needed in `test_suspended_member_cannot_access_tenant` (same pattern as Modules 02/03)
+- Build walkthrough documented in `docs/learnings/03-company-workspace.md`
+
+---
+
+## Module 03 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 3.1 | Created `tenants` table migration (id, name, slug, plan, settings JSON, trial_ends_at, soft deletes) | `php artisan migrate:fresh` → all tables created |
+| 3.2 | Created `tenant_user` pivot migration (tenant_id, user_id, role enum, status, joined_at, left_at, unique + index) | Migration runs clean |
+| 3.3 | Added `tenant_id` nullable FK to `personal_access_tokens` table (for token-tenant association) | Migration runs clean |
+| 3.4 | Created `Tenant` model — $fillable, casts (settings→array, trial_ends_at→datetime), SoftDeletes, `users()` belongsToMany with pivot | Model loads, factory works |
+| 3.5 | Created `TenantFactory` — generates unique slug, default plan 'free' | Factory creates valid tenants |
+| 3.6 | Updated `User` model — added `tenants()` belongsToMany, `isMemberOf()`, `roleIn()`, `ownsTenant()` helpers | All helper methods return correct values |
+| 3.7 | Created `BelongsToTenant` trait — global scope (fail-closed: throws without tenant context), auto-sets tenant_id on create, `tenant()` relation, `withoutTenant()` scope | Trait tests pass (3/3) |
+| 3.8 | Created `TenantManager` service — setCurrentTenant, currentTenantId, hasCurrentTenant, forgetCurrentTenant | Registered as singleton in AppServiceProvider |
+| 3.9 | Created `ResolveTenant` middleware — Priority 1: token tenant_id, Priority 2: X-Tenant-ID header (verifies membership, 403 if not member), tenant-agnostic if no context | Middleware tests pass |
+| 3.10 | Created `CreateTenantRequest` (name required, slug nullable unique) and `UpdateTenantRequest` (name/slug/settings sometimes) | Validation works in tests |
+| 3.11 | Created `TenantResource` — id, name, slug, plan, settings, trial_ends_at, role (from pivot), created_at | Resource transforms correctly |
+| 3.12 | Created `TenantPolicy` — view (member), update (owner/admin), delete (owner) | Policy enforced via `can:` middleware |
+| 3.13 | Created `CreateTenantAction` — creates tenant, generates unique slug, attaches user as owner | Action invoked from controller |
+| 3.14 | Created `TenantController` — index (list user's tenants), store (create + owner), show (member only), update (owner/admin), destroy (owner, soft delete) | All 5 CRUD endpoints work |
+| 3.15 | Registered tenant routes in `routes/api.php` — auth:sanctum, tenant.resolve on show/update/destroy, can: middleware for policy | `php artisan route:list` shows 5 routes |
+| 3.16 | Created test-only `TenantScopedModel` + migration to verify `BelongsToTenant` trait | Trait tests pass |
+| 3.17 | Wrote 10 feature tests across 2 test classes covering all acceptance criteria | `php artisan test` → 41 passed, 125 assertions |
+| 3.18 | Ran verification: Pint (72 files, 0 issues), PHPStan level 8 (0 errors), tests (41 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Auth | Tenant | Status | Description |
+|---|---|---|---|---|---|
+| GET | `/api/v1/tenants` | Yes | No | 200 | List user's workspaces |
+| POST | `/api/v1/tenants` | Yes | No | 201 | Create new workspace (user becomes owner) |
+| GET | `/api/v1/tenants/{tenant}` | Yes | Yes | 200 | Get workspace details (member only) |
+| PUT | `/api/v1/tenants/{tenant}` | Yes | Yes | 200 | Update workspace (owner/admin only) |
+| DELETE | `/api/v1/tenants/{tenant}` | Yes | Yes | 204 | Soft-delete workspace (owner only) |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| In-house implementation (no package) | ARCHITECTURE.md §3 is prescriptive with exact code. Single-DB packages (ubayedtanvir, rylxes) are new/unproven. DB-per-tenant packages (stancl, spatie) don't match ADR-002. Implementation is ~100 lines — not enough complexity to justify a dependency. |
+| Fail-closed trait (throws without tenant context) | Spec requires: "Querying tenant-scoped models without a tenant context throws exception." Prevents cross-tenant data leaks in dev/test before they reach production. |
+| `withoutTenant()` scope for explicit bypass | Admin/cross-tenant operations need an opt-out. Making it explicit (named scope) ensures it's intentional and visible in code review. |
+| Soft deletes on tenants | Spec says `destroy()` = soft delete. Allows recovery of accidentally deleted workspaces. |
+| `status` column on tenant_user pivot | Added beyond spec (TenantHelper already used it). Needed for Module 04 (employee lifecycle: active/inactive/invited). |
+| `tenant_id` on personal_access_tokens | Spec §3.6 Priority 1: "Token's associated tenant (if token has tenant_id)." Required the column to exist. |
+| `CreateTenantAction` for tenant creation | Follows Module 02 pattern: thin controller delegates to action. Action handles slug generation + owner attachment atomically. |
+| `can:` middleware for policy enforcement | Laravel's built-in `can:ability,route_param` middleware runs the policy before the controller. Cleaner than manual `$this->authorize()` calls. |
+| Test-only `TenantScopedModel` | Needed a model using `BelongsToTenant` trait to test trait behavior in isolation. Not exposed via API; exists solely for trait tests. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/database/migrations/2026_09_01_140000_create_tenants_table.php` | Created |
+| `src/database/migrations/2026_09_01_140001_create_tenant_user_table.php` | Created |
+| `src/database/migrations/2026_09_01_140002_add_tenant_id_to_personal_access_tokens.php` | Created |
+| `src/database/migrations/2026_09_01_140003_create_tenant_scoped_models_table.php` | Created (test-only) |
+| `src/app/Models/Tenant.php` | Created |
+| `src/app/Models/TenantScopedModel.php` | Created (test-only) |
+| `src/app/Models/User.php` | Modified — added tenants() relationship, isMemberOf(), roleIn(), ownsTenant() |
+| `src/database/factories/TenantFactory.php` | Created |
+| `src/app/Traits/BelongsToTenant.php` | Created |
+| `src/app/Services/TenantManager.php` | Created |
+| `src/app/Providers/AppServiceProvider.php` | Modified — registered TenantManager as singleton |
+| `src/app/Http/Middleware/ResolveTenant.php` | Created |
+| `src/app/Actions/CreateTenantAction.php` | Created |
+| `src/app/Http/Requests/Tenant/CreateTenantRequest.php` | Created |
+| `src/app/Http/Requests/Tenant/UpdateTenantRequest.php` | Created |
+| `src/app/Http/Resources/V1/TenantResource.php` | Created |
+| `src/app/Policies/TenantPolicy.php` | Created |
+| `src/app/Http/Controllers/Api/V1/TenantController.php` | Created |
+| `src/routes/api.php` | Modified — added 5 tenant endpoints with auth, tenant.resolve, and can: middleware |
+| `src/tests/Feature/Api/V1/Tenants/TenantCrudTest.php` | Created (7 tests) |
+| `src/tests/Feature/Traits/BelongsToTenantTest.php` | Created (3 tests) |
+| `docs/learnings/02-multi-tenancy.md` | Created — build walkthrough |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `TenantCrudTest` | 7 | 21 | Create, list, view as member, non-member 403, owner-only delete, header resolution, invalid header 403 |
+| `BelongsToTenantTest` | 3 | 7 | Auto-sets tenant_id, scope filters by current tenant, throws without tenant context |
+| **Module 03 Total** | **10** | **28** | — |
+| **Cumulative Total** | **41** | **125** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| `tenant_user` has no column named `status` | TenantHelper (from Module 01) attaches with `status: 'active'` but migration didn't include it | Added `status` column to pivot migration (needed for Module 04 anyway) |
+| ResolveTenant return type error | `Illuminate\Http\Response` doesn't cover `JsonResponse` (from `abort(403)`) | Changed return type to `Symfony\Component\HttpFoundation\Response` (parent class) |
+| `$builder->getTable()` undefined | Builder doesn't have `getTable()`; it's on the Model | Changed to `$builder->getModel()->getTable()` |
+| Owner delete test returns 403 | `RequestGuard` caches authenticated user across requests in same test (same bug as Module 02) | Added `Auth::forgetGuards()` between the member and owner delete requests |
+| PHPStan: `instanceof` always true on `PersonalAccessToken` | `currentAccessToken()` PHPDoc types return as non-nullable in Larastan | Removed `instanceof` check, used `@var PersonalAccessToken|null` assertion |
+| PHPStan: `$pivot?->role` on string | `pivot` property on Eloquent model not recognized by PHPStan | Used `getRelation('pivot')` + `instanceof Pivot` check + `getAttribute('role')` |
+| PHPStan: `$model->tenant_id` undefined on `Model` | `Model` class doesn't declare `tenant_id` property | Used `getAttribute('tenant_id')` / `setAttribute('tenant_id', ...)` |
+| PHPStan: `BelongsToMany` generic type mismatch | Single-param `@return BelongsToMany<User>` doesn't satisfy 4-template-param class | Used full generic: `BelongsToMany<User, $this, Pivot, 'pivot'>` |
+
+### Known Issues / Notes
+
+- `TenantScopedModel` and its migration exist solely for testing the `BelongsToTenant` trait — they're not exposed via API and will be removed once a real tenant-scoped model exists (Module 05+)
+- Token-to-tenant association (`tenant_id` on `personal_access_tokens`) is in the schema but not yet used in production flows — tokens are currently created without a tenant_id. Will be used when tenant-scoped token creation is implemented (Module 04+)
+- `TenantHelper::attachUserToTenant()` sets `status: 'active'` — the `status` column supports future states (invited, inactive, suspended) for Module 04/22
+- `Auth::forgetGuards()` is needed in any test that makes multiple authenticated requests with different users (same pattern as Module 02)
+- Build walkthrough documented in `docs/learnings/02-multi-tenancy.md`
 
 ---
 
