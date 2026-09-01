@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\TenantController;
 use App\Http\Controllers\Api\V1\TenantMemberController;
 use Illuminate\Support\Facades\Route;
@@ -60,5 +61,11 @@ Route::prefix('v1')->group(function (): void {
             Route::get('tenants/{tenant}/invitations', [TenantMemberController::class, 'invitations']);
             Route::delete('tenants/{tenant}/invitations/{invitation}', [TenantMemberController::class, 'cancelInvitation']);
         });
+    });
+
+    // Personal vault — user's private encrypted storage.
+    // NOT tenant-scoped; items belong to the user directly (user_id).
+    Route::middleware('auth:sanctum')->prefix('vault')->group(function (): void {
+        Route::apiResource('items', PersonalVaultItemController::class);
     });
 });

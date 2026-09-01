@@ -32,7 +32,7 @@
 | 02 | Authentication | ✅ Complete | 2026-09-01 | Sanctum token auth, register/login/logout, profile update, password change, password reset, rate limiting, 31 tests passing |
 | 03 | Multi-Tenancy | ✅ Complete | 2026-09-01 | Tenant model, tenant_user pivot, BelongsToTenant trait (fail-closed), TenantManager singleton, ResolveTenant middleware, Tenant CRUD API, TenantPolicy, 10 new tests (41 total) |
 | 04 | Company Workspace | ✅ Complete | 2026-09-01 | Tenant invitations, member CRUD, role management, suspend/restore, ResolveTenant blocks suspended, 16 new tests (57 total) |
-| 05 | Personal Vault — Part 1 | ⬜ Not Started | — | — |
+| 05 | Personal Vault — Part 1 | ✅ Complete | 2026-09-01 | Encryptable trait, personal_vault_items CRUD, AES-256 encryption, 15 new tests (72 total) |
 | 06 | Personal Vault — Part 2 | ⬜ Not Started | — | — |
 | 07 | Teams & Team Vaults | ⬜ Not Started | — | — |
 | 08 | Permission System — Part 1 | ⬜ Not Started | — | — |
@@ -182,11 +182,102 @@ docker compose ps
 
 ## Next Module
 
-**Module 05 — Personal Vault Part 1**
-- Personal vault items (secrets, credentials, notes) scoped by user_id
-- Vault item CRUD
-- Encryption at rest
-- Dependencies: Module 02 ✅, Module 03 ✅
+**Module 06 — Personal Vault Part 2**
+- Folders, tags, favorites toggle, search
+- Archive/restore functionality
+- Password history
+- Dependencies: Module 05 ✅
+
+---
+
+## Module 05 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 5.1 | Created `Encryptable` trait — overrides `getAttribute()`/`setAttribute()` for transparent AES-256 encryption via `Crypt::encryptString()`/`decryptString()`, handles nulls gracefully | Trait loads, encryption verified in tests |
+| 5.2 | Created `personal_vault_items` migration — id, user_id FK, name, type enum, encrypted text columns (username/password/notes/custom_fields), plaintext columns (url/metadata), favorite, archived_at, 4 composite indexes | `php artisan migrate:fresh` → all tables created |
+| 5.3 | Created `PersonalVaultItem` model — uses Encryptable trait, fillable, casts (metadata→array, favorite→boolean, archived_at→datetime), user() relationship, scopes (ofType, favorite, active), custom getAttribute/setAttribute for encrypted custom_fields JSON | Model loads, PHPStan clean |
+| 5.4 | Created `PersonalVaultItemFactory` — default states for all 4 types, configurable fields | Factory works in tests |
+| 5.5 | Created `CreateItemRequest` — validates name, type enum, nullable encrypted fields, metadata sub-fields, custom_fields array validation | Validation works in tests |
+| 5.6 | Created `UpdateItemRequest` — same rules with `sometimes` for partial updates | Validation works in tests |
+| 5.7 | Created `PersonalVaultItemResource` — serializes all fields including decrypted sensitive fields | Resource transforms correctly |
+| 5.8 | Created `PersonalVaultItemPolicy` — view/update/delete check user_id ownership, returns false (not 403) so controller can abort(404) to avoid leaking existence | Policy enforced correctly |
+| 5.9 | Created 3 Actions: `CreateVaultItemAction`, `UpdateVaultItemAction`, `DeleteVaultItemAction` | Actions work in tests |
+| 5.10 | Created `PersonalVaultItemController` — 5 RESTful methods (index with filters, store, show, update, destroy), owner checks return 404 for non-owners | All endpoints respond correctly |
+| 5.11 | Registered vault routes via `apiResource` under `/api/v1/vault` | `php artisan route:list` shows 5 vault routes |
+| 5.12 | Wrote 15 feature tests covering all acceptance criteria | `php artisan test` → 72 passed, 231 assertions |
+| 5.13 | Ran verification: Pint (clean), PHPStan level 8 (0 errors), tests (72 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Auth | Status | Description |
+|---|---|---|---|---|
+| GET | `/api/v1/vault/items` | Yes | 200 | List user's vault items (paginated, filterable by type/favorite/archived) |
+| POST | `/api/v1/vault/items` | Yes | 201 | Create vault item (encrypts sensitive fields) |
+| GET | `/api/v1/vault/items/{item}` | Yes | 200 | Get single item with decrypted sensitive fields |
+| PUT | `/api/v1/vault/items/{item}` | Yes | 200 | Update vault item |
+| DELETE | `/api/v1/vault/items/{item}` | Yes | 204 | Delete vault item |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Hard delete instead of soft delete | The spec said "soft delete or hard delete — decide". Soft deletes add complexity (deleted_at column, global scope). Archive/restore is handled separately via `archived_at` (Module 06). Hard delete is simpler and appropriate for MVP. |
+| `custom_fields` encrypted as JSON string | The spec says custom_fields is ENCRYPTED JSON. The Encryptable trait handles string encryption, so custom_fields is JSON-encoded then encrypted on set, and decrypted then JSON-decoded on get. This requires custom getAttribute/setAttribute overrides in the model. |
+| Model overrides getAttribute/setAttribute directly | The Encryptable trait's overrides get shadowed when the model also overrides for custom_fields. PHP trait method resolution: the class's own method wins over trait methods. So the model handles both custom_fields and encryptable fields in its own overrides. |
+| 404 for non-owner access (not 403) | The spec explicitly says "don't leak existence". Returning 404 for other users' items prevents information leakage about which items exist. |
+| `metadata` stored in plaintext | Per ADR-003: metadata is display data (host, port, provider, db_type) — no secrets. Stored as plaintext JSON for searchability. Sensitive values go in encrypted columns. |
+| `name` and `url` stored in plaintext | Per ADR-003: these are searchable fields. Encrypted fields cannot be queried with WHERE clauses. |
+| `@phpstan-ignore-next-line` for `property_exists` | The Encryptable trait is designed to be reusable, but PHPStan analyzes it in the context of the concrete class where the property is always declared. The ignore comment is necessary for this generic trait pattern. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/app/Traits/Encryptable.php` | Created |
+| `src/database/migrations/2026_09_01_160000_create_personal_vault_items_table.php` | Created |
+| `src/app/Models/PersonalVaultItem.php` | Created |
+| `src/database/factories/PersonalVaultItemFactory.php` | Created |
+| `src/app/Http/Requests/Vault/CreateItemRequest.php` | Created |
+| `src/app/Http/Requests/Vault/UpdateItemRequest.php` | Created |
+| `src/app/Http/Resources/V1/PersonalVaultItemResource.php` | Created |
+| `src/app/Policies/PersonalVaultItemPolicy.php` | Created |
+| `src/app/Actions/CreateVaultItemAction.php` | Created |
+| `src/app/Actions/UpdateVaultItemAction.php` | Created |
+| `src/app/Actions/DeleteVaultItemAction.php` | Created |
+| `src/app/Http/Controllers/Api/V1/PersonalVaultItemController.php` | Created |
+| `src/routes/api.php` | Modified — added vault apiResource routes |
+| `src/tests/Feature/Api/V1/Vault/PersonalVaultItemTest.php` | Created (15 tests) |
+| `docs/learnings/04-personal-vault-part-1.md` | Created — build walkthrough |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `PersonalVaultItemTest` | 15 | 56 | Create 4 types, custom fields, list, view, update, delete, 404 for non-owner, encryption verification, null handling, type/favorite filters |
+| **Module 05 Total** | **15** | **56** | — |
+| **Cumulative Total** | **72** | **231** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| `user_id` not in fillable | The `#[Fillable]` attribute didn't include `user_id`, so mass assignment skipped it → NOT NULL constraint violation | Added `user_id` to the Fillable attribute |
+| Encrypted values stored as plaintext | The `Encryptable` trait's `setAttribute` was shadowed by the model's own `setAttribute` override (for custom_fields). PHP trait method resolution: class method wins over trait methods. | Model's `setAttribute` now handles both custom_fields encryption AND encryptable field encryption directly |
+| Decryption not working on read | Same shadowing issue with `getAttribute` — model's override for custom_fields shadowed the trait's decryption logic | Model's `getAttribute` now handles both custom_fields decryption AND encryptable field decryption directly |
+| `deleted_at` column not found | Model used `SoftDeletes` trait but migration didn't have `deleted_at` column | Removed `SoftDeletes` trait — using hard delete instead (archive/restore is Module 06) |
+| `withoutScope()` method not found | Controller tried to call `withoutScope('active')` which doesn't exist on Eloquent Builder | Restructured the query to use `whereNull`/`whereNotNull` on `archived_at` directly |
+| PHPStan: `$encryptable` iterable type | Property declared as `array` without value type | Added `@var list<string>` PHPDoc annotation |
+| PHPStan: `property_exists` always true | PHPStan analyzes the trait in context of the concrete class where the property is declared | Added `@phpstan-ignore-next-line` comment — the trait is designed to be reusable |
+
+### Known Issues / Notes
+
+- The `Encryptable` trait's `getAttribute`/`setAttribute` overrides are shadowed when a model using the trait also defines its own overrides. The `PersonalVaultItem` model handles this by implementing all encryption/decryption logic in its own overrides. Future models using `Encryptable` without custom overrides will work fine with the trait's methods.
+- `custom_fields` is stored as an encrypted JSON string, not a JSON column. This means it can't be queried with JSON operators. This is acceptable since custom fields contain secrets.
+- The `Encryptable` trait catches decryption failures gracefully (returns raw value) to prevent app crashes during key rotation. Module 20 (audit logging) will add proper error logging.
+- Build walkthrough documented in `docs/learnings/04-personal-vault-part-1.md`
 
 ---
 
