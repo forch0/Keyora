@@ -17,8 +17,11 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\V1\UserResource;
+use App\Models\SecurityAlert;
 use App\Models\User;
+use App\Notifications\NewDeviceLogin;
 use App\Services\ActivityLogger;
+use App\Services\DeviceDetector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -32,6 +35,7 @@ class AuthController extends Controller
         private readonly RequestPasswordResetAction $requestPasswordReset,
         private readonly ResetPasswordAction $resetPassword,
         private readonly ActivityLogger $activityLogger,
+        private readonly DeviceDetector $deviceDetector,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -65,6 +69,35 @@ class AuthController extends Controller
         [$user, $token] = $result;
 
         $this->activityLogger->log('auth.login', $user);
+
+        // Device detection (Module 21)
+        $deviceResult = $this->deviceDetector->detect($request, $user);
+
+        if ($deviceResult['is_new']) {
+            $device = $deviceResult['device'];
+
+            SecurityAlert::create([
+                'user_id' => $user->id,
+                'type' => SecurityAlert::TYPE_NEW_DEVICE_LOGIN,
+                'severity' => SecurityAlert::SEVERITY_INFO,
+                'title' => 'New device login',
+                'message' => "Your account was accessed from a new device ({$device->browser} on {$device->os}).",
+                'properties' => [
+                    'browser' => $device->browser,
+                    'os' => $device->os,
+                    'device_type' => $device->device_type,
+                    'ip_address' => $device->ip_address,
+                    'device_id' => $device->id,
+                ],
+            ]);
+
+            $user->notify(new NewDeviceLogin([
+                'browser' => $device->browser,
+                'os' => $device->os,
+                'device_type' => $device->device_type,
+                'ip_address' => $device->ip_address,
+            ]));
+        }
 
         return (new UserResource($user))
             ->additional(['token' => $token])

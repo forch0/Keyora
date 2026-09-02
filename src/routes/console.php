@@ -1,5 +1,7 @@
 <?php
 
+use App\Jobs\CheckExpiredAccess;
+use App\Jobs\CheckExpiringAccess;
 use App\Jobs\SendExpirationWarning;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -17,3 +19,8 @@ Schedule::command('access:check-expired')->everyMinute()->description('Revoke ex
 
 // Send expiration warning notifications hourly
 Schedule::job(new SendExpirationWarning)->hourly()->description('Send access expiration warnings');
+
+// Security alerts (Module 21)
+Schedule::job(new CheckExpiringAccess)->hourly()->description('Create expiring access security alerts');
+Schedule::job(new CheckExpiredAccess)->hourly()->description('Create expired access security alerts');
+Schedule::command('security:detect-suspicious')->everyFifteenMinutes()->description('Detect suspicious activity patterns');

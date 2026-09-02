@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AccessRequestController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\EmergencyRevokeController;
 use App\Http\Controllers\Api\V1\FileAccessController;
 use App\Http\Controllers\Api\V1\FileFolderController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SecureFileController;
 use App\Http\Controllers\Api\V1\SecureLinkController;
 use App\Http\Controllers\Api\V1\SecureNoteController;
+use App\Http\Controllers\Api\V1\SecurityAlertController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
 use App\Http\Controllers\Api\V1\TeamVaultItemController;
@@ -262,5 +264,17 @@ Route::prefix('v1')->group(function (): void {
         Route::get('tenants/{tenant}/members/{user}/activity-logs', [ActivityLogController::class, 'employeeOverview']);
         Route::get('vault/items/{item}/activity-logs', [ActivityLogController::class, 'resourceHistory']);
         Route::get('files/{file}/activity-logs', [ActivityLogController::class, 'resourceHistory']);
+    });
+
+    // Security alerts & device management (Module 21)
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->group(function (): void {
+        Route::get('security-alerts', [SecurityAlertController::class, 'index']);
+        Route::get('security-alerts/unread-count', [SecurityAlertController::class, 'unreadCount']);
+        Route::post('security-alerts/read-all', [SecurityAlertController::class, 'markAllRead']);
+        Route::post('security-alerts/{alert}/read', [SecurityAlertController::class, 'markRead']);
+        Route::post('security-alerts/{alert}/dismiss', [SecurityAlertController::class, 'dismiss']);
+
+        Route::get('devices', [DeviceController::class, 'index']);
+        Route::delete('devices/{device}', [DeviceController::class, 'destroy']);
     });
 });
