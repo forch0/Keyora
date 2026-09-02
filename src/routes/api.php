@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AccessGrantController;
+use App\Http\Controllers\Api\V1\AccessRequestController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\FileAccessController;
 use App\Http\Controllers\Api\V1\FileFolderController;
@@ -194,5 +195,16 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/folders', [NoteFolderController::class, 'store']);
         Route::put('/folders/{folder}', [NoteFolderController::class, 'update']);
         Route::delete('/folders/{folder}', [NoteFolderController::class, 'destroy']);
+    });
+
+    // Access requests — request workflow for resources users don't have access to
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('access-requests')->group(function (): void {
+        Route::get('/', [AccessRequestController::class, 'index']);
+        Route::post('/', [AccessRequestController::class, 'store']);
+        Route::get('/history', [AccessRequestController::class, 'history']);
+        Route::get('/{accessRequest}', [AccessRequestController::class, 'show']);
+        Route::put('/{accessRequest}/approve', [AccessRequestController::class, 'approve']);
+        Route::put('/{accessRequest}/reject', [AccessRequestController::class, 'reject']);
+        Route::delete('/{accessRequest}', [AccessRequestController::class, 'destroy']);
     });
 });

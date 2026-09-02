@@ -42,7 +42,7 @@
 | 12 | Secure Files — Part 2 | ✅ Complete | 2026-09-02 | FileAccessController (share/revoke/update/list), file expiration (410 Gone + scheduled command), FileExpiredNotification, 12 new tests (174 total) |
 | 13 | Secure Notes | ✅ Complete | 2026-09-02 | SecureNote (Encryptable content), NoteFolder, NoteTag models, CreateNoteAction/UpdateNoteAction, SecureNotePolicy, SecureNoteController + NoteAccessController + NoteFolderController, 16 new routes (notes CRUD + access + folders + search), 16 new tests (190 total) |
 | 14 | Temporary Access | ✅ Complete | 2026-09-02 | AccessDuration enum, ViewTracker service, CheckExpiredAccess command, SendExpirationWarning job, AccessExpiringSoon/AccessExpiredNotification notifications, ResourceViewed/AccessExpired events, countdown endpoint, 15 new tests (205 total) |
-| 15 | Access Requests | ⬜ Not Started | — | — |
+| 15 | Access Requests | ✅ Complete | 2026-09-02 | AccessRequest model, CreateAccessRequestAction/ApproveAccessRequestAction/RejectAccessRequestAction, AccessRequestPolicy, AccessRequestController, 3 events + 3 notifications, 7 new routes, 17 new tests (222 total) |
 | 16 | Access Revocation | ⬜ Not Started | — | — |
 | 17 | Secure External Sharing — Part 1 | ⬜ Not Started | — | — |
 | 18 | Secure External Sharing — Part 2 | ⬜ Not Started | — | — |
