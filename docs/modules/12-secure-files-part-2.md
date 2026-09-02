@@ -5,7 +5,7 @@
 | **Module** | 12 |
 | **Name** | Secure Files — Sharing & Access Control |
 | **Dependencies** | Module 08, Module 09, Module 11 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

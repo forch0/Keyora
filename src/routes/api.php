@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\FileAccessController;
 use App\Http\Controllers\Api\V1\FileFolderController;
 use App\Http\Controllers\Api\V1\OrgVaultItemController;
 use App\Http\Controllers\Api\V1\PasswordToolController;
@@ -162,5 +163,11 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/folders', [FileFolderController::class, 'store']);
         Route::put('/folders/{folder}', [FileFolderController::class, 'update']);
         Route::delete('/folders/{folder}', [FileFolderController::class, 'destroy']);
+
+        // File access grants — sharing
+        Route::get('/{file}/access', [FileAccessController::class, 'index']);
+        Route::post('/{file}/access', [FileAccessController::class, 'store']);
+        Route::put('/{file}/access/{grant}', [FileAccessController::class, 'update']);
+        Route::delete('/{file}/access/{grant}', [FileAccessController::class, 'destroy']);
     });
 });

@@ -136,11 +136,18 @@ class SecureFileController extends Controller
         $user = $this->authenticatedUser($request);
         $this->authorize('download', $file);
 
+        // Check expiration — 410 Gone if expired
+        $expiresAt = $file->getAttribute('expires_at');
+        if ($expiresAt !== null && $expiresAt->isPast()) {
+            abort(410, 'This file has expired and is no longer available for download.');
+        }
+
         if (! Storage::disk('private')->exists($file->file_path)) {
             abort(404, 'File not found in storage.');
         }
 
         // TODO: Module 20 — log download event
+        // TODO: Module 14 — increment views_count on access grant
 
         return Storage::disk('private')->download($file->file_path, $file->name, [
             'Content-Type' => $file->mime_type,
