@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\FileFolderController;
 use App\Http\Controllers\Api\V1\OrgVaultItemController;
 use App\Http\Controllers\Api\V1\PasswordToolController;
 use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
+use App\Http\Controllers\Api\V1\SecureFileController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
 use App\Http\Controllers\Api\V1\TeamVaultItemController;
@@ -141,5 +143,24 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware('auth:sanctum')->prefix('tools/password')->group(function (): void {
         Route::post('generate', [PasswordToolController::class, 'generate']);
         Route::post('strength', [PasswordToolController::class, 'checkStrength']);
+    });
+
+    // Secure files — upload, list, download, replace, archive, restore, delete
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('files')->group(function (): void {
+        Route::get('/', [SecureFileController::class, 'index']);
+        Route::post('/', [SecureFileController::class, 'store']);
+        Route::post('/bulk', [SecureFileController::class, 'bulkStore']);
+        Route::get('/{file}', [SecureFileController::class, 'show']);
+        Route::get('/{file}/download', [SecureFileController::class, 'download']);
+        Route::put('/{file}', [SecureFileController::class, 'update']);
+        Route::post('/{file}/replace', [SecureFileController::class, 'replace']);
+        Route::delete('/{file}', [SecureFileController::class, 'destroy']);
+        Route::post('/{file}/archive', [SecureFileController::class, 'archive']);
+        Route::post('/{file}/restore', [SecureFileController::class, 'restore']);
+
+        Route::get('/folders', [FileFolderController::class, 'index']);
+        Route::post('/folders', [FileFolderController::class, 'store']);
+        Route::put('/folders/{folder}', [FileFolderController::class, 'update']);
+        Route::delete('/folders/{folder}', [FileFolderController::class, 'destroy']);
     });
 });

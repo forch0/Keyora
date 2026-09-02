@@ -38,7 +38,7 @@
 | 08 | Permission System — Part 1 | ✅ Complete | 2026-09-02 | AccessGrant model (polymorphic, BelongsToTenant), Permission enum (hierarchy with parallel download/edit), AccessResolver service, VaultItemPolicy updated, 2 new routes, 15 new tests (119 total) |
 | 09 | Permission System — Part 2 | ✅ Complete | 2026-09-02 | Grant/Update/Revoke Actions, AccessGranted/Updated/Revoked events, AccessGrantedNotification, AccessGrantPolicy, 4 new routes (POST/PUT/DELETE/bulk), 13 new tests (132 total) |
 | 10 | Password Tools | ✅ Complete | 2026-09-02 | PasswordGenerator (random_int, min counts, exclude options), PasswordStrengthChecker (entropy, common passwords, penalties), 2 new routes, 12 new tests (144 total) |
-| 11 | Secure Files — Part 1 | ⬜ Not Started | — | — |
+| 11 | Secure Files — Part 1 | ✅ Complete | 2026-09-02 | SecureFile + FileFolder models, UploadFileAction, 14 new routes (files CRUD + folders CRUD), SecureFilePolicy, 18 new tests (162 total) |
 | 12 | Secure Files — Part 2 | ⬜ Not Started | — | — |
 | 13 | Secure Notes | ⬜ Not Started | — | — |
 | 14 | Temporary Access | ⬜ Not Started | — | — |
