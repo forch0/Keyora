@@ -2,8 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\PersonalVaultItem;
+use App\Models\SecureFile;
+use App\Models\SecureNote;
+use App\Models\SecurityAlert;
+use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Observers\DashboardCacheObserver;
 use App\Policies\TenantMemberPolicy;
 use App\Policies\TenantPolicy;
 use App\Services\AccessResolver;
@@ -30,6 +36,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Dashboard cache invalidation observers (Module 31)
+        $observer = DashboardCacheObserver::class;
+        PersonalVaultItem::observe($observer);
+        SecureFile::observe($observer);
+        SecureNote::observe($observer);
+        Team::observe($observer);
+        SecurityAlert::observe($observer);
+
         // TenantMemberPolicy gates — these operate on a Tenant (and optionally
         // a target User) but are distinct from TenantPolicy. Registered as
         // gates rather than a model policy because the same Tenant model

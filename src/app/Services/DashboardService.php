@@ -15,21 +15,67 @@ use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\VaultItem;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Aggregates data for dashboard endpoints.
  *
  * All methods use efficient aggregate queries (COUNT, GROUP BY) to avoid N+1 problems.
+ * Public methods cache results for 60 seconds; build* methods do the actual work.
  */
 class DashboardService
 {
+    private const CACHE_TTL = 60;
+
     /**
-     * Build the personal dashboard for a user.
+     * Personal dashboard for a user (cached for 60 seconds).
      *
      * @return array<string, mixed>
      */
     public function personalDashboard(User $user): array
+    {
+        return Cache::remember(
+            "dashboard:personal:{$user->id}",
+            now()->addSeconds(self::CACHE_TTL),
+            fn () => $this->buildPersonalDashboard($user),
+        );
+    }
+
+    /**
+     * Company dashboard for a tenant (cached for 60 seconds).
+     *
+     * @return array<string, mixed>
+     */
+    public function companyDashboard(Tenant $tenant): array
+    {
+        return Cache::remember(
+            "dashboard:company:{$tenant->id}",
+            now()->addSeconds(self::CACHE_TTL),
+            fn () => $this->buildCompanyDashboard($tenant),
+        );
+    }
+
+    /**
+     * Usage dashboard for a tenant (cached for 60 seconds).
+     *
+     * @return array<string, mixed>
+     */
+    public function usageDashboard(Tenant $tenant): array
+    {
+        return Cache::remember(
+            "dashboard:usage:{$tenant->id}",
+            now()->addSeconds(self::CACHE_TTL),
+            fn () => $this->buildUsageDashboard($tenant),
+        );
+    }
+
+    /**
+     * Build the personal dashboard for a user (uncached).
+     *
+     * @return array<string, mixed>
+     */
+    public function buildPersonalDashboard(User $user): array
     {
         return [
             'vault_summary' => $this->personalVaultSummary($user),
@@ -43,11 +89,11 @@ class DashboardService
     }
 
     /**
-     * Build the company dashboard for a tenant.
+     * Build the company dashboard for a tenant (uncached).
      *
      * @return array<string, mixed>
      */
-    public function companyDashboard(Tenant $tenant): array
+    public function buildCompanyDashboard(Tenant $tenant): array
     {
         return [
             'overview' => $this->companyOverview($tenant),
@@ -62,11 +108,11 @@ class DashboardService
     }
 
     /**
-     * Build the usage dashboard for a tenant.
+     * Build the usage dashboard for a tenant (uncached).
      *
      * @return array<string, mixed>
      */
-    public function usageDashboard(Tenant $tenant): array
+    public function buildUsageDashboard(Tenant $tenant): array
     {
         $limits = $this->planLimits($tenant);
         $usage = $this->usageStats($tenant);

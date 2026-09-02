@@ -16,6 +16,7 @@ use App\Events\EmergencyRevoked;
 use App\Events\FileUploaded;
 use App\Events\ResourceViewed;
 use App\Events\SecureLinkCreated;
+use App\Listeners\InvalidateDashboardCache;
 use App\Listeners\LogAccessExpired;
 use App\Listeners\LogAccessGranted;
 use App\Listeners\LogAccessRequestApproved;
@@ -74,5 +75,14 @@ class EventServiceProvider extends ServiceProvider
         ResourceViewed::class => [
             LogResourceViewed::class,
         ],
+    ];
+
+    /**
+     * Event subscribers for dashboard cache invalidation.
+     *
+     * @var list<string>
+     */
+    protected $subscribe = [
+        InvalidateDashboardCache::class,
     ];
 }

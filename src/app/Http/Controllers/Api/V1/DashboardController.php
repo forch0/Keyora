@@ -12,10 +12,13 @@ use App\Services\TenantManager;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 #[Group('Dashboards')]
 class DashboardController extends Controller
 {
+    private const CACHE_TTL = 60;
+
     public function __construct(
         private readonly DashboardService $dashboardService,
         private readonly TenantManager $tenantManager,
@@ -28,9 +31,14 @@ class DashboardController extends Controller
     {
         $user = $this->authenticatedUser($request);
 
+        $cacheKey = "dashboard:personal:{$user->id}";
+        $cacheStatus = Cache::has($cacheKey) ? 'HIT' : 'MISS';
+
         $data = $this->dashboardService->personalDashboard($user);
 
-        return response()->json(['data' => $data]);
+        return response()->json(['data' => $data])
+            ->header('X-Cache-Status', $cacheStatus)
+            ->header('X-Cache-TTL', (string) self::CACHE_TTL);
     }
 
     /**
@@ -43,9 +51,14 @@ class DashboardController extends Controller
 
         $this->authorizeAdmin($user, $tenant);
 
+        $cacheKey = "dashboard:company:{$tenant->id}";
+        $cacheStatus = Cache::has($cacheKey) ? 'HIT' : 'MISS';
+
         $data = $this->dashboardService->companyDashboard($tenant);
 
-        return response()->json(['data' => $data]);
+        return response()->json(['data' => $data])
+            ->header('X-Cache-Status', $cacheStatus)
+            ->header('X-Cache-TTL', (string) self::CACHE_TTL);
     }
 
     /**
@@ -58,9 +71,14 @@ class DashboardController extends Controller
 
         $this->authorizeAdmin($user, $tenant);
 
+        $cacheKey = "dashboard:usage:{$tenant->id}";
+        $cacheStatus = Cache::has($cacheKey) ? 'HIT' : 'MISS';
+
         $data = $this->dashboardService->usageDashboard($tenant);
 
-        return response()->json(['data' => $data]);
+        return response()->json(['data' => $data])
+            ->header('X-Cache-Status', $cacheStatus)
+            ->header('X-Cache-TTL', (string) self::CACHE_TTL);
     }
 
     private function authenticatedUser(Request $request): User

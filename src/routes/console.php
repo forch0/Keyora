@@ -3,6 +3,7 @@
 use App\Jobs\CheckExpiredAccess;
 use App\Jobs\CheckExpiringAccess;
 use App\Jobs\SendExpirationWarning;
+use App\Services\DashboardCacheService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -24,3 +25,8 @@ Schedule::job(new SendExpirationWarning)->hourly()->description('Send access exp
 Schedule::job(new CheckExpiringAccess)->hourly()->description('Create expiring access security alerts');
 Schedule::job(new CheckExpiredAccess)->hourly()->description('Create expired access security alerts');
 Schedule::command('security:detect-suspicious')->everyFifteenMinutes()->description('Detect suspicious activity patterns');
+
+// Dashboard cache warmup (Module 31)
+Schedule::call(function (): void {
+    app(DashboardCacheService::class)->warmActiveDashboards();
+})->everyFiveMinutes()->description('Warm dashboard caches for active tenants');
