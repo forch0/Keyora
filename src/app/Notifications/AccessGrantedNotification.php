@@ -6,9 +6,10 @@ namespace App\Notifications;
 
 use App\Enums\Permission;
 use App\Models\AccessGrant;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class AccessGrantedNotification extends Notification
+class AccessGrantedNotification extends Notification implements ShouldQueue
 {
     public function __construct(
         public readonly AccessGrant $grant,

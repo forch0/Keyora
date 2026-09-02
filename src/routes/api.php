@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\EmergencyRevokeController;
 use App\Http\Controllers\Api\V1\FileAccessController;
 use App\Http\Controllers\Api\V1\FileFolderController;
+use App\Http\Controllers\Api\V1\HealthCheckController;
 use App\Http\Controllers\Api\V1\NoteAccessController;
 use App\Http\Controllers\Api\V1\NoteFolderController;
 use App\Http\Controllers\Api\V1\OrgVaultItemController;
@@ -33,6 +34,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('/', fn () => response()->json(['status' => 'ok']));
+
+    // Health check — no auth required (for load balancers / monitoring)
+    Route::get('health', HealthCheckController::class);
 
     // Public secure link access (no auth required — for external users)
     Route::prefix('s/{uuid}')->name('api.v1.public-link.')->group(function (): void {

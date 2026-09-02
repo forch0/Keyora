@@ -8,10 +8,11 @@ use App\Models\Tenant;
 use App\Models\TenantInvitation;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class EmployeeInvitation extends Notification
+class EmployeeInvitation extends Notification implements ShouldQueue
 {
     use Queueable;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\SubjectType;
 use App\Models\AccessGrant;
 use App\Models\PersonalVaultItem;
 use App\Models\User;
@@ -186,6 +187,15 @@ class BulkOperationService
      */
     public function bulkShare(string $modelClass, array $ids, string $subjectType, int $subjectId, string $permission, User $actor, ?string $expiresAt = null): array
     {
+        // Defense in depth: validate subject_type even though the Form Request
+        // should already enforce the whitelist. This prevents arbitrary
+        // class-string injection if this service is called from elsewhere.
+        if (! in_array($subjectType, SubjectType::validClassStrings(), true)) {
+            throw ValidationException::withMessages([
+                'subject_type' => 'Subject type must be User, Team, or Tenant.',
+            ]);
+        }
+
         return DB::transaction(function () use ($modelClass, $ids, $subjectType, $subjectId, $permission, $actor, $expiresAt): array {
             $shared = 0;
             $failed = 0;

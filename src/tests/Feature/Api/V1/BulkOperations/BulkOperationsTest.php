@@ -387,4 +387,21 @@ class BulkOperationsTest extends TestCase
 
         $response->assertStatus(423);
     }
+
+    public function test_bulk_share_rejects_invalid_subject_type(): void
+    {
+        [$user, $token] = $this->createAndAuthUser();
+        $items = PersonalVaultItem::factory()->count(2)->create(['user_id' => $user->id]);
+
+        $response = $this->withHeaders($this->authHeaders($token))
+            ->postJson('/api/v1/personal-vault/items/bulk/share', [
+                'ids' => $items->pluck('id')->toArray(),
+                'subject_type' => 'App\\Models\\InvalidModel',
+                'subject_id' => 1,
+                'permission' => 'view',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['subject_type']);
+    }
 }

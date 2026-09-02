@@ -10,25 +10,25 @@
 These are the items that should be resolved before putting real credentials in this system.
 
 ### 1.1 Database Backups
-- [ ] Document automated backup strategy (daily snapshot + pre-migration backup)
-- [ ] Add backup command to scheduled tasks (`db:backup` or similar)
-- [ ] Document restore procedure in deployment runbook
+- [x] Document automated backup strategy (daily snapshot + pre-migration backup)
+- [x] Add backup command to scheduled tasks (`db:backup` or similar)
+- [x] Document restore procedure in deployment runbook
 - [ ] Test a restore from backup at least once
 
 ### 1.2 Bulk Share subject_type Validation
-- [ ] `BulkOperationService::bulkShare` trusts `subject_type` from user input
-- [ ] Validate `subject_type` against a whitelist: `User`, `Team`, `Tenant`
-- [ ] Add test: invalid `subject_type` returns 422
-- [ ] File: `src/app/Services/BulkOperationService.php` line ~190
+- [x] `BulkOperationService::bulkShare` trusts `subject_type` from user input
+- [x] Validate `subject_type` against a whitelist: `User`, `Team`, `Tenant`
+- [x] Add test: invalid `subject_type` returns 422
+- [x] File: `src/app/Services/BulkOperationService.php` line ~190
 
 ### 1.3 Queue Configuration
-- [ ] Verify notifications are queued, not synchronous
-- [ ] Document queue driver in deployment runbook (Redis recommended)
-- [ ] Add failed-job retry configuration
-- [ ] Test: email notification doesn't block HTTP response
+- [x] Verify notifications are queued, not synchronous
+- [x] Document queue driver in deployment runbook (Redis recommended)
+- [x] Add failed-job retry configuration
+- [x] Test: email notification doesn't block HTTP response
 
 ### 1.4 Deployment Runbook
-- [ ] Create `docs/DEPLOYMENT.md` with:
+- [x] Create `docs/DEPLOYMENT.md` with:
   - Server requirements (PHP version, extensions, Redis optional)
   - Environment variables (`.env.example` with all required vars)
   - Install steps (composer install, migrate, seed, storage:link)
@@ -38,33 +38,33 @@ These are the items that should be resolved before putting real credentials in t
   - Troubleshooting common issues
 
 ### 1.5 Health Check Endpoint
-- [ ] Add `GET /api/v1/health` returning JSON status
-- [ ] Check: database connection, cache connection, storage writable
-- [ ] No authentication required (for load balancer / monitoring)
-- [ ] Add test
+- [x] Add `GET /api/v1/health` returning JSON status
+- [x] Check: database connection, cache connection, storage writable
+- [x] No authentication required (for load balancer / monitoring)
+- [x] Add test
 
 ### 1.6 Encryptable Trait Fails Open on Decryption Errors
-- [ ] `Encryptable::getAttribute()` catches decryption failures and returns the raw ciphertext as if it were plaintext
-- [ ] For a security product this is the wrong default — a silent failure means corrupted/key-rotated data is served as "the secret"
-- [ ] Should fail closed: throw or return null, and log loudly (not via Module 20 audit log — that's a DB write, this is a crypto failure)
-- [ ] Add a test: tampered ciphertext does not get returned as-is
-- [ ] File: `src/app/Traits/Encryptable.php` lines ~46-53
-- [ ] Note: the existing comment says "Module 20 will cover this" — it does not
+- [x] `Encryptable::getAttribute()` catches decryption failures and returns the raw ciphertext as if it were plaintext
+- [x] For a security product this is the wrong default — a silent failure means corrupted/key-rotated data is served as "the secret"
+- [x] Should fail closed: throw or return null, and log loudly (not via Module 20 audit log — that's a DB write, this is a crypto failure)
+- [x] Add a test: tampered ciphertext does not get returned as-is
+- [x] File: `src/app/Traits/Encryptable.php` lines ~46-53
+- [x] Note: the existing comment says "Module 20 will cover this" — it does not
 
 ### 1.7 GrantAccessAction Race Condition
-- [ ] `GrantAccessAction::__invoke()` does a lookup for an existing active grant, then either updates or creates — not wrapped in a transaction, no unique index
-- [ ] Two concurrent grants for the same subject + resource can create duplicate `AccessGrant` rows
-- [ ] Fix: wrap the lookup + create/update in `DB::transaction()` with `lockForUpdate()` on the lookup, OR add a unique index on `(tenant_id, grantable_type, grantable_id, subject_type, subject_id)` where `revoked_at IS NULL` (partial index)
-- [ ] Add a test: concurrent grant requests for the same subject do not produce duplicates
-- [ ] File: `src/app/Actions/GrantAccessAction.php` lines ~52-95
+- [x] `GrantAccessAction::__invoke()` does a lookup for an existing active grant, then either updates or creates — not wrapped in a transaction, no unique index
+- [x] Two concurrent grants for the same subject + resource can create duplicate `AccessGrant` rows
+- [x] Fix: wrap the lookup + create/update in `DB::transaction()` with `lockForUpdate()` on the lookup, OR add a unique index on `(tenant_id, grantable_type, grantable_id, subject_type, subject_id)` where `revoked_at IS NULL` (partial index)
+- [x] Add a test: concurrent grant requests for the same subject do not produce duplicates
+- [x] File: `src/app/Actions/GrantAccessAction.php` lines ~52-95
 
 ### 1.8 subject_type Whitelist — Wider Than bulkShare
-- [ ] Item 1.2 flags `BulkOperationService::bulkShare` — but the same `subject_type`-from-user-input pattern exists across the whole access-grant API
-- [ ] `AccessGrantController::store` accepts `subject_type` as a raw string (e.g. `User::class`) and passes it straight into `GrantAccessAction`, which uses it in queries
-- [ ] Apply the same whitelist (`User`, `Team`, `Tenant`) to every endpoint that accepts `subject_type`
-- [ ] Consider an enum (`SubjectType`) instead of raw class strings, both for validation and for storage
-- [ ] Add tests: invalid `subject_type` returns 422 on every accepting endpoint
-- [ ] Files: `src/app/Http/Controllers/Api/V1/AccessGrantController.php`, `src/app/Http/Requests/Access/GrantAccessRequest.php`, `src/app/Actions/GrantAccessAction.php`
+- [x] Item 1.2 flags `BulkOperationService::bulkShare` — but the same `subject_type`-from-user-input pattern exists across the whole access-grant API
+- [x] `AccessGrantController::store` accepts `subject_type` as a raw string (e.g. `User::class`) and passes it straight into `GrantAccessAction`, which uses it in queries
+- [x] Apply the same whitelist (`User`, `Team`, `Tenant`) to every endpoint that accepts `subject_type`
+- [x] Consider an enum (`SubjectType`) instead of raw class strings, both for validation and for storage
+- [x] Add tests: invalid `subject_type` returns 422 on every accepting endpoint
+- [x] Files: `src/app/Http/Controllers/Api/V1/AccessGrantController.php`, `src/app/Http/Requests/Access/GrantAccessRequest.php`, `src/app/Actions/GrantAccessAction.php`
 
 ---
 
@@ -250,6 +250,7 @@ These are features that could be added later based on real usage.
 - [x] Module 29 — Soft deletes consistency
 - [x] Module 30 — Bulk operations
 - [x] Module 31 — Dashboard caching
+- [x] KEY-32 — Production readiness (Priority 1: 1.1-1.8, except 1.1 restore test)
 
 ---
 

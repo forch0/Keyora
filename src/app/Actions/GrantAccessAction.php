@@ -14,6 +14,7 @@ use App\Services\AccessResolver;
 use App\Services\TenantManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class GrantAccessAction
 {
@@ -48,54 +49,60 @@ class GrantAccessAction
 
         $tenantId = $this->tenantManager->currentTenantId();
 
-        // Check for existing active grant
-        $existing = AccessGrant::withoutTenant()
-            ->where('tenant_id', $tenantId)
-            ->where('grantable_type', $resource::class)
-            ->where('grantable_id', $resource->getKey())
-            ->where('subject_type', $subjectType)
-            ->where('subject_id', $subjectId)
-            ->whereNull('revoked_at')
-            ->first();
+        // Wrap the lookup + create/update in a transaction with a row lock
+        // to prevent two concurrent grants for the same subject + resource
+        // from creating duplicate AccessGrant rows.
+        return DB::transaction(function () use ($grantedBy, $resource, $subjectType, $subjectId, $permission, $expiresAt, $maxViews, $startOnFirstView, $startsAt, $tenantId): AccessGrant {
+            // Check for existing active grant with a pessimistic lock
+            $existing = AccessGrant::withoutTenant()
+                ->where('tenant_id', $tenantId)
+                ->where('grantable_type', $resource::class)
+                ->where('grantable_id', $resource->getKey())
+                ->where('subject_type', $subjectType)
+                ->where('subject_id', $subjectId)
+                ->whereNull('revoked_at')
+                ->lockForUpdate()
+                ->first();
 
-        if ($existing !== null) {
-            // Update existing grant
-            $existing->update([
+            if ($existing !== null) {
+                // Update existing grant
+                $existing->update([
+                    'permission' => $permission,
+                    'expires_at' => $expiresAt,
+                    'max_views' => $maxViews,
+                    'start_on_first_view' => $startOnFirstView,
+                    'starts_at' => $startsAt,
+                    'granted_by' => $grantedBy->id,
+                ]);
+                $existing->refresh();
+
+                AccessGranted::dispatch($existing, $grantedBy);
+
+                return $existing;
+            }
+
+            $grant = AccessGrant::create([
+                'tenant_id' => $tenantId,
+                'grantable_type' => $resource::class,
+                'grantable_id' => $resource->getKey(),
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
                 'permission' => $permission,
                 'expires_at' => $expiresAt,
                 'max_views' => $maxViews,
-                'start_on_first_view' => $startOnFirstView,
+                'views_count' => 0,
                 'starts_at' => $startsAt,
+                'start_on_first_view' => $startOnFirstView,
+                'first_viewed_at' => null,
                 'granted_by' => $grantedBy->id,
+                'revoked_at' => null,
+                'revoked_by' => null,
+                'revoke_reason' => null,
             ]);
-            $existing->refresh();
 
-            AccessGranted::dispatch($existing, $grantedBy);
+            AccessGranted::dispatch($grant, $grantedBy);
 
-            return $existing;
-        }
-
-        $grant = AccessGrant::create([
-            'tenant_id' => $tenantId,
-            'grantable_type' => $resource::class,
-            'grantable_id' => $resource->getKey(),
-            'subject_type' => $subjectType,
-            'subject_id' => $subjectId,
-            'permission' => $permission,
-            'expires_at' => $expiresAt,
-            'max_views' => $maxViews,
-            'views_count' => 0,
-            'starts_at' => $startsAt,
-            'start_on_first_view' => $startOnFirstView,
-            'first_viewed_at' => null,
-            'granted_by' => $grantedBy->id,
-            'revoked_at' => null,
-            'revoked_by' => null,
-            'revoke_reason' => null,
-        ]);
-
-        AccessGranted::dispatch($grant, $grantedBy);
-
-        return $grant;
+            return $grant;
+        });
     }
 }

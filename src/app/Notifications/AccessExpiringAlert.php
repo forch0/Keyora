@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
 /**
@@ -12,7 +13,7 @@ use Illuminate\Notifications\Notification;
  *
  * @param  array<string, mixed>  $accessInfo
  */
-class AccessExpiringAlert extends Notification
+class AccessExpiringAlert extends Notification implements ShouldQueue
 {
     use Queueable;
 

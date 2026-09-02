@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Access;
 
+use App\Enums\SubjectType;
 use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
@@ -21,7 +22,7 @@ class GrantAccessRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subject_type' => ['required', 'string', Rule::in([User::class, Team::class, Tenant::class])],
+            'subject_type' => ['required', 'string', Rule::in(SubjectType::validClassStrings())],
             'subject_id' => ['required', 'integer'],
             'permission' => ['required', 'string', Rule::in(['view', 'download', 'edit', 'share', 'manage'])],
             'duration' => ['nullable', 'string', Rule::in(['15m', '30m', '1h', '24h'])],

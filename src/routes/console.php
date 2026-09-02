@@ -30,3 +30,6 @@ Schedule::command('security:detect-suspicious')->everyFifteenMinutes()->descript
 Schedule::call(function (): void {
     app(DashboardCacheService::class)->warmActiveDashboards();
 })->everyFiveMinutes()->description('Warm dashboard caches for active tenants');
+
+// Database backup — daily at 2 AM, keep 7 days of backups
+Schedule::command('db:backup --keep=7')->dailyAt('02:00')->description('Daily database backup (7-day rotation)');

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @property int $id
@@ -149,7 +150,14 @@ class PersonalVaultItem extends Model
 
             try {
                 return json_decode(Crypt::decryptString($value), true);
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                Log::error('Encryptable decryption failed', [
+                    'model' => static::class,
+                    'key' => $this->getKey(),
+                    'field' => 'custom_fields',
+                    'error' => $e->getMessage(),
+                ]);
+
                 return;
             }
         }
@@ -159,8 +167,15 @@ class PersonalVaultItem extends Model
         if ($this->isEncryptableField($key) && is_string($value) && $value !== '') {
             try {
                 return Crypt::decryptString($value);
-            } catch (\Throwable) {
-                return $value;
+            } catch (\Throwable $e) {
+                Log::error('Encryptable decryption failed', [
+                    'model' => static::class,
+                    'key' => $this->getKey(),
+                    'field' => $key,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return;
             }
         }
 
