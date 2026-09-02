@@ -5,7 +5,7 @@
 | **Module** | 17 |
 | **Name** | Secure External Sharing — Link Creation |
 | **Dependencies** | Module 08, Module 09 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

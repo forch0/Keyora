@@ -44,7 +44,7 @@
 | 14 | Temporary Access | ✅ Complete | 2026-09-02 | AccessDuration enum, ViewTracker service, CheckExpiredAccess command, SendExpirationWarning job, AccessExpiringSoon/AccessExpiredNotification notifications, ResourceViewed/AccessExpired events, countdown endpoint, 15 new tests (205 total) |
 | 15 | Access Requests | ✅ Complete | 2026-09-02 | AccessRequest model, CreateAccessRequestAction/ApproveAccessRequestAction/RejectAccessRequestAction, AccessRequestPolicy, AccessRequestController, 3 events + 3 notifications, 7 new routes, 17 new tests (222 total) |
 | 16 | Access Revocation | ✅ Complete | 2026-09-02 | EmergencyRevokeAction, RevokeAllAccessAction, RevokeTeamAccessAction, OffboardEmployeeAction, EmergencyRevokeController, 2 events + 1 notification, 6 new routes, 12 new tests (234 total) |
-| 17 | Secure External Sharing — Part 1 | ⬜ Not Started | — | — |
+| 17 | Secure External Sharing — Part 1 | ✅ Complete | 2026-09-02 | SecureLink model, CreateSecureLinkAction, SecureLinkController, SecureLinkPolicy, SecureLinkResource, 1 event + 2 notifications, 7 new routes, 15 new tests (249 total) |
 | 18 | Secure External Sharing — Part 2 | ⬜ Not Started | — | — |
 | 19 | Search & Organization | ⬜ Not Started | — | — |
 | 20 | Activity & Audit Logging | ⬜ Not Started | — | — |

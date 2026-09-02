@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
 use App\Http\Controllers\Api\V1\SecureFileController;
+use App\Http\Controllers\Api\V1\SecureLinkController;
 use App\Http\Controllers\Api\V1\SecureNoteController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
@@ -149,6 +150,10 @@ Route::prefix('v1')->group(function (): void {
         // Bulk revocation (Module 16)
         Route::post('{item}/access/revoke-all', [EmergencyRevokeController::class, 'revokeAllForResource']);
         Route::post('{item}/access/revoke-team/{team}', [EmergencyRevokeController::class, 'revokeTeamAccess']);
+
+        // Secure share links (Module 17)
+        Route::get('{item}/share-links', [SecureLinkController::class, 'indexForVaultItem']);
+        Route::post('{item}/share-links', [SecureLinkController::class, 'storeForVaultItem']);
     });
 
     // Password tools — generator and strength checker
@@ -181,6 +186,10 @@ Route::prefix('v1')->group(function (): void {
         Route::put('/{file}/access/{grant}', [FileAccessController::class, 'update']);
         Route::delete('/{file}/access/{grant}', [FileAccessController::class, 'destroy']);
         Route::post('/{file}/access/revoke-all', [EmergencyRevokeController::class, 'revokeAllForFile']);
+
+        // Secure share links (Module 17)
+        Route::get('/{file}/share-links', [SecureLinkController::class, 'indexForFile']);
+        Route::post('/{file}/share-links', [SecureLinkController::class, 'storeForFile']);
     });
 
     // Secure notes — encrypted notes with sharing, folders, tags, search
@@ -199,6 +208,10 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('/{note}/access/{grant}', [NoteAccessController::class, 'destroy']);
         Route::post('/{note}/access/revoke-all', [EmergencyRevokeController::class, 'revokeAllForNote']);
 
+        // Secure share links (Module 17)
+        Route::get('/{note}/share-links', [SecureLinkController::class, 'indexForNote']);
+        Route::post('/{note}/share-links', [SecureLinkController::class, 'storeForNote']);
+
         Route::get('/folders', [NoteFolderController::class, 'index']);
         Route::post('/folders', [NoteFolderController::class, 'store']);
         Route::put('/folders/{folder}', [NoteFolderController::class, 'update']);
@@ -214,5 +227,10 @@ Route::prefix('v1')->group(function (): void {
         Route::put('/{accessRequest}/approve', [AccessRequestController::class, 'approve']);
         Route::put('/{accessRequest}/reject', [AccessRequestController::class, 'reject']);
         Route::delete('/{accessRequest}', [AccessRequestController::class, 'destroy']);
+    });
+
+    // Secure share links — revoke (Module 17)
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('share-links')->group(function (): void {
+        Route::delete('/{link}', [SecureLinkController::class, 'destroy']);
     });
 });
