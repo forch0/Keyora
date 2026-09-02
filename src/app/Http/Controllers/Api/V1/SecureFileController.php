@@ -12,6 +12,7 @@ use App\Http\Requests\Files\UploadFileRequest;
 use App\Http\Resources\V1\SecureFileResource;
 use App\Models\SecureFile;
 use App\Models\User;
+use App\Services\ViewTracker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -23,6 +24,7 @@ class SecureFileController extends Controller
 {
     public function __construct(
         private readonly UploadFileAction $uploadFile,
+        private readonly ViewTracker $viewTracker,
     ) {}
 
     /**
@@ -122,6 +124,8 @@ class SecureFileController extends Controller
     {
         $user = $this->authenticatedUser($request);
         $this->authorize('view', $file);
+
+        $this->viewTracker->recordView($user, $file);
 
         return (new SecureFileResource($file))->response();
     }

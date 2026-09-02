@@ -42,6 +42,7 @@ class AccessGrant extends Model
         'starts_at',
         'start_on_first_view',
         'first_viewed_at',
+        'warning_sent_at',
         'granted_by',
         'revoked_at',
         'revoked_by',
@@ -57,6 +58,7 @@ class AccessGrant extends Model
             'expires_at' => 'datetime',
             'starts_at' => 'datetime',
             'first_viewed_at' => 'datetime',
+            'warning_sent_at' => 'datetime',
             'revoked_at' => 'datetime',
             'start_on_first_view' => 'boolean',
             'max_views' => 'integer',
@@ -156,7 +158,16 @@ class AccessGrant extends Model
      */
     public function isExpired(): bool
     {
-        return $this->expires_at !== null && $this->expires_at <= now();
+        if ($this->expires_at === null) {
+            return false;
+        }
+
+        // For start_on_first_view grants, the clock hasn't started until first_viewed_at
+        if ($this->start_on_first_view && $this->first_viewed_at === null) {
+            return false;
+        }
+
+        return $this->expires_at <= now();
     }
 
     /**

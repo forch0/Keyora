@@ -24,6 +24,7 @@ class GrantAccessRequest extends FormRequest
             'subject_type' => ['required', 'string', Rule::in([User::class, Team::class, Tenant::class])],
             'subject_id' => ['required', 'integer'],
             'permission' => ['required', 'string', Rule::in(['view', 'download', 'edit', 'share', 'manage'])],
+            'duration' => ['nullable', 'string', Rule::in(['15m', '30m', '1h', '24h'])],
             'expires_at' => ['nullable', 'date', 'after:now'],
             'max_views' => ['nullable', 'integer', 'min:1'],
             'start_on_first_view' => ['nullable', 'boolean'],
@@ -51,6 +52,16 @@ class GrantAccessRequest extends FormRequest
             $subjectType = $this->input('subject_type');
             $subjectId = (int) $this->input('subject_id');
             $tenantId = app(TenantManager::class)->currentTenantId();
+
+            // duration and expires_at are mutually exclusive
+            if ($this->filled('duration') && $this->filled('expires_at')) {
+                $validator->errors()->add('duration', 'Provide either duration or expires_at, not both.');
+            }
+
+            // start_on_first_view with starts_at is invalid
+            if ($this->boolean('start_on_first_view') && $this->filled('starts_at')) {
+                $validator->errors()->add('start_on_first_view', 'Cannot use start_on_first_view with starts_at.');
+            }
 
             if ($subjectType === User::class) {
                 $user = User::find($subjectId);

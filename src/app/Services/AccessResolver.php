@@ -222,8 +222,8 @@ class AccessResolver
             return false;
         }
 
-        // Start time hasn't arrived
-        if (! $grant->hasStarted()) {
+        // Start time hasn't arrived (unless start_on_first_view — first view starts the clock)
+        if (! $grant->hasStarted() && ! $grant->start_on_first_view) {
             return false;
         }
 

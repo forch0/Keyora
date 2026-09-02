@@ -14,6 +14,7 @@ use App\Models\SecureNote;
 use App\Models\User;
 use App\Services\AccessResolver;
 use App\Services\TenantManager;
+use App\Services\ViewTracker;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class SecureNoteController extends Controller
         private readonly UpdateNoteAction $updateNote,
         private readonly AccessResolver $accessResolver,
         private readonly TenantManager $tenantManager,
+        private readonly ViewTracker $viewTracker,
     ) {}
 
     /**
@@ -104,8 +106,10 @@ class SecureNoteController extends Controller
      */
     public function show(Request $request, SecureNote $note): JsonResponse
     {
-        $this->authenticatedUser($request);
+        $user = $this->authenticatedUser($request);
         $this->authorize('view', $note);
+
+        $this->viewTracker->recordView($user, $note);
 
         $note->load(['tags', 'user']);
 

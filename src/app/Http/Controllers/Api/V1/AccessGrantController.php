@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Actions\GrantAccessAction;
 use App\Actions\RevokeAccessAction;
 use App\Actions\UpdateAccessAction;
+use App\Enums\AccessDuration;
 use App\Enums\Permission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Access\GrantAccessRequest;
@@ -84,13 +85,15 @@ class AccessGrantController extends Controller
 
         $permission = Permission::from($request->validated('permission'));
 
+        $expiresAt = $this->resolveExpiresAt($request);
+
         $grant = ($this->grantAccess)(
             grantedBy: $user,
             resource: $item,
             subjectType: $request->validated('subject_type'),
             subjectId: (int) $request->validated('subject_id'),
             permission: $permission,
-            expiresAt: $request->validated('expires_at') ? Carbon::parse($request->validated('expires_at')) : null,
+            expiresAt: $expiresAt,
             maxViews: $request->validated('max_views') ? (int) $request->validated('max_views') : null,
             startOnFirstView: (bool) $request->validated('start_on_first_view', false),
             startsAt: $request->validated('starts_at') ? Carbon::parse($request->validated('starts_at')) : null,
@@ -154,6 +157,65 @@ class AccessGrantController extends Controller
         ($this->revokeAccess)($user, $grant, is_string($reason) ? $reason : null);
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Get expiration countdown for the current user's grant on a resource.
+     */
+    public function countdown(Request $request, VaultItem $item): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        $grant = AccessGrant::withoutTenant()
+            ->where('grantable_type', VaultItem::class)
+            ->where('grantable_id', $item->id)
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->whereNull('revoked_at')
+            ->latest()
+            ->first();
+
+        if ($grant === null) {
+            abort(404, 'No active access grant found for this resource.');
+        }
+
+        $expiresAt = $grant->getAttribute('expires_at');
+        $secondsRemaining = null;
+        if ($expiresAt !== null) {
+            $secondsRemaining = max(0, now()->diffInSeconds($expiresAt));
+        }
+
+        $viewsRemaining = null;
+        if ($grant->max_views !== null) {
+            $viewsRemaining = max(0, $grant->max_views - $grant->views_count);
+        }
+
+        return response()->json([
+            'data' => [
+                'grant_id' => $grant->id,
+                'expires_at' => $expiresAt?->toIso8601String(),
+                'seconds_remaining' => $secondsRemaining,
+                'views_remaining' => $viewsRemaining,
+                'max_views' => $grant->max_views,
+                'views_count' => $grant->views_count,
+                'starts_at' => $grant->getAttribute('starts_at')?->toIso8601String(),
+                'start_on_first_view' => $grant->start_on_first_view,
+                'first_viewed_at' => $grant->getAttribute('first_viewed_at')?->toIso8601String(),
+            ],
+        ]);
+    }
+
+    private function resolveExpiresAt(GrantAccessRequest $request): ?Carbon
+    {
+        if ($request->validated('duration')) {
+            return AccessDuration::from($request->validated('duration'))->toCarbon();
+        }
+
+        if ($request->validated('expires_at')) {
+            return Carbon::parse($request->validated('expires_at'));
+        }
+
+        return null;
     }
 
     private function authenticatedUser(Request $request): User

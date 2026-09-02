@@ -211,7 +211,7 @@ class AccessGrantTest extends TestCase
         $this->attachUserToTenant($viewer, $tenant, 'member');
         $item = $this->createVaultItem($tenant, $owner);
 
-        // Grant with start_on_first_view=true, no first_viewed_at yet → not started
+        // Grant with start_on_first_view=true, no first_viewed_at yet → first view is allowed
         $this->createGrant($item, User::class, $viewer->id, Permission::View, $owner, $tenant, [
             'start_on_first_view' => true,
             'first_viewed_at' => null,
@@ -220,7 +220,8 @@ class AccessGrantTest extends TestCase
         $resolver = app(AccessResolver::class);
         $this->setupTenantContext($tenant);
 
-        $this->assertFalse($resolver->can($viewer, Permission::View, $item));
+        // First view is allowed (clock starts on first view)
+        $this->assertTrue($resolver->can($viewer, Permission::View, $item));
     }
 
     public function test_permission_hierarchy(): void
