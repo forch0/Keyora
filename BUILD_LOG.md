@@ -54,7 +54,7 @@
 | 24 | Dashboards | ✅ Complete | 2026-09-02 | DashboardService (personal/company/usage aggregation), DashboardController, config/plans.php (free/team/business/enterprise limits), 3 endpoints, Team files/notes relationships, 17 new tests (361 total) |
 | 25 | SaaS & Billing — Part 1 | ⏭️ Skipped | — | Open-source project — no billing |
 | 26 | SaaS & Billing — Part 2 | ⏭️ Skipped | — | Open-source project — no billing |
-| 27 | Rate Limiting & API Throttling | ⬜ Not Started | — | — |
+| 27 | Rate Limiting & API Throttling | ✅ Complete | 2026-09-02 | config/rate_limits.php (read/write/sensitive/auth/2fa profiles), RateLimitByProfile middleware (config-driven, user-keyed), TenantRateLimit middleware (plan-tier multiplier), 429 with X-RateLimit-* headers, security alerts on repeated sensitive violations, all routes throttled, 11 new tests (372 total) |
 | 28 | API Documentation (OpenAPI/Scribe) | ⬜ Not Started | — | — |
 | 29 | Soft Deletes Consistency | ⬜ Not Started | — | — |
 | 30 | Bulk Operations | ⬜ Not Started | — | — |

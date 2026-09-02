@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\RateLimitByProfile;
 use App\Http\Middleware\RequireReauthentication;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\TenantRateLimit;
 use App\Providers\EventServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant.resolve' => ResolveTenant::class,
             'reauth' => RequireReauthentication::class,
+            'rate.limit' => RateLimitByProfile::class,
+            'tenant.rate' => TenantRateLimit::class,
         ]);
 
         // API-only app: no login route exists. Override Laravel's default
