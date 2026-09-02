@@ -5,7 +5,7 @@
 | **Module** | 13 |
 | **Name** | Secure Notes |
 | **Dependencies** | Module 05, Module 08, Module 09 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

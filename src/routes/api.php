@@ -4,12 +4,15 @@ use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\FileAccessController;
 use App\Http\Controllers\Api\V1\FileFolderController;
+use App\Http\Controllers\Api\V1\NoteAccessController;
+use App\Http\Controllers\Api\V1\NoteFolderController;
 use App\Http\Controllers\Api\V1\OrgVaultItemController;
 use App\Http\Controllers\Api\V1\PasswordToolController;
 use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
 use App\Http\Controllers\Api\V1\SecureFileController;
+use App\Http\Controllers\Api\V1\SecureNoteController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
 use App\Http\Controllers\Api\V1\TeamVaultItemController;
@@ -169,5 +172,26 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/{file}/access', [FileAccessController::class, 'store']);
         Route::put('/{file}/access/{grant}', [FileAccessController::class, 'update']);
         Route::delete('/{file}/access/{grant}', [FileAccessController::class, 'destroy']);
+    });
+
+    // Secure notes — encrypted notes with sharing, folders, tags, search
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('notes')->group(function (): void {
+        Route::get('/', [SecureNoteController::class, 'index']);
+        Route::post('/', [SecureNoteController::class, 'store']);
+        Route::get('/search', [SecureNoteController::class, 'search']);
+        Route::get('/{note}', [SecureNoteController::class, 'show']);
+        Route::put('/{note}', [SecureNoteController::class, 'update']);
+        Route::delete('/{note}', [SecureNoteController::class, 'destroy']);
+        Route::post('/{note}/pin', [SecureNoteController::class, 'togglePin']);
+
+        Route::get('/{note}/access', [NoteAccessController::class, 'index']);
+        Route::post('/{note}/access', [NoteAccessController::class, 'store']);
+        Route::put('/{note}/access/{grant}', [NoteAccessController::class, 'update']);
+        Route::delete('/{note}/access/{grant}', [NoteAccessController::class, 'destroy']);
+
+        Route::get('/folders', [NoteFolderController::class, 'index']);
+        Route::post('/folders', [NoteFolderController::class, 'store']);
+        Route::put('/folders/{folder}', [NoteFolderController::class, 'update']);
+        Route::delete('/folders/{folder}', [NoteFolderController::class, 'destroy']);
     });
 });
