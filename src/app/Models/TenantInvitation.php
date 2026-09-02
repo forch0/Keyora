@@ -14,6 +14,8 @@ use Illuminate\Support\Carbon;
  * @property int $tenant_id
  * @property string $email
  * @property string $role
+ * @property array<int, int>|null $team_ids
+ * @property array<int, array{resource_type: string, resource_id: int, permission: string}>|null $initial_access
  * @property string $token
  * @property int $invited_by
  * @property Carbon|null $accepted_at
@@ -21,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property-read Tenant|null $tenant
  * @property-read User|null $inviter
  */
-#[Fillable(['tenant_id', 'email', 'role', 'token', 'invited_by', 'accepted_at', 'expires_at'])]
+#[Fillable(['tenant_id', 'email', 'role', 'team_ids', 'initial_access', 'token', 'invited_by', 'accepted_at', 'expires_at'])]
 class TenantInvitation extends Model
 {
     /**
@@ -34,6 +36,8 @@ class TenantInvitation extends Model
         return [
             'accepted_at' => 'datetime',
             'expires_at' => 'datetime',
+            'team_ids' => 'array',
+            'initial_access' => 'array',
         ];
     }
 

@@ -15,7 +15,7 @@ class InviteEmployeeAction
     /**
      * Create an invitation for a user to join a tenant.
      *
-     * @param  array<string, mixed>  $attributes  {email, role}
+     * @param  array<string, mixed>  $attributes  {email, role, team_ids?, initial_access?}
      */
     public function __invoke(Tenant $tenant, User $inviter, array $attributes): TenantInvitation
     {
@@ -23,6 +23,8 @@ class InviteEmployeeAction
             'tenant_id' => $tenant->id,
             'email' => $attributes['email'],
             'role' => $attributes['role'],
+            'team_ids' => $attributes['team_ids'] ?? null,
+            'initial_access' => $attributes['initial_access'] ?? null,
             'token' => Str::uuid()->toString(),
             'invited_by' => $inviter->id,
             'expires_at' => now()->addDays(7),

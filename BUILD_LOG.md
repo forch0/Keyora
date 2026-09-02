@@ -49,7 +49,7 @@
 | 19 | Search & Organization | ✅ Complete | 2026-09-02 | ResourceView model, GlobalSearch service, SearchController, ViewTracker updated, 4 new routes, tag/folder/shared/sort filters on vault items, 15 new tests (282 total) |
 | 20 | Activity & Audit Logging | ✅ Complete | 2026-09-02 | ActivityLog model (append-only), ActivityLogger service, LogActivity job, 12 event listeners, ActivityLogController, TenantPolicy, CleanupActivityLogs command, 5 new routes, 18 new tests (300 total) |
 | 21 | Security Alerts | ✅ Complete | 2026-09-02 | SecurityAlert + UserDevice models, DeviceDetector service, SecurityAlertController + DeviceController, 3 notifications, 2 jobs (CheckExpiringAccess, CheckExpiredAccess), DetectSuspiciousActivity command, 7 new routes, 3 scheduled tasks, 13 new tests (313 total) |
-| 22 | Employee Lifecycle | ⬜ Not Started | — | — |
+| 22 | Employee Lifecycle | ✅ Complete | 2026-09-02 | Extended invitations (team_ids + initial_access), AcceptInvitationAction auto-assigns teams + creates grants, CompleteOnboardingAction, AssignTeamAction + RemoveFromTeamAction, rewritten OffboardEmployeeAction (revoke access, remove teams, set status=left, revoke tokens, revoke secure links, dispatch event, notify), EmployeeOffboarded event + notification, 5 new controller methods, 5 new routes, 16 new tests (329 total) |
 | 23 | Account Security | ⬜ Not Started | — | — |
 | 24 | Dashboards | ⬜ Not Started | — | — |
 | 25 | SaaS & Billing — Part 1 | ⬜ Not Started | — | — |

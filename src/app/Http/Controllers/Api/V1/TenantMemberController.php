@@ -5,13 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\AcceptInvitationAction;
+use App\Actions\AssignTeamAction;
+use App\Actions\CompleteOnboardingAction;
 use App\Actions\InviteEmployeeAction;
+use App\Actions\OffboardEmployeeAction;
+use App\Actions\RemoveFromTeamAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\AcceptInvitationRequest;
+use App\Http\Requests\Tenant\AssignTeamsRequest;
+use App\Http\Requests\Tenant\ChangeRoleRequest;
 use App\Http\Requests\Tenant\InviteMemberRequest;
+use App\Http\Requests\Tenant\OffboardEmployeeRequest;
 use App\Http\Requests\Tenant\UpdateMemberRequest;
 use App\Http\Resources\V1\TenantInvitationResource;
 use App\Http\Resources\V1\TenantMemberResource;
+use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\TenantInvitation;
 use App\Models\User;
@@ -25,6 +33,10 @@ class TenantMemberController extends Controller
     public function __construct(
         private readonly InviteEmployeeAction $inviteEmployee,
         private readonly AcceptInvitationAction $acceptInvitation,
+        private readonly AssignTeamAction $assignTeam,
+        private readonly RemoveFromTeamAction $removeFromTeam,
+        private readonly OffboardEmployeeAction $offboardEmployee,
+        private readonly CompleteOnboardingAction $completeOnboarding,
     ) {}
 
     /**
@@ -203,6 +215,88 @@ class TenantMemberController extends Controller
         }
 
         $invitation->delete();
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Assign user to additional teams (Module 22).
+     */
+    public function assignTeams(AssignTeamsRequest $request, Tenant $tenant, User $user): JsonResponse
+    {
+        $actor = $this->authenticatedUser($request);
+        $this->authorize('member.update', [$tenant, $user]);
+
+        $teamIds = $request->validated('team_ids');
+        $teams = Team::where('tenant_id', $tenant->id)->whereIn('id', $teamIds)->get();
+
+        foreach ($teams as $team) {
+            ($this->assignTeam)($actor, $user, $team);
+        }
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Remove user from a team (Module 22).
+     */
+    public function removeFromTeam(Request $request, Tenant $tenant, User $user, Team $team): JsonResponse
+    {
+        $actor = $this->authenticatedUser($request);
+        $this->authorize('member.update', [$tenant, $user]);
+
+        if ($team->tenant_id !== $tenant->id) {
+            abort(404);
+        }
+
+        ($this->removeFromTeam)($actor, $user, $team);
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Change user's tenant role (Module 22).
+     */
+    public function changeRole(ChangeRoleRequest $request, Tenant $tenant, User $user): JsonResponse
+    {
+        $this->authenticatedUser($request);
+        $this->authorize('member.update', [$tenant, $user]);
+
+        $tenant->users()->updateExistingPivot($user->id, [
+            'role' => $request->validated('role'),
+        ]);
+
+        $member = $tenant->users()->wherePivot('user_id', $user->id)->first();
+
+        return (new TenantMemberResource($member))->response();
+    }
+
+    /**
+     * Offboard an employee (Module 22).
+     */
+    public function offboard(OffboardEmployeeRequest $request, Tenant $tenant, User $user): JsonResponse
+    {
+        $actor = $this->authenticatedUser($request);
+        $this->authorize('member.remove', [$tenant, $user]);
+
+        ($this->offboardEmployee)(
+            offboardedBy: $actor,
+            targetUser: $user,
+            tenant: $tenant,
+            reason: $request->validated('reason'),
+        );
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Complete onboarding for the authenticated user (Module 22).
+     */
+    public function completeOnboarding(Request $request, Tenant $tenant): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        ($this->completeOnboarding)($user, $tenant);
 
         return response()->json(null, 204);
     }

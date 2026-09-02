@@ -208,7 +208,8 @@ class AccessRevocationTest extends TestCase
 
         $this->assertGreaterThanOrEqual(1, $count);
         $this->assertSame(0, AccessGrant::where('subject_id', $member->id)->whereNull('revoked_at')->count());
-        $this->assertFalse($tenant->users()->where('users.id', $member->id)->exists());
+        // Module 22: offboarding sets status='left' instead of detaching
+        $this->assertFalse($tenant->users()->wherePivotNull('left_at')->where('users.id', $member->id)->exists());
     }
 
     public function test_revoked_grants_have_reason(): void

@@ -84,10 +84,15 @@ Route::prefix('v1')->group(function (): void {
             Route::get('tenants/{tenant}/members', [TenantMemberController::class, 'index']);
             Route::post('tenants/{tenant}/members/invite', [TenantMemberController::class, 'invite']);
             Route::post('tenants/{tenant}/members/accept', [TenantMemberController::class, 'accept']);
+            Route::post('tenants/{tenant}/members/onboarding-complete', [TenantMemberController::class, 'completeOnboarding']);
             Route::get('tenants/{tenant}/members/{user}', [TenantMemberController::class, 'show']);
             Route::put('tenants/{tenant}/members/{user}', [TenantMemberController::class, 'update']);
+            Route::put('tenants/{tenant}/members/{user}/role', [TenantMemberController::class, 'changeRole']);
+            Route::post('tenants/{tenant}/members/{user}/teams', [TenantMemberController::class, 'assignTeams']);
+            Route::delete('tenants/{tenant}/members/{user}/teams/{team}', [TenantMemberController::class, 'removeFromTeam']);
             Route::post('tenants/{tenant}/members/{user}/suspend', [TenantMemberController::class, 'suspend']);
             Route::post('tenants/{tenant}/members/{user}/restore', [TenantMemberController::class, 'restore']);
+            Route::post('tenants/{tenant}/members/{user}/offboard', [TenantMemberController::class, 'offboard']);
             Route::delete('tenants/{tenant}/members/{user}', [TenantMemberController::class, 'destroy']);
             Route::post('tenants/{tenant}/members/{user}/revoke-all', [EmergencyRevokeController::class, 'revokeAllForUser']);
             Route::get('tenants/{tenant}/invitations', [TenantMemberController::class, 'invitations']);
