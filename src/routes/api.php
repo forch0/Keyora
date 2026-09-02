@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
 use App\Http\Controllers\Api\V1\PublicLinkController;
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SecureFileController;
 use App\Http\Controllers\Api\V1\SecureLinkController;
 use App\Http\Controllers\Api\V1\SecureNoteController;
@@ -243,5 +244,13 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('share-links')->group(function (): void {
         Route::delete('/{link}', [SecureLinkController::class, 'destroy']);
         Route::get('/{link}/activity', [SecureLinkController::class, 'activity']);
+    });
+
+    // Global search & organization (Module 19)
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->group(function (): void {
+        Route::get('search', [SearchController::class, 'search']);
+        Route::get('recent', [SearchController::class, 'recent']);
+        Route::get('recent/created', [SearchController::class, 'recentCreated']);
+        Route::get('expiring', [SearchController::class, 'expiring']);
     });
 });

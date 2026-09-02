@@ -13,6 +13,7 @@ use App\Http\Requests\Vault\UpdateItemRequest;
 use App\Http\Resources\V1\PersonalVaultItemResource;
 use App\Models\PersonalVaultItem;
 use App\Models\User;
+use App\Models\VaultItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -57,9 +58,39 @@ class PersonalVaultItemController extends Controller
             $query->whereHas('tags', fn ($q) => $q->where('personal_vault_tags.id', (int) $tagId));
         }
 
-        $items = $query->orderBy('favorite', 'desc')
-            ->orderBy('updated_at', 'desc')
-            ->paginate(20);
+        if ($tagName = $request->query('tag')) {
+            $query->whereHas('tags', fn ($q) => $q->where('personal_vault_tags.name', (string) $tagName));
+        }
+
+        if ($request->has('shared')) {
+            $currentUser = $request->user();
+            if ($currentUser instanceof User) {
+                if ($request->boolean('shared')) {
+                    $userId = $currentUser->id;
+                    $query->whereRaw('id IN (SELECT grantable_id FROM access_grants WHERE grantable_type = ? AND subject_type = ? AND subject_id = ? AND revoked_at IS NULL)', [
+                        VaultItem::class,
+                        User::class,
+                        $userId,
+                    ]);
+                } else {
+                    $query->where('user_id', $currentUser->id);
+                }
+            }
+        }
+
+        // Sorting (Module 19)
+        $sort = $request->query('sort', '-created_at');
+        $direction = str_starts_with((string) $sort, '-') ? 'desc' : 'asc';
+        $sortColumn = ltrim((string) $sort, '-');
+
+        $validSorts = ['name', 'created_at', 'updated_at'];
+        if (in_array($sortColumn, $validSorts, true)) {
+            $query->orderBy($sortColumn, $direction);
+        } else {
+            $query->orderBy('favorite', 'desc')->orderBy('updated_at', 'desc');
+        }
+
+        $items = $query->paginate(20);
 
         return PersonalVaultItemResource::collection($items);
     }

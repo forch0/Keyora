@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Events\ResourceViewed;
 use App\Models\AccessGrant;
+use App\Models\ResourceView;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -51,5 +52,13 @@ class ViewTracker
         }
 
         ResourceViewed::dispatch($resource, $user);
+
+        // Record in resource_views for global "recently accessed" (Module 19)
+        ResourceView::create([
+            'user_id' => $user->id,
+            'resource_type' => $resource::class,
+            'resource_id' => $resource->getKey(),
+            'viewed_at' => Carbon::now(),
+        ]);
     }
 }
