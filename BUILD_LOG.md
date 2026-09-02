@@ -54,6 +54,11 @@
 | 24 | Dashboards | ✅ Complete | 2026-09-02 | DashboardService (personal/company/usage aggregation), DashboardController, config/plans.php (free/team/business/enterprise limits), 3 endpoints, Team files/notes relationships, 17 new tests (361 total) |
 | 25 | SaaS & Billing — Part 1 | ⏭️ Skipped | — | Open-source project — no billing |
 | 26 | SaaS & Billing — Part 2 | ⏭️ Skipped | — | Open-source project — no billing |
+| 27 | Rate Limiting & API Throttling | ⬜ Not Started | — | — |
+| 28 | API Documentation (OpenAPI/Scribe) | ⬜ Not Started | — | — |
+| 29 | Soft Deletes Consistency | ⬜ Not Started | — | — |
+| 30 | Bulk Operations | ⬜ Not Started | — | — |
+| 31 | Dashboard Caching & Performance | ⬜ Not Started | — | — |
 
 ---
 

@@ -30,8 +30,13 @@ This document tracks all build modules in dependency order. Each module is a sin
 | 22 | Employee Lifecycle | [22-employee-lifecycle.md](22-employee-lifecycle.md) | Not Started | 04, 07, 08, 16, 20 |
 | 23 | Account Security | [23-account-security.md](23-account-security.md) | Not Started | 02, 20 |
 | 24 | Dashboards | [24-dashboards.md](24-dashboards.md) | Not Started | All prior |
-| 25 | SaaS & Billing — Part 1: Plans & Limits | [25-saas-billing-part-1.md](25-saas-billing-part-1.md) | Not Started | 03, 04 |
-| 26 | SaaS & Billing — Part 2: Paystack Integration | [26-saas-billing-part-2.md](26-saas-billing-part-2.md) | Not Started | 25 |
+| 25 | SaaS & Billing — Part 1: Plans & Limits | [25-saas-billing-part-1.md](25-saas-billing-part-1.md) | Skipped | 03, 04 |
+| 26 | SaaS & Billing — Part 2: Paystack Integration | [26-saas-billing-part-2.md](26-saas-billing-part-2.md) | Skipped | 25 |
+| 27 | Rate Limiting & API Throttling | [27-rate-limiting.md](27-rate-limiting.md) | Not Started | 02, 23 |
+| 28 | API Documentation (OpenAPI/Scribe) | [28-api-documentation.md](28-api-documentation.md) | Not Started | All prior |
+| 29 | Soft Deletes Consistency | [29-soft-deletes-consistency.md](29-soft-deletes-consistency.md) | Not Started | All prior |
+| 30 | Bulk Operations | [30-bulk-operations.md](30-bulk-operations.md) | Not Started | 05, 08, 11, 13 |
+| 31 | Dashboard Caching & Performance | [31-dashboard-caching.md](31-dashboard-caching.md) | Not Started | 24 |
 
 ## Status Legend
 
