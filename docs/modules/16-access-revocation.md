@@ -5,7 +5,7 @@
 | **Module** | 16 |
 | **Name** | Access Revocation |
 | **Dependencies** | Module 08, Module 09, Module 14 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

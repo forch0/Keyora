@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AccessRequestController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\EmergencyRevokeController;
 use App\Http\Controllers\Api\V1\FileAccessController;
 use App\Http\Controllers\Api\V1\FileFolderController;
 use App\Http\Controllers\Api\V1\NoteAccessController;
@@ -73,6 +74,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('tenants/{tenant}/members/{user}/suspend', [TenantMemberController::class, 'suspend']);
             Route::post('tenants/{tenant}/members/{user}/restore', [TenantMemberController::class, 'restore']);
             Route::delete('tenants/{tenant}/members/{user}', [TenantMemberController::class, 'destroy']);
+            Route::post('tenants/{tenant}/members/{user}/revoke-all', [EmergencyRevokeController::class, 'revokeAllForUser']);
             Route::get('tenants/{tenant}/invitations', [TenantMemberController::class, 'invitations']);
             Route::delete('tenants/{tenant}/invitations/{invitation}', [TenantMemberController::class, 'cancelInvitation']);
         });
@@ -143,6 +145,10 @@ Route::prefix('v1')->group(function (): void {
         Route::post('{item}/access/bulk', [AccessGrantController::class, 'bulkStore']);
         Route::put('{item}/access/{grant}', [AccessGrantController::class, 'update']);
         Route::delete('{item}/access/{grant}', [AccessGrantController::class, 'destroy']);
+
+        // Bulk revocation (Module 16)
+        Route::post('{item}/access/revoke-all', [EmergencyRevokeController::class, 'revokeAllForResource']);
+        Route::post('{item}/access/revoke-team/{team}', [EmergencyRevokeController::class, 'revokeTeamAccess']);
     });
 
     // Password tools — generator and strength checker
@@ -174,6 +180,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/{file}/access', [FileAccessController::class, 'store']);
         Route::put('/{file}/access/{grant}', [FileAccessController::class, 'update']);
         Route::delete('/{file}/access/{grant}', [FileAccessController::class, 'destroy']);
+        Route::post('/{file}/access/revoke-all', [EmergencyRevokeController::class, 'revokeAllForFile']);
     });
 
     // Secure notes — encrypted notes with sharing, folders, tags, search
@@ -190,6 +197,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/{note}/access', [NoteAccessController::class, 'store']);
         Route::put('/{note}/access/{grant}', [NoteAccessController::class, 'update']);
         Route::delete('/{note}/access/{grant}', [NoteAccessController::class, 'destroy']);
+        Route::post('/{note}/access/revoke-all', [EmergencyRevokeController::class, 'revokeAllForNote']);
 
         Route::get('/folders', [NoteFolderController::class, 'index']);
         Route::post('/folders', [NoteFolderController::class, 'store']);
