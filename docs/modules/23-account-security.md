@@ -5,7 +5,7 @@
 | **Module** | 23 |
 | **Name** | Account Security (2FA, Recovery Codes, Re-authentication) |
 | **Dependencies** | Module 02, Module 20 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

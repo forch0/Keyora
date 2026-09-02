@@ -50,7 +50,7 @@
 | 20 | Activity & Audit Logging | ✅ Complete | 2026-09-02 | ActivityLog model (append-only), ActivityLogger service, LogActivity job, 12 event listeners, ActivityLogController, TenantPolicy, CleanupActivityLogs command, 5 new routes, 18 new tests (300 total) |
 | 21 | Security Alerts | ✅ Complete | 2026-09-02 | SecurityAlert + UserDevice models, DeviceDetector service, SecurityAlertController + DeviceController, 3 notifications, 2 jobs (CheckExpiringAccess, CheckExpiredAccess), DetectSuspiciousActivity command, 7 new routes, 3 scheduled tasks, 13 new tests (313 total) |
 | 22 | Employee Lifecycle | ✅ Complete | 2026-09-02 | Extended invitations (team_ids + initial_access), AcceptInvitationAction auto-assigns teams + creates grants, CompleteOnboardingAction, AssignTeamAction + RemoveFromTeamAction, rewritten OffboardEmployeeAction (revoke access, remove teams, set status=left, revoke tokens, revoke secure links, dispatch event, notify), EmployeeOffboarded event + notification, 5 new controller methods, 5 new routes, 16 new tests (329 total) |
-| 23 | Account Security | ⬜ Not Started | — | — |
+| 23 | Account Security | ✅ Complete | 2026-09-02 | TOTP 2FA (native, no package), recovery codes (bcrypt+encrypted), 2FA login flow, re-authentication middleware (15min window), logout-all, 6 actions, 3 notifications, 5 2FA endpoints + 3 auth endpoints, 15 new tests (344 total) |
 | 24 | Dashboards | ⬜ Not Started | — | — |
 | 25 | SaaS & Billing — Part 1 | ⬜ Not Started | — | — |
 | 26 | SaaS & Billing — Part 2 | ⬜ Not Started | — | — |
@@ -1015,7 +1015,7 @@ docker compose ps
 
 ### Known Issues / Notes
 
-- Two-factor authentication columns are in the migration but not yet functional (Module 23)
+- Two-factor authentication columns are now functional (Module 23 — TOTP 2FA with recovery codes)
 - `WelcomeNotification` is created but not yet triggered on registration (optional per module spec)
 - Tenant relationship on `User` (belongsToMany) deferred to Module 03
 - `Auth::forgetGuards()` needed in tests that make multiple authenticated requests — `RequestGuard` caches user across requests in the same test

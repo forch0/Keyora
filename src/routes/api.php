@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\TeamMemberController;
 use App\Http\Controllers\Api\V1\TeamVaultItemController;
 use App\Http\Controllers\Api\V1\TenantController;
 use App\Http\Controllers\Api\V1\TenantMemberController;
+use App\Http\Controllers\Api\V1\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -56,10 +57,24 @@ Route::prefix('v1')->group(function (): void {
         // Authenticated endpoints
         Route::middleware('auth:sanctum')->group(function (): void {
             Route::post('logout', [AuthController::class, 'logout']);
+            Route::post('logout-all', [AuthController::class, 'logoutAll']);
             Route::get('me', [AuthController::class, 'me']);
             Route::put('me', [AuthController::class, 'updateProfile']);
             Route::post('password', [AuthController::class, 'changePassword']);
+            Route::post('reauthenticate', [AuthController::class, 'reauthenticate']);
+            Route::get('reauthenticate/status', [AuthController::class, 'reauthStatus']);
+
+            // Two-factor authentication (Module 23)
+            Route::prefix('2fa')->group(function (): void {
+                Route::post('enable', [TwoFactorController::class, 'enable']);
+                Route::post('confirm', [TwoFactorController::class, 'confirm']);
+                Route::post('disable', [TwoFactorController::class, 'disable']);
+                Route::get('recovery-codes', [TwoFactorController::class, 'recoveryCodes']);
+            });
         });
+
+        // 2FA verify is during login (no auth required, uses temp token)
+        Route::post('2fa/verify', [TwoFactorController::class, 'verify']);
     });
 
     // Tenant (workspace) endpoints — all require authentication.
@@ -92,9 +107,11 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('tenants/{tenant}/members/{user}/teams/{team}', [TenantMemberController::class, 'removeFromTeam']);
             Route::post('tenants/{tenant}/members/{user}/suspend', [TenantMemberController::class, 'suspend']);
             Route::post('tenants/{tenant}/members/{user}/restore', [TenantMemberController::class, 'restore']);
-            Route::post('tenants/{tenant}/members/{user}/offboard', [TenantMemberController::class, 'offboard']);
+            Route::post('tenants/{tenant}/members/{user}/offboard', [TenantMemberController::class, 'offboard'])
+                ->middleware('reauth');
             Route::delete('tenants/{tenant}/members/{user}', [TenantMemberController::class, 'destroy']);
-            Route::post('tenants/{tenant}/members/{user}/revoke-all', [EmergencyRevokeController::class, 'revokeAllForUser']);
+            Route::post('tenants/{tenant}/members/{user}/revoke-all', [EmergencyRevokeController::class, 'revokeAllForUser'])
+                ->middleware('reauth');
             Route::get('tenants/{tenant}/invitations', [TenantMemberController::class, 'invitations']);
             Route::delete('tenants/{tenant}/invitations/{invitation}', [TenantMemberController::class, 'cancelInvitation']);
         });
@@ -111,7 +128,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('items/archived', [PersonalVaultItemController::class, 'archived']);
         Route::get('items/{item}', [PersonalVaultItemController::class, 'show']);
         Route::put('items/{item}', [PersonalVaultItemController::class, 'update']);
-        Route::delete('items/{item}', [PersonalVaultItemController::class, 'destroy']);
+        Route::delete('items/{item}', [PersonalVaultItemController::class, 'destroy'])
+            ->middleware('reauth');
         Route::post('items/{item}/favorite', [PersonalVaultItemController::class, 'toggleFavorite']);
         Route::post('items/{item}/archive', [PersonalVaultItemController::class, 'archive']);
         Route::post('items/{item}/restore', [PersonalVaultItemController::class, 'restore']);
@@ -172,7 +190,8 @@ Route::prefix('v1')->group(function (): void {
 
         // Secure share links (Module 17)
         Route::get('{item}/share-links', [SecureLinkController::class, 'indexForVaultItem']);
-        Route::post('{item}/share-links', [SecureLinkController::class, 'storeForVaultItem']);
+        Route::post('{item}/share-links', [SecureLinkController::class, 'storeForVaultItem'])
+            ->middleware('reauth');
     });
 
     // Password tools — generator and strength checker

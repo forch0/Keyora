@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\ChangePasswordAction;
 use App\Actions\LoginUserAction;
+use App\Actions\LogoutAllAction;
+use App\Actions\ReauthenticateAction;
 use App\Actions\RegisterUserAction;
 use App\Actions\RequestPasswordResetAction;
 use App\Actions\ResetPasswordAction;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ReauthenticateRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
@@ -22,6 +25,8 @@ use App\Models\User;
 use App\Notifications\NewDeviceLogin;
 use App\Services\ActivityLogger;
 use App\Services\DeviceDetector;
+use App\Services\ReauthenticationService;
+use App\Services\TwoFactorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -36,6 +41,10 @@ class AuthController extends Controller
         private readonly ResetPasswordAction $resetPassword,
         private readonly ActivityLogger $activityLogger,
         private readonly DeviceDetector $deviceDetector,
+        private readonly TwoFactorService $twoFactorService,
+        private readonly ReauthenticationService $reauthenticationService,
+        private readonly ReauthenticateAction $reauthenticateAction,
+        private readonly LogoutAllAction $logoutAllAction,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -67,6 +76,23 @@ class AuthController extends Controller
         }
 
         [$user, $token] = $result;
+
+        // 2FA check (Module 23) — if enabled, revoke the token and return a challenge
+        if ($this->twoFactorService->isEnabled($user)) {
+            $user->tokens()->delete(); // Revoke the token created by LoginUserAction
+
+            $tempToken = $this->twoFactorService->storeTempToken($user);
+
+            return response()->json([
+                'data' => [
+                    'requires_2fa' => true,
+                    '2fa_token' => $tempToken,
+                ],
+            ], 200);
+        }
+
+        // Mark re-authentication as satisfied (login counts as recent auth)
+        $this->reauthenticationService->markAuthenticated($user);
 
         $this->activityLogger->log('auth.login', $user);
 
@@ -113,6 +139,51 @@ class AuthController extends Controller
         $this->activityLogger->log('auth.logout', $user);
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Logout from all devices — revoke all API tokens (Module 23).
+     */
+    public function logoutAll(Request $request): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+        ($this->logoutAllAction)($user);
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Re-authenticate with password for sensitive actions (Module 23).
+     */
+    public function reauthenticate(ReauthenticateRequest $request): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+        $success = ($this->reauthenticateAction)($user, $request->validated('password'));
+
+        if (! $success) {
+            return response()->json([
+                'error' => [
+                    'code' => 'AUTH_INVALID_PASSWORD',
+                    'message' => 'Current password is incorrect.',
+                ],
+            ], 422);
+        }
+
+        return response()->json(['data' => ['reauthenticated' => true]]);
+    }
+
+    /**
+     * Check if re-authentication is needed (Module 23).
+     */
+    public function reauthStatus(Request $request): JsonResponse
+    {
+        $user = $this->authenticatedUser($request);
+
+        return response()->json([
+            'data' => [
+                'reauth_required' => ! $this->reauthenticationService->isAuthenticated($user),
+            ],
+        ]);
     }
 
     public function me(Request $request): JsonResponse

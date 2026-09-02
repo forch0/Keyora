@@ -31,7 +31,6 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'two_factor_recovery_codes' => 'array',
         ];
     }
 
@@ -88,6 +87,15 @@ class User extends Authenticatable
     /**
      * Check if the user owns the given tenant.
      */
+    /**
+     * Check if 2FA is enabled and confirmed for this user.
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_secret !== null
+            && $this->two_factor_confirmed_at !== null;
+    }
+
     public function ownsTenant(Tenant $tenant): bool
     {
         return $this->roleIn($tenant) === 'owner';
