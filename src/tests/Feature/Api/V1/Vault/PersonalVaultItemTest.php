@@ -202,7 +202,7 @@ class PersonalVaultItemTest extends TestCase
             ->deleteJson("/api/v1/vault/items/{$item->id}");
 
         $response->assertStatus(204);
-        $this->assertDatabaseMissing('personal_vault_items', ['id' => $item->id]);
+        $this->assertSoftDeleted('personal_vault_items', ['id' => $item->id]);
     }
 
     public function test_user_cannot_access_other_users_items(): void

@@ -267,7 +267,7 @@ class TeamTest extends TestCase
         ])->deleteJson('/api/v1/tenants/'.$tenant->id.'/teams/'.$team->id);
 
         $response->assertStatus(204);
-        $this->assertDatabaseMissing('teams', ['id' => $team->id]);
+        $this->assertSoftDeleted('teams', ['id' => $team->id]);
     }
 
     public function test_team_vault_items_are_encrypted(): void

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\EmptyTrashAction;
+use App\Actions\ForceDeleteModelAction;
+use App\Actions\ListTrashAction;
+use App\Actions\RestoreModelAction;
 use App\Actions\UploadFileAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Files\ReplaceFileRequest;
@@ -13,6 +17,7 @@ use App\Http\Resources\V1\SecureFileResource;
 use App\Models\SecureFile;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\TenantManager;
 use App\Services\ViewTracker;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +34,10 @@ class SecureFileController extends Controller
         private readonly UploadFileAction $uploadFile,
         private readonly ViewTracker $viewTracker,
         private readonly ActivityLogger $activityLogger,
+        private readonly ListTrashAction $listTrash,
+        private readonly RestoreModelAction $restoreModel,
+        private readonly ForceDeleteModelAction $forceDeleteModel,
+        private readonly EmptyTrashAction $emptyTrash,
     ) {}
 
     /**
@@ -253,6 +262,48 @@ class SecureFileController extends Controller
         $file->update(['archived_at' => null]);
 
         return (new SecureFileResource($file->refresh()))->response();
+    }
+
+    /**
+     * List trashed files.
+     */
+    public function trash(Request $request): AnonymousResourceCollection
+    {
+        $tenantId = app(TenantManager::class)->currentTenantId();
+        $items = ($this->listTrash)(SecureFile::class, $this->authenticatedUser($request), $tenantId);
+
+        return SecureFileResource::collection($items);
+    }
+
+    /**
+     * Restore a trashed file.
+     */
+    public function restoreFromTrash(Request $request, int $file): JsonResponse
+    {
+        $model = ($this->restoreModel)(SecureFile::class, $file, $this->authenticatedUser($request), 'tenant_id');
+
+        return (new SecureFileResource($model))->response();
+    }
+
+    /**
+     * Permanently delete a trashed file (also removes physical file).
+     */
+    public function forceDelete(Request $request, int $file): JsonResponse
+    {
+        ($this->forceDeleteModel)(SecureFile::class, $file, $this->authenticatedUser($request), 'tenant_id');
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Permanently delete all trashed files.
+     */
+    public function emptyTrash(Request $request): JsonResponse
+    {
+        $tenantId = app(TenantManager::class)->currentTenantId();
+        $count = ($this->emptyTrash)(SecureFile::class, $this->authenticatedUser($request), $tenantId);
+
+        return response()->json(['deleted' => $count]);
     }
 
     private function authenticatedUser(Request $request): User

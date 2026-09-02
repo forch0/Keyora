@@ -6,6 +6,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\CreateVaultItemAction;
 use App\Actions\DeleteVaultItemAction;
+use App\Actions\EmptyTrashAction;
+use App\Actions\ForceDeleteModelAction;
+use App\Actions\ListTrashAction;
+use App\Actions\RestoreModelAction;
 use App\Actions\UpdateVaultItemAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Vault\CreateItemRequest;
@@ -28,6 +32,10 @@ class PersonalVaultItemController extends Controller
         private readonly UpdateVaultItemAction $updateVaultItem,
         private readonly DeleteVaultItemAction $deleteVaultItem,
         private readonly ActivityLogger $activityLogger,
+        private readonly ListTrashAction $listTrash,
+        private readonly RestoreModelAction $restoreModel,
+        private readonly ForceDeleteModelAction $forceDeleteModel,
+        private readonly EmptyTrashAction $emptyTrash,
     ) {}
 
     /**
@@ -302,6 +310,46 @@ class PersonalVaultItemController extends Controller
             ->get();
 
         return PersonalVaultItemResource::collection($results);
+    }
+
+    /**
+     * List trashed personal vault items.
+     */
+    public function trash(Request $request): AnonymousResourceCollection
+    {
+        $items = ($this->listTrash)(PersonalVaultItem::class, $this->authenticatedUser($request));
+
+        return PersonalVaultItemResource::collection($items);
+    }
+
+    /**
+     * Restore a trashed personal vault item.
+     */
+    public function restoreFromTrash(Request $request, int $item): JsonResponse
+    {
+        $model = ($this->restoreModel)(PersonalVaultItem::class, $item, $this->authenticatedUser($request));
+
+        return (new PersonalVaultItemResource($model))->response();
+    }
+
+    /**
+     * Permanently delete a trashed personal vault item.
+     */
+    public function forceDelete(Request $request, int $item): JsonResponse
+    {
+        ($this->forceDeleteModel)(PersonalVaultItem::class, $item, $this->authenticatedUser($request));
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Permanently delete all trashed personal vault items.
+     */
+    public function emptyTrash(Request $request): JsonResponse
+    {
+        $count = ($this->emptyTrash)(PersonalVaultItem::class, $this->authenticatedUser($request));
+
+        return response()->json(['deleted' => $count]);
     }
 
     private function authenticatedUser(Request $request): User

@@ -84,7 +84,7 @@ class SecurityAlertTest extends TestCase
         ], ['User-Agent' => 'Chrome on Windows']);
 
         // Second login from same device — no new alert
-        SecurityAlert::where('user_id', $user->id)->delete();
+        SecurityAlert::where('user_id', $user->id)->forceDelete();
         $this->postJson('/api/v1/auth/login', [
             'email' => 'known@example.com',
             'password' => 'password',
@@ -315,7 +315,7 @@ class SecurityAlertTest extends TestCase
             ->deleteJson("/api/v1/devices/{$device->id}");
 
         $response->assertStatus(204);
-        $this->assertDatabaseMissing('user_devices', ['id' => $device->id]);
+        $this->assertSoftDeleted('user_devices', ['id' => $device->id]);
     }
 
     public function test_alerts_sorted_unread_first(): void

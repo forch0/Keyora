@@ -6,6 +6,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\CreateTeamAction;
 use App\Actions\DeleteTeamAction;
+use App\Actions\ForceDeleteModelAction;
+use App\Actions\ListTrashAction;
+use App\Actions\RestoreModelAction;
 use App\Actions\UpdateTeamAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\CreateTeamRequest;
@@ -14,6 +17,7 @@ use App\Http\Resources\V1\TeamResource;
 use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantManager;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +30,9 @@ class TeamController extends Controller
         private readonly CreateTeamAction $createTeam,
         private readonly UpdateTeamAction $updateTeam,
         private readonly DeleteTeamAction $deleteTeam,
+        private readonly ListTrashAction $listTrash,
+        private readonly RestoreModelAction $restoreModel,
+        private readonly ForceDeleteModelAction $forceDeleteModel,
     ) {}
 
     /**
@@ -108,6 +115,37 @@ class TeamController extends Controller
         }
 
         ($this->deleteTeam)($team);
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * List trashed teams.
+     */
+    public function trash(Request $request): AnonymousResourceCollection
+    {
+        $tenantId = app(TenantManager::class)->currentTenantId();
+        $items = ($this->listTrash)(Team::class, $this->authenticatedUser($request), $tenantId);
+
+        return TeamResource::collection($items);
+    }
+
+    /**
+     * Restore a trashed team.
+     */
+    public function restore(Request $request, int $team): JsonResponse
+    {
+        $model = ($this->restoreModel)(Team::class, $team, $this->authenticatedUser($request), 'tenant_id');
+
+        return (new TeamResource($model))->response();
+    }
+
+    /**
+     * Permanently delete a trashed team.
+     */
+    public function forceDelete(Request $request, int $team): JsonResponse
+    {
+        ($this->forceDeleteModel)(Team::class, $team, $this->authenticatedUser($request), 'tenant_id');
 
         return response()->json(null, 204);
     }

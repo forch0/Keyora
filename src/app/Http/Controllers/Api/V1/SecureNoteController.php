@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\CreateNoteAction;
+use App\Actions\EmptyTrashAction;
+use App\Actions\ForceDeleteModelAction;
+use App\Actions\ListTrashAction;
+use App\Actions\RestoreModelAction;
 use App\Actions\UpdateNoteAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Notes\CreateNoteRequest;
@@ -30,6 +34,10 @@ class SecureNoteController extends Controller
         private readonly AccessResolver $accessResolver,
         private readonly TenantManager $tenantManager,
         private readonly ViewTracker $viewTracker,
+        private readonly ListTrashAction $listTrash,
+        private readonly RestoreModelAction $restoreModel,
+        private readonly ForceDeleteModelAction $forceDeleteModel,
+        private readonly EmptyTrashAction $emptyTrash,
     ) {}
 
     /**
@@ -199,6 +207,48 @@ class SecureNoteController extends Controller
             ->paginate(15);
 
         return SecureNoteResource::collection($notes);
+    }
+
+    /**
+     * List trashed notes.
+     */
+    public function trash(Request $request): AnonymousResourceCollection
+    {
+        $tenantId = $this->tenantManager->currentTenantId();
+        $items = ($this->listTrash)(SecureNote::class, $this->authenticatedUser($request), $tenantId);
+
+        return SecureNoteResource::collection($items);
+    }
+
+    /**
+     * Restore a trashed note.
+     */
+    public function restoreFromTrash(Request $request, int $note): JsonResponse
+    {
+        $model = ($this->restoreModel)(SecureNote::class, $note, $this->authenticatedUser($request), 'tenant_id');
+
+        return (new SecureNoteResource($model))->response();
+    }
+
+    /**
+     * Permanently delete a trashed note.
+     */
+    public function forceDelete(Request $request, int $note): JsonResponse
+    {
+        ($this->forceDeleteModel)(SecureNote::class, $note, $this->authenticatedUser($request), 'tenant_id');
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Permanently delete all trashed notes.
+     */
+    public function emptyTrash(Request $request): JsonResponse
+    {
+        $tenantId = $this->tenantManager->currentTenantId();
+        $count = ($this->emptyTrash)(SecureNote::class, $this->authenticatedUser($request), $tenantId);
+
+        return response()->json(['deleted' => $count]);
     }
 
     private function authenticatedUser(Request $request): User

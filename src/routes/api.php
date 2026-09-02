@@ -169,6 +169,15 @@ Route::prefix('v1')->group(function (): void {
         Route::post('items/{item}/restore', [PersonalVaultItemController::class, 'restore'])
             ->middleware('rate.limit:write');
 
+        // Soft-delete management (Module 29)
+        Route::get('trash', [PersonalVaultItemController::class, 'trash']);
+        Route::post('trash/{item}/restore', [PersonalVaultItemController::class, 'restoreFromTrash'])
+            ->middleware('rate.limit:write');
+        Route::delete('trash/{item}/force', [PersonalVaultItemController::class, 'forceDelete'])
+            ->middleware('reauth', 'rate.limit:sensitive');
+        Route::delete('trash', [PersonalVaultItemController::class, 'emptyTrash'])
+            ->middleware('reauth', 'rate.limit:sensitive');
+
         // Search
         Route::get('search', [PersonalVaultItemController::class, 'search']);
 
@@ -204,6 +213,13 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('rate.limit:write');
         Route::delete('tenants/{tenant}/teams/{team}', [TeamController::class, 'destroy'])
             ->middleware('rate.limit:sensitive');
+
+        // Team soft-delete management (Module 29)
+        Route::get('tenants/{tenant}/teams/trash', [TeamController::class, 'trash']);
+        Route::post('tenants/{tenant}/teams/{team}/restore', [TeamController::class, 'restore'])
+            ->middleware('rate.limit:write');
+        Route::delete('tenants/{tenant}/teams/{team}/force', [TeamController::class, 'forceDelete'])
+            ->middleware('reauth', 'rate.limit:sensitive');
 
         // Team members
         Route::get('tenants/{tenant}/teams/{team}/members', [TeamMemberController::class, 'index']);
@@ -287,6 +303,15 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/{file}/restore', [SecureFileController::class, 'restore'])
             ->middleware('rate.limit:write');
 
+        // File soft-delete management (Module 29)
+        Route::get('/trash', [SecureFileController::class, 'trash']);
+        Route::post('/trash/{file}/restore', [SecureFileController::class, 'restoreFromTrash'])
+            ->middleware('rate.limit:write');
+        Route::delete('/trash/{file}/force', [SecureFileController::class, 'forceDelete'])
+            ->middleware('reauth', 'rate.limit:sensitive');
+        Route::delete('/trash', [SecureFileController::class, 'emptyTrash'])
+            ->middleware('reauth', 'rate.limit:sensitive');
+
         Route::get('/folders', [FileFolderController::class, 'index']);
         Route::post('/folders', [FileFolderController::class, 'store'])
             ->middleware('rate.limit:write');
@@ -325,6 +350,15 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('rate.limit:sensitive');
         Route::post('/{note}/pin', [SecureNoteController::class, 'togglePin'])
             ->middleware('rate.limit:write');
+
+        // Note soft-delete management (Module 29)
+        Route::get('/trash', [SecureNoteController::class, 'trash']);
+        Route::post('/trash/{note}/restore', [SecureNoteController::class, 'restoreFromTrash'])
+            ->middleware('rate.limit:write');
+        Route::delete('/trash/{note}/force', [SecureNoteController::class, 'forceDelete'])
+            ->middleware('reauth', 'rate.limit:sensitive');
+        Route::delete('/trash', [SecureNoteController::class, 'emptyTrash'])
+            ->middleware('reauth', 'rate.limit:sensitive');
 
         Route::get('/{note}/access', [NoteAccessController::class, 'index']);
         Route::post('/{note}/access', [NoteAccessController::class, 'store'])
