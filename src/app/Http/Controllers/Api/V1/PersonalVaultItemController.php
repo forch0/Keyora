@@ -15,10 +15,12 @@ use App\Models\PersonalVaultItem;
 use App\Models\User;
 use App\Models\VaultItem;
 use App\Services\ActivityLogger;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Personal Vault')]
 class PersonalVaultItemController extends Controller
 {
     public function __construct(

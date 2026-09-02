@@ -8,11 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\SecurityAlertResource;
 use App\Models\SecurityAlert;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
 
+#[Group('Security Alerts')]
 class SecurityAlertController extends Controller
 {
     /**

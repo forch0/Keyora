@@ -10,10 +10,12 @@ use App\Http\Requests\Vault\UpdateTagRequest;
 use App\Http\Resources\V1\PersonalVaultTagResource;
 use App\Models\PersonalVaultTag;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Personal Vault Tags')]
 class PersonalVaultTagController extends Controller
 {
     /**

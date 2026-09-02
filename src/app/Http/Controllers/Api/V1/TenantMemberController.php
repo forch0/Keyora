@@ -23,11 +23,13 @@ use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\TenantInvitation;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use RuntimeException;
 
+#[Group('Employee Lifecycle')]
 class TenantMemberController extends Controller
 {
     public function __construct(

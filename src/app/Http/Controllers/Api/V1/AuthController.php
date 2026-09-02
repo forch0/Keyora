@@ -27,10 +27,12 @@ use App\Services\ActivityLogger;
 use App\Services\DeviceDetector;
 use App\Services\ReauthenticationService;
 use App\Services\TwoFactorService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 
+#[Group('Authentication')]
 class AuthController extends Controller
 {
     public function __construct(

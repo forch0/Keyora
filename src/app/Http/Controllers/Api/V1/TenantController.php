@@ -11,10 +11,12 @@ use App\Http\Requests\Tenant\UpdateTenantRequest;
 use App\Http\Resources\V1\TenantResource;
 use App\Models\Tenant;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Tenant Management')]
 class TenantController extends Controller
 {
     public function __construct(private readonly CreateTenantAction $createTenant) {}

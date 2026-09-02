@@ -15,11 +15,13 @@ use App\Models\User;
 use App\Services\AccessResolver;
 use App\Services\TenantManager;
 use App\Services\ViewTracker;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Secure Notes')]
 class SecureNoteController extends Controller
 {
     public function __construct(

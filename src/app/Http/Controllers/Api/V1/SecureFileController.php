@@ -14,6 +14,7 @@ use App\Models\SecureFile;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\ViewTracker;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+#[Group('Secure Files')]
 class SecureFileController extends Controller
 {
     public function __construct(

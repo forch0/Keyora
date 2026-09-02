@@ -10,10 +10,12 @@ use App\Http\Requests\Vault\UpdateFolderRequest;
 use App\Http\Resources\V1\PersonalVaultFolderResource;
 use App\Models\PersonalVaultFolder;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Personal Vault Folders')]
 class PersonalVaultFolderController extends Controller
 {
     /**

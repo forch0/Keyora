@@ -20,11 +20,13 @@ use App\Models\VaultItem;
 use App\Notifications\AccessRequestApprovedNotification;
 use App\Notifications\AccessRequestReceived;
 use App\Notifications\AccessRequestRejectedNotification;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Access Requests')]
 class AccessRequestController extends Controller
 {
     public function __construct(

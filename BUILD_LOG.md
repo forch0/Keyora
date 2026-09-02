@@ -55,7 +55,7 @@
 | 25 | SaaS & Billing — Part 1 | ⏭️ Skipped | — | Open-source project — no billing |
 | 26 | SaaS & Billing — Part 2 | ⏭️ Skipped | — | Open-source project — no billing |
 | 27 | Rate Limiting & API Throttling | ✅ Complete | 2026-09-02 | config/rate_limits.php (read/write/sensitive/auth/2fa profiles), RateLimitByProfile middleware (config-driven, user-keyed), TenantRateLimit middleware (plan-tier multiplier), 429 with X-RateLimit-* headers, security alerts on repeated sensitive violations, all routes throttled, 11 new tests (372 total) |
-| 28 | API Documentation (OpenAPI/Scribe) | ⬜ Not Started | — | — |
+| 28 | API Documentation (OpenAPI/Scramble) | ✅ Complete | 2026-09-02 | dedoc/scramble ^0.13.42, OpenAPI 3.1 spec at /docs/api.json, HTML docs at /docs/api, 28 #[Group] attributes on controllers, bearer security scheme auto-documented from auth:sanctum middleware, viewApiDocs gate for non-local access, 7 new tests (379 total) |
 | 29 | Soft Deletes Consistency | ⬜ Not Started | — | — |
 | 30 | Bulk Operations | ⬜ Not Started | — | — |
 | 31 | Dashboard Caching & Performance | ⬜ Not Started | — | — |

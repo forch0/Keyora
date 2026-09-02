@@ -13,11 +13,13 @@ use App\Models\SecureLink;
 use App\Models\SecureNote;
 use App\Models\User;
 use App\Services\GlobalSearch;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
+#[Group('Search & Organization')]
 class SearchController extends Controller
 {
     public function __construct(

@@ -17,11 +17,13 @@ use App\Models\AccessGrant;
 use App\Models\SecureFile;
 use App\Models\User;
 use App\Services\AccessResolver;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
 
+#[Group('File Access')]
 class FileAccessController extends Controller
 {
     public function __construct(

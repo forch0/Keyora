@@ -15,11 +15,13 @@ use App\Models\SecureLinkAccess;
 use App\Models\SecureNote;
 use App\Models\User;
 use App\Models\VaultItem;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Secure Share Links')]
 class SecureLinkController extends Controller
 {
     public function __construct(

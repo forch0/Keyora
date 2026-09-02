@@ -15,10 +15,12 @@ use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\VaultItem;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Team Vault Items')]
 class TeamVaultItemController extends Controller
 {
     public function __construct(

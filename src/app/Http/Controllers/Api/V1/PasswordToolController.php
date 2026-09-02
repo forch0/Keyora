@@ -9,8 +9,10 @@ use App\Http\Requests\Tools\CheckPasswordStrengthRequest;
 use App\Http\Requests\Tools\GeneratePasswordRequest;
 use App\Services\PasswordGenerator;
 use App\Services\PasswordStrengthChecker;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Password Tools')]
 class PasswordToolController extends Controller
 {
     public function __construct(

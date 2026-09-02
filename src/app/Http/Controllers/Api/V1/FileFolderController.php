@@ -12,10 +12,12 @@ use App\Models\FileFolder;
 use App\Models\SecureFile;
 use App\Models\User;
 use App\Services\TenantManager;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('File Folders')]
 class FileFolderController extends Controller
 {
     public function __construct(

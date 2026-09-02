@@ -9,9 +9,11 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\DashboardService;
 use App\Services\TenantManager;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Dashboards')]
 class DashboardController extends Controller
 {
     public function __construct(

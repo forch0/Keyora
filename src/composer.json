@@ -12,6 +12,7 @@
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
+        "dedoc/scramble": "^0.13.42",
         "fakerphp/faker": "^1.23",
         "laramint/laravel-brain": "*",
         "larastan/larastan": "^3.10",

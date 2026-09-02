@@ -47,5 +47,11 @@ class AppServiceProvider extends ServiceProvider
         // TenantPolicy gate — activity feed access (Module 20)
         $tenantPolicy = $this->app->make(TenantPolicy::class);
         Gate::define('viewActivityFeed', fn (User $user, Tenant $tenant) => $tenantPolicy->viewActivityFeed($user, $tenant));
+
+        // API docs access (Module 28 — Scramble). In local environment, access
+        // is always allowed by RestrictedDocsAccess middleware. In other
+        // environments, only users with the viewApiDocs gate can access docs.
+        Gate::define('viewApiDocs', fn (?User $user) => app()->environment('local', 'testing')
+            || in_array($user?->email, config('scramble.allowed_emails', []), true));
     }
 }

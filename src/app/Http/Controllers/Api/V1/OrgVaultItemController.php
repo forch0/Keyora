@@ -15,10 +15,12 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Models\VaultItem;
 use App\Services\TenantManager;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Organization Vault Items')]
 class OrgVaultItemController extends Controller
 {
     public function __construct(

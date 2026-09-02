@@ -16,9 +16,11 @@ use App\Http\Requests\Auth\VerifyTwoFactorRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Models\User;
 use App\Services\ReauthenticationService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Two-Factor Authentication')]
 class TwoFactorController extends Controller
 {
     public function __construct(

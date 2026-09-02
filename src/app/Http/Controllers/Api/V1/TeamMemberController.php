@@ -14,10 +14,12 @@ use App\Http\Resources\V1\TeamMemberResource;
 use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Team Members')]
 class TeamMemberController extends Controller
 {
     public function __construct(

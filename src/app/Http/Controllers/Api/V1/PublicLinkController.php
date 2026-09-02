@@ -14,9 +14,11 @@ use App\Http\Requests\SecureLinks\EmailVerifyRequest;
 use App\Http\Requests\SecureLinks\VerifyLinkRequest;
 use App\Http\Resources\V1\PublicLinkResource;
 use App\Models\SecureLink;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Public Link Access')]
 class PublicLinkController extends Controller
 {
     public function __construct(

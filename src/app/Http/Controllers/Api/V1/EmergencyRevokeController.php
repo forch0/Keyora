@@ -17,10 +17,12 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Models\VaultItem;
 use App\Services\AccessResolver;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Emergency Revocation')]
 class EmergencyRevokeController extends Controller
 {
     public function __construct(
