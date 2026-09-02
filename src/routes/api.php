@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AccessRequestController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BulkOperationController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\EmergencyRevokeController;
@@ -200,6 +201,18 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('rate.limit:write');
         Route::delete('tags/{tag}', [PersonalVaultTagController::class, 'destroy'])
             ->middleware('rate.limit:write');
+    });
+
+    // Bulk operations (Module 30)
+    Route::middleware(['auth:sanctum', 'rate.limit:write'])->prefix('personal-vault/items/bulk')->group(function (): void {
+        Route::post('delete', [BulkOperationController::class, 'bulkDeletePersonalVaultItems']);
+        Route::post('move', [BulkOperationController::class, 'bulkMovePersonalVaultItems']);
+        Route::post('archive', [BulkOperationController::class, 'bulkArchivePersonalVaultItems']);
+        Route::post('restore', [BulkOperationController::class, 'bulkRestorePersonalVaultItems']);
+        Route::post('tag', [BulkOperationController::class, 'bulkTagPersonalVaultItems']);
+        Route::post('create', [BulkOperationController::class, 'bulkCreatePersonalVaultItems']);
+        Route::post('share', [BulkOperationController::class, 'bulkSharePersonalVaultItems'])
+            ->middleware('reauth', 'rate.limit:sensitive');
     });
 
     // Teams & team/org vaults — tenant-scoped, require tenant context.
