@@ -187,9 +187,56 @@ docker compose ps
 
 ## Next Module
 
-**Module 10 — Secure Files**
-- File upload/download with encryption
-- Dependencies: Module 08 ✅
+**Module 27 — Rate Limiting & API Throttling**
+- Configurable rate limits (read/write/sensitive profiles)
+- Per-tenant rate limiting
+- 429 responses with headers
+- Dependencies: Module 02 ✅, Module 23 ✅
+
+---
+
+## Current Status (as of 2026-09-02)
+
+### Completed Modules: 01–24 (24 modules)
+
+| Metric | Value |
+|---|---|
+| Total tests | 361 |
+| Total assertions | 975 |
+| Pint | Clean |
+| PHPStan | Level 8, 0 errors |
+| Modules complete | 24 |
+| Modules skipped | 2 (25–26: billing — open source) |
+| Modules planned | 5 (27–31) |
+
+### Skipped Modules
+
+| Module | Reason |
+|---|---|
+| 25 — SaaS & Billing Part 1 | Open-source project — no billing |
+| 26 — SaaS & Billing Part 2 | Open-source project — no billing |
+
+### Planned Modules (specs written, not yet implemented)
+
+| Module | Name | Priority |
+|---|---|---|
+| 27 | Rate Limiting & API Throttling | High |
+| 28 | API Documentation (OpenAPI/Scribe) | High |
+| 29 | Soft Deletes Consistency | Medium |
+| 30 | Bulk Operations | Medium |
+| 31 | Dashboard Caching & Performance | Medium |
+
+### Architecture Summary
+
+- **Auth**: Sanctum bearer tokens, 2FA (native TOTP), re-authentication middleware
+- **Multi-tenancy**: Single-database, BelongsToTenant trait (fail-closed), TenantManager singleton
+- **Authorization**: Policy-based + AccessResolver service for resource-level permissions
+- **Business logic**: Actions and Services — controllers are thin (validate, authorize, delegate, respond)
+- **Encryption**: AES-256 via Encryptable trait (vault items, notes), Crypt::encryptString for 2FA secrets
+- **Audit**: Append-only ActivityLog, event-driven logging via listeners
+- **Security**: Security alerts, device tracking, suspicious activity detection, emergency revocation
+- **Employee lifecycle**: Invitation → onboarding → team/role management → offboarding (preserves audit trail)
+- **Dashboards**: Personal/company/usage with efficient aggregate queries
 
 ---
 
