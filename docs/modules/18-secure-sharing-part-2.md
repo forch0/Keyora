@@ -5,7 +5,7 @@
 | **Module** | 18 |
 | **Name** | Secure External Sharing — Link Access & Tracking |
 | **Dependencies** | Module 17 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

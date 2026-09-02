@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Actions\CreateSecureLinkAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SecureLinks\CreateSecureLinkRequest;
+use App\Http\Resources\V1\SecureLinkAccessResource;
 use App\Http\Resources\V1\SecureLinkResource;
 use App\Models\SecureFile;
 use App\Models\SecureLink;
+use App\Models\SecureLinkAccess;
 use App\Models\SecureNote;
 use App\Models\User;
 use App\Models\VaultItem;
@@ -66,6 +68,18 @@ class SecureLinkController extends Controller
         ]);
 
         return response()->json(null, 204);
+    }
+
+    public function activity(Request $request, SecureLink $link): AnonymousResourceCollection
+    {
+        $this->authenticatedUser($request);
+        $this->authorize('view', $link);
+
+        $accesses = SecureLinkAccess::where('secure_link_id', $link->id)
+            ->latest('accessed_at')
+            ->paginate(25);
+
+        return SecureLinkAccessResource::collection($accesses);
     }
 
     private function store(CreateSecureLinkRequest $request, Model $resource): JsonResponse

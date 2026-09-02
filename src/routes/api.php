@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\PasswordToolController;
 use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
+use App\Http\Controllers\Api\V1\PublicLinkController;
 use App\Http\Controllers\Api\V1\SecureFileController;
 use App\Http\Controllers\Api\V1\SecureLinkController;
 use App\Http\Controllers\Api\V1\SecureNoteController;
@@ -25,6 +26,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('/', fn () => response()->json(['status' => 'ok']));
+
+    // Public secure link access (no auth required — for external users)
+    Route::prefix('s/{uuid}')->name('api.v1.public-link.')->group(function (): void {
+        Route::get('/', [PublicLinkController::class, 'show'])->name('show');
+        Route::post('/verify', [PublicLinkController::class, 'verify']);
+        Route::post('/email-verify', [PublicLinkController::class, 'sendEmailVerification']);
+        Route::post('/email-confirm', [PublicLinkController::class, 'confirmEmailVerification']);
+        Route::get('/resource', [PublicLinkController::class, 'resource'])->name('resource');
+    });
 
     Route::prefix('auth')->group(function (): void {
         // Rate-limited public auth endpoints
@@ -229,8 +239,9 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('/{accessRequest}', [AccessRequestController::class, 'destroy']);
     });
 
-    // Secure share links — revoke (Module 17)
+    // Secure share links — revoke and activity (Module 17/18)
     Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('share-links')->group(function (): void {
         Route::delete('/{link}', [SecureLinkController::class, 'destroy']);
+        Route::get('/{link}/activity', [SecureLinkController::class, 'activity']);
     });
 });
