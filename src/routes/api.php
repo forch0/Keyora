@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AccessRequestController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\EmergencyRevokeController;
 use App\Http\Controllers\Api\V1\FileAccessController;
@@ -81,6 +82,13 @@ Route::prefix('v1')->group(function (): void {
     // index/store are tenant-agnostic; show/update/destroy resolve tenant
     // from the route param and enforce membership via TenantPolicy.
     Route::middleware('auth:sanctum')->group(function (): void {
+        // Dashboard endpoints (Module 24)
+        Route::get('dashboard/personal', [DashboardController::class, 'personal']);
+        Route::middleware('tenant.resolve')->group(function (): void {
+            Route::get('dashboard/company', [DashboardController::class, 'company']);
+            Route::get('dashboard/usage', [DashboardController::class, 'usage']);
+        });
+
         Route::get('tenants', [TenantController::class, 'index']);
         Route::post('tenants', [TenantController::class, 'store']);
         Route::middleware('tenant.resolve')->group(function (): void {

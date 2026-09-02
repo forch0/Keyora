@@ -51,7 +51,7 @@
 | 21 | Security Alerts | ✅ Complete | 2026-09-02 | SecurityAlert + UserDevice models, DeviceDetector service, SecurityAlertController + DeviceController, 3 notifications, 2 jobs (CheckExpiringAccess, CheckExpiredAccess), DetectSuspiciousActivity command, 7 new routes, 3 scheduled tasks, 13 new tests (313 total) |
 | 22 | Employee Lifecycle | ✅ Complete | 2026-09-02 | Extended invitations (team_ids + initial_access), AcceptInvitationAction auto-assigns teams + creates grants, CompleteOnboardingAction, AssignTeamAction + RemoveFromTeamAction, rewritten OffboardEmployeeAction (revoke access, remove teams, set status=left, revoke tokens, revoke secure links, dispatch event, notify), EmployeeOffboarded event + notification, 5 new controller methods, 5 new routes, 16 new tests (329 total) |
 | 23 | Account Security | ✅ Complete | 2026-09-02 | TOTP 2FA (native, no package), recovery codes (bcrypt+encrypted), 2FA login flow, re-authentication middleware (15min window), logout-all, 6 actions, 3 notifications, 5 2FA endpoints + 3 auth endpoints, 15 new tests (344 total) |
-| 24 | Dashboards | ⬜ Not Started | — | — |
+| 24 | Dashboards | ✅ Complete | 2026-09-02 | DashboardService (personal/company/usage aggregation), DashboardController, config/plans.php (free/team/business/enterprise limits), 3 endpoints, Team files/notes relationships, 17 new tests (361 total) |
 | 25 | SaaS & Billing — Part 1 | ⬜ Not Started | — | — |
 | 26 | SaaS & Billing — Part 2 | ⬜ Not Started | — | — |
 

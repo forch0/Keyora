@@ -76,4 +76,20 @@ class Team extends Model
     {
         return $this->hasMany(VaultItem::class);
     }
+
+    /**
+     * @return HasMany<SecureFile, $this>
+     */
+    public function files(): HasMany
+    {
+        return $this->hasMany(SecureFile::class);
+    }
+
+    /**
+     * @return HasMany<SecureNote, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(SecureNote::class);
+    }
 }
