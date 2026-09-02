@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AccessRequestController;
+use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\EmergencyRevokeController;
 use App\Http\Controllers\Api\V1\FileAccessController;
@@ -252,5 +253,14 @@ Route::prefix('v1')->group(function (): void {
         Route::get('recent', [SearchController::class, 'recent']);
         Route::get('recent/created', [SearchController::class, 'recentCreated']);
         Route::get('expiring', [SearchController::class, 'expiring']);
+    });
+
+    // Activity & audit logging (Module 20)
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->group(function (): void {
+        Route::get('activity-logs', [ActivityLogController::class, 'personalHistory']);
+        Route::get('tenants/{tenant}/activity-logs', [ActivityLogController::class, 'companyFeed']);
+        Route::get('tenants/{tenant}/members/{user}/activity-logs', [ActivityLogController::class, 'employeeOverview']);
+        Route::get('vault/items/{item}/activity-logs', [ActivityLogController::class, 'resourceHistory']);
+        Route::get('files/{file}/activity-logs', [ActivityLogController::class, 'resourceHistory']);
     });
 });

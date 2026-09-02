@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Policies\TenantMemberPolicy;
+use App\Policies\TenantPolicy;
 use App\Services\AccessResolver;
 use App\Services\TenantManager;
 use Illuminate\Support\Facades\Gate;
@@ -42,5 +43,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('member.restore', fn (User $user, Tenant $tenant, User $member) => $policy->restore($user, $tenant, $member));
         Gate::define('member.remove', fn (User $user, Tenant $tenant, User $member) => $policy->remove($user, $tenant, $member));
         Gate::define('member.manageInvitations', fn (User $user, Tenant $tenant) => $policy->manageInvitations($user, $tenant));
+
+        // TenantPolicy gate — activity feed access (Module 20)
+        $tenantPolicy = $this->app->make(TenantPolicy::class);
+        Gate::define('viewActivityFeed', fn (User $user, Tenant $tenant) => $tenantPolicy->viewActivityFeed($user, $tenant));
     }
 }

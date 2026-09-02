@@ -6,15 +6,20 @@ namespace App\Actions;
 
 use App\Models\PersonalVaultItem;
 use App\Models\User;
+use App\Services\ActivityLogger;
 
 class CreateVaultItemAction
 {
+    public function __construct(
+        private readonly ActivityLogger $activityLogger,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $attributes
      */
     public function __invoke(User $user, array $attributes): PersonalVaultItem
     {
-        return PersonalVaultItem::create([
+        $item = PersonalVaultItem::create([
             'user_id' => $user->id,
             'name' => $attributes['name'],
             'type' => $attributes['type'],
@@ -26,5 +31,9 @@ class CreateVaultItemAction
             'custom_fields' => $attributes['custom_fields'] ?? null,
             'favorite' => $attributes['favorite'] ?? false,
         ]);
+
+        $this->activityLogger->log('vault_item.created', $user, $item);
+
+        return $item;
     }
 }

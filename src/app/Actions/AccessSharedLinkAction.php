@@ -6,11 +6,16 @@ namespace App\Actions;
 
 use App\Models\SecureLink;
 use App\Models\SecureLinkAccess;
+use App\Services\ActivityLogger;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class AccessSharedLinkAction
 {
+    public function __construct(
+        private readonly ActivityLogger $activityLogger,
+    ) {}
+
     /**
      * Access the shared resource — validates expiration, increments views,
      * logs access, auto-revokes if view limit reached.
@@ -59,6 +64,16 @@ class AccessSharedLinkAction
             'email' => $context['email'] ?? $link->recipient_email,
             'accessed_at' => $now,
         ]);
+
+        // Log to activity audit (Module 20)
+        $this->activityLogger->log(
+            'secure_link.accessed',
+            null,
+            $link,
+            ['ip_address' => $context['ip_address'] ?? null],
+            $context['ip_address'] ?? null,
+            $context['user_agent'] ?? null,
+        );
 
         // Auto-revoke if view limit reached
         if ($link->max_views !== null && $newViewsCount >= $link->max_views) {

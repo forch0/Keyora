@@ -12,6 +12,7 @@ use App\Http\Requests\Files\UploadFileRequest;
 use App\Http\Resources\V1\SecureFileResource;
 use App\Models\SecureFile;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use App\Services\ViewTracker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ class SecureFileController extends Controller
     public function __construct(
         private readonly UploadFileAction $uploadFile,
         private readonly ViewTracker $viewTracker,
+        private readonly ActivityLogger $activityLogger,
     ) {}
 
     /**
@@ -150,8 +152,8 @@ class SecureFileController extends Controller
             abort(404, 'File not found in storage.');
         }
 
-        // TODO: Module 20 — log download event
-        // TODO: Module 14 — increment views_count on access grant
+        // Log download (Module 20)
+        $this->activityLogger->log('file.downloaded', $user, $file);
 
         return Storage::disk('private')->download($file->file_path, $file->name, [
             'Content-Type' => $file->mime_type,

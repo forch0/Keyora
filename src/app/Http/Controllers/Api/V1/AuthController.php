@@ -18,6 +18,7 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -30,11 +31,14 @@ class AuthController extends Controller
         private readonly ChangePasswordAction $changePassword,
         private readonly RequestPasswordResetAction $requestPasswordReset,
         private readonly ResetPasswordAction $resetPassword,
+        private readonly ActivityLogger $activityLogger,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
         [$user, $token] = ($this->registerUser)($request->validated());
+
+        $this->activityLogger->log('auth.register', $user);
 
         return (new UserResource($user))
             ->additional(['token' => $token])
@@ -60,6 +64,8 @@ class AuthController extends Controller
 
         [$user, $token] = $result;
 
+        $this->activityLogger->log('auth.login', $user);
+
         return (new UserResource($user))
             ->additional(['token' => $token])
             ->response()
@@ -70,6 +76,8 @@ class AuthController extends Controller
     {
         $user = $this->authenticatedUser($request);
         $user->currentAccessToken()->delete();
+
+        $this->activityLogger->log('auth.logout', $user);
 
         return response()->json(null, 204);
     }
@@ -108,6 +116,8 @@ class AuthController extends Controller
                 ],
             ], 422);
         }
+
+        $this->activityLogger->log('auth.password_changed', $user);
 
         return (new UserResource($user->fresh()))->response();
     }

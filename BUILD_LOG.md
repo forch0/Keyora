@@ -47,7 +47,7 @@
 | 17 | Secure External Sharing — Part 1 | ✅ Complete | 2026-09-02 | SecureLink model, CreateSecureLinkAction, SecureLinkController, SecureLinkPolicy, SecureLinkResource, 1 event + 2 notifications, 7 new routes, 15 new tests (249 total) |
 | 18 | Secure External Sharing — Part 2 | ✅ Complete | 2026-09-02 | SecureLinkAccess model, 4 new Actions (Verify/Access/SendEmail/ConfirmEmail), PublicLinkController, LinkAccessTokenFactory, 1 notification, 6 public + 1 activity routes, 18 new tests (267 total) |
 | 19 | Search & Organization | ✅ Complete | 2026-09-02 | ResourceView model, GlobalSearch service, SearchController, ViewTracker updated, 4 new routes, tag/folder/shared/sort filters on vault items, 15 new tests (282 total) |
-| 20 | Activity & Audit Logging | ⬜ Not Started | — | — |
+| 20 | Activity & Audit Logging | ✅ Complete | 2026-09-02 | ActivityLog model (append-only), ActivityLogger service, LogActivity job, 12 event listeners, ActivityLogController, TenantPolicy, CleanupActivityLogs command, 5 new routes, 18 new tests (300 total) |
 | 21 | Security Alerts | ⬜ Not Started | — | — |
 | 22 | Employee Lifecycle | ⬜ Not Started | — | — |
 | 23 | Account Security | ⬜ Not Started | — | — |

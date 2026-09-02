@@ -5,14 +5,25 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Events\AccessGranted;
+use App\Services\ActivityLogger;
 
-/**
- * Stub listener — full activity log implementation in Module 20.
- */
 class LogAccessGranted
 {
+    public function __construct(
+        private readonly ActivityLogger $logger,
+    ) {}
+
     public function handle(AccessGranted $event): void
     {
-        // TODO: Module 20 — log to activity log
+        $this->logger->log(
+            'access.granted',
+            $event->grantedBy,
+            $event->grant,
+            [
+                'subject_type' => $event->grant->subject_type,
+                'subject_id' => $event->grant->subject_id,
+                'permission' => $event->grant->permission,
+            ],
+        );
     }
 }

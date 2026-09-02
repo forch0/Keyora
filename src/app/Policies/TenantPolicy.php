@@ -10,7 +10,7 @@ use App\Models\User;
 class TenantPolicy
 {
     /**
-     * User must be a member of the tenant to view it.
+     * View the tenant. Any member can view.
      */
     public function view(User $user, Tenant $tenant): bool
     {
@@ -18,15 +18,15 @@ class TenantPolicy
     }
 
     /**
-     * User must be owner or admin to update the tenant.
+     * View the tenant activity feed. Admin or owner only.
      */
-    public function update(User $user, Tenant $tenant): bool
+    public function viewActivityFeed(User $user, Tenant $tenant): bool
     {
-        return in_array($user->roleIn($tenant), ['owner', 'admin'], true);
+        return $user->isAdminOf($tenant);
     }
 
     /**
-     * User must be the owner to delete the tenant.
+     * Delete the tenant. Owner only.
      */
     public function delete(User $user, Tenant $tenant): bool
     {

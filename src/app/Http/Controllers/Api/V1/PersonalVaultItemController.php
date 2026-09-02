@@ -14,6 +14,7 @@ use App\Http\Resources\V1\PersonalVaultItemResource;
 use App\Models\PersonalVaultItem;
 use App\Models\User;
 use App\Models\VaultItem;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -24,6 +25,7 @@ class PersonalVaultItemController extends Controller
         private readonly CreateVaultItemAction $createVaultItem,
         private readonly UpdateVaultItemAction $updateVaultItem,
         private readonly DeleteVaultItemAction $deleteVaultItem,
+        private readonly ActivityLogger $activityLogger,
     ) {}
 
     /**
@@ -128,6 +130,8 @@ class PersonalVaultItemController extends Controller
 
         $item->update(['last_accessed_at' => now()]);
         $item->refresh();
+
+        $this->activityLogger->log('vault_item.viewed', $user, $item);
 
         return (new PersonalVaultItemResource($item))->response();
     }
