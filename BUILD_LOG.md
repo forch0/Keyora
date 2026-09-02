@@ -36,7 +36,7 @@
 | 06 | Personal Vault — Part 2 | ✅ Complete | 2026-09-01 | Folders (nested), tags, favorite toggle, archive/restore, search, recent items, 19 new tests (91 total) |
 | 07 | Teams & Team Vaults | ✅ Complete | 2026-09-01 | Teams (tenant-scoped), team_user pivot, team/org vault items (BelongsToTenant + Encryptable + SoftDeletes), 10 Actions, 4 controllers, 19 new routes, 13 new tests (104 total) |
 | 08 | Permission System — Part 1 | ✅ Complete | 2026-09-02 | AccessGrant model (polymorphic, BelongsToTenant), Permission enum (hierarchy with parallel download/edit), AccessResolver service, VaultItemPolicy updated, 2 new routes, 15 new tests (119 total) |
-| 09 | Permission System — Part 2 | ⬜ Not Started | — | — |
+| 09 | Permission System — Part 2 | ✅ Complete | 2026-09-02 | Grant/Update/Revoke Actions, AccessGranted/Updated/Revoked events, AccessGrantedNotification, AccessGrantPolicy, 4 new routes (POST/PUT/DELETE/bulk), 13 new tests (132 total) |
 | 10 | Password Tools | ⬜ Not Started | — | — |
 | 11 | Secure Files — Part 1 | ⬜ Not Started | — | — |
 | 12 | Secure Files — Part 2 | ⬜ Not Started | — | — |
@@ -182,10 +182,92 @@ docker compose ps
 
 ## Next Module
 
-**Module 09 — Permission System Part 2**
-- Grant/revoke access via API
-- Per-item sharing endpoints
+**Module 10 — Secure Files**
+- File upload/download with encryption
 - Dependencies: Module 08 ✅
+
+---
+
+## Module 09 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 9.1 | Created GrantAccessAction (verifies share permission, deduplicates by updating existing grants, dispatches AccessGranted) | Tests pass |
+| 9.2 | Created UpdateAccessAction (verifies share permission, updates permission/constraints, dispatches AccessUpdated) | Tests pass |
+| 9.3 | Created RevokeAccessAction (verifies share permission, soft-deletes via revoked_at/revoked_by, dispatches AccessRevoked) | Tests pass |
+| 9.4 | Created AccessGranted, AccessUpdated, AccessRevoked events | Events dispatch correctly |
+| 9.5 | Created AccessGrantedNotification (database channel, sent to user or team members) | Notification test passes |
+| 9.6 | Created LogAccessGranted, LogAccessRevoked (stub listeners for Module 20), NotifyAccessGranted listeners | Registered in EventServiceProvider |
+| 9.7 | Created EventServiceProvider with explicit listener mappings | Registered via withProviders |
+| 9.8 | Created GrantAccessRequest (validates subject_type, subject_id, permission, temporal constraints, custom tenant membership validation) | Validation tests pass |
+| 9.9 | Created UpdateAccessRequest (validates permission, expires_at, max_views) | Tests pass |
+| 9.10 | Created AccessGrantPolicy (create/update/delete check share permission via AccessResolver) | Policy enforces correctly |
+| 9.11 | Extended AccessGrantController with store, bulkStore, update, destroy methods | All endpoints respond correctly |
+| 9.12 | Registered 4 new routes (POST access, POST bulk, PUT {grant}, DELETE {grant}) | route:list shows routes |
+| 9.13 | Wrote 13 feature tests covering all acceptance criteria | 132 passed, 370 assertions |
+| 9.14 | Ran verification: Pint (clean), PHPStan level 8 (0 errors), tests (132 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Status | Description |
+|---|---|---|---|
+| POST | `/api/v1/vault/items/{item}/access` | 201 | Grant access to user/team/tenant |
+| POST | `/api/v1/vault/items/{item}/access/bulk` | 200 | Bulk grant to multiple teams |
+| PUT | `/api/v1/vault/items/{item}/access/{grant}` | 200 | Update permission level |
+| DELETE | `/api/v1/vault/items/{item}/access/{grant}` | 204 | Revoke access (soft delete) |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Actions check permission via AccessResolver | Consistent with Module 08 — all permission checks go through AccessResolver, not inline in controllers. |
+| Duplicate grant updates existing | Spec: "if one exists, update it instead of creating duplicate". GrantAccessAction checks for existing active grant before creating. |
+| Soft delete on revoke (revoked_at) | Spec: "Revoked grants have revoked_at set (not hard deleted)". Preserves audit history. |
+| EventServiceProvider with explicit $listen | Laravel 11+ supports auto-discovery, but explicit mapping is clearer and ensures listeners are always registered. |
+| NotifyAccessGranted notifies team members | For team grants, all team members get notified. For tenant-wide grants, no notification (too noisy). |
+| GrantAccessRequest custom validation | Validates that subject (User/Team/Tenant) belongs to the current tenant — prevents cross-tenant grants. |
+| Notifications table migration | Laravel's notifications:table Artisan command generated the migration. Required for database notification channel. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/app/Actions/GrantAccessAction.php` | Created |
+| `src/app/Actions/UpdateAccessAction.php` | Created |
+| `src/app/Actions/RevokeAccessAction.php` | Created |
+| `src/app/Events/AccessGranted.php` | Created |
+| `src/app/Events/AccessUpdated.php` | Created |
+| `src/app/Events/AccessRevoked.php` | Created |
+| `src/app/Notifications/AccessGrantedNotification.php` | Created |
+| `src/app/Listeners/LogAccessGranted.php` | Created (stub) |
+| `src/app/Listeners/LogAccessRevoked.php` | Created (stub) |
+| `src/app/Listeners/NotifyAccessGranted.php` | Created |
+| `src/app/Providers/EventServiceProvider.php` | Created |
+| `src/app/Http/Requests/Access/GrantAccessRequest.php` | Created |
+| `src/app/Http/Requests/Access/UpdateAccessRequest.php` | Created |
+| `src/app/Policies/AccessGrantPolicy.php` | Created |
+| `src/app/Http/Controllers/Api/V1/AccessGrantController.php` | Modified — added store, bulkStore, update, destroy |
+| `src/bootstrap/app.php` | Modified — withProviders for EventServiceProvider |
+| `src/routes/api.php` | Modified — 4 new routes |
+| `src/tests/Feature/Api/V1/Access/ShareAccessTest.php` | Created (13 tests) |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `ShareAccessTest` | 13 | 32 | Share with individual/team/company, bulk share, change permission, revoke, 403 without share, 422 non-member, duplicate updates, notification sent, revoked in history, events dispatched |
+| **Module 09 Total** | **13** | **32** | — |
+| **Cumulative Total** | **132** | **370** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| `no such table: notifications` | Laravel's notifications table migration hadn't been generated. | Ran `php artisan notifications:table` + migrate. |
+| PHPStan: `User` not found in notification | `@param User` annotation referenced `App\Notifications\User` (wrong namespace). | Changed to `@param object` and used `getAttribute()` for type-safe access. |
+| PHPStan: `withValidator` missing type | Parameter had no type hint. | Added `\Illuminate\Contracts\Validation\Validator` type. |
 
 ---
 

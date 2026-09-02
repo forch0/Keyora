@@ -130,5 +130,9 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('vault/items')->group(function (): void {
         Route::get('{item}/access', [AccessGrantController::class, 'index']);
         Route::get('{item}/access/summary', [AccessGrantController::class, 'summary']);
+        Route::post('{item}/access', [AccessGrantController::class, 'store']);
+        Route::post('{item}/access/bulk', [AccessGrantController::class, 'bulkStore']);
+        Route::put('{item}/access/{grant}', [AccessGrantController::class, 'update']);
+        Route::delete('{item}/access/{grant}', [AccessGrantController::class, 'destroy']);
     });
 });
