@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\OrgVaultItemController;
+use App\Http\Controllers\Api\V1\PasswordToolController;
 use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
 use App\Http\Controllers\Api\V1\PersonalVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultTagController;
@@ -134,5 +135,11 @@ Route::prefix('v1')->group(function (): void {
         Route::post('{item}/access/bulk', [AccessGrantController::class, 'bulkStore']);
         Route::put('{item}/access/{grant}', [AccessGrantController::class, 'update']);
         Route::delete('{item}/access/{grant}', [AccessGrantController::class, 'destroy']);
+    });
+
+    // Password tools — generator and strength checker
+    Route::middleware('auth:sanctum')->prefix('tools/password')->group(function (): void {
+        Route::post('generate', [PasswordToolController::class, 'generate']);
+        Route::post('strength', [PasswordToolController::class, 'checkStrength']);
     });
 });

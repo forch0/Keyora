@@ -5,7 +5,7 @@
 | **Module** | 10 |
 | **Name** | Password Generator & Strength Checker |
 | **Dependencies** | Module 05 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 
