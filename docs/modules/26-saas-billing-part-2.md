@@ -5,7 +5,7 @@
 | **Module** | 26 |
 | **Name** | SaaS & Billing — Paystack Integration |
 | **Dependencies** | Module 25 |
-| **Status** | Not Started |
+| **Status** | ⏭️ Skipped — Open-source project, no billing |
 
 ---
 

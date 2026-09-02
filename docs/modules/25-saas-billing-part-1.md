@@ -5,7 +5,7 @@
 | **Module** | 25 |
 | **Name** | SaaS & Billing — Plans & Limits |
 | **Dependencies** | Module 03, Module 04 |
-| **Status** | Not Started |
+| **Status** | ⏭️ Skipped — Open-source project, no billing |
 
 ---
 
