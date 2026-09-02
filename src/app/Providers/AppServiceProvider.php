@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Policies\TenantMemberPolicy;
+use App\Services\AccessResolver;
 use App\Services\TenantManager;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -17,6 +18,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TenantManager::class);
+
+        // AccessResolver is scoped (per-request) because it depends on
+        // the current tenant context via TenantManager.
+        $this->app->scoped(AccessResolver::class);
     }
 
     /**

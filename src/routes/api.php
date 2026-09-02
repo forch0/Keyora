@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AccessGrantController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\OrgVaultItemController;
 use App\Http\Controllers\Api\V1\PersonalVaultFolderController;
@@ -123,5 +124,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('tenants/{tenant}/vault/items/{item}', [OrgVaultItemController::class, 'show']);
         Route::put('tenants/{tenant}/vault/items/{item}', [OrgVaultItemController::class, 'update']);
         Route::delete('tenants/{tenant}/vault/items/{item}', [OrgVaultItemController::class, 'destroy']);
+    });
+
+    // Access grants — view who has access to a vault item
+    Route::middleware(['auth:sanctum', 'tenant.resolve'])->prefix('vault/items')->group(function (): void {
+        Route::get('{item}/access', [AccessGrantController::class, 'index']);
+        Route::get('{item}/access/summary', [AccessGrantController::class, 'summary']);
     });
 });

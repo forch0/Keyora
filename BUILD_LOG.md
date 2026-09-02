@@ -35,7 +35,7 @@
 | 05 | Personal Vault — Part 1 | ✅ Complete | 2026-09-01 | Encryptable trait, personal_vault_items CRUD, AES-256 encryption, 15 new tests (72 total) |
 | 06 | Personal Vault — Part 2 | ✅ Complete | 2026-09-01 | Folders (nested), tags, favorite toggle, archive/restore, search, recent items, 19 new tests (91 total) |
 | 07 | Teams & Team Vaults | ✅ Complete | 2026-09-01 | Teams (tenant-scoped), team_user pivot, team/org vault items (BelongsToTenant + Encryptable + SoftDeletes), 10 Actions, 4 controllers, 19 new routes, 13 new tests (104 total) |
-| 08 | Permission System — Part 1 | ⬜ Not Started | — | — |
+| 08 | Permission System — Part 1 | ✅ Complete | 2026-09-02 | AccessGrant model (polymorphic, BelongsToTenant), Permission enum (hierarchy with parallel download/edit), AccessResolver service, VaultItemPolicy updated, 2 new routes, 15 new tests (119 total) |
 | 09 | Permission System — Part 2 | ⬜ Not Started | — | — |
 | 10 | Password Tools | ⬜ Not Started | — | — |
 | 11 | Secure Files — Part 1 | ⬜ Not Started | — | — |
@@ -182,10 +182,89 @@ docker compose ps
 
 ## Next Module
 
-**Module 08 — Permission System Part 1**
-- Fine-grained access grants
-- Per-item sharing
-- Dependencies: Module 07 ✅
+**Module 09 — Permission System Part 2**
+- Grant/revoke access via API
+- Per-item sharing endpoints
+- Dependencies: Module 08 ✅
+
+---
+
+## Module 08 — Detailed Log
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 8.1 | Created `access_grants` migration (polymorphic grantable + subject, permission enum, temporal/view constraints, revocation audit) | Migration runs clean |
+| 8.2 | Created `AccessGrant` model (BelongsToTenant, morphTo grantable/subject, grantedBy/revokedBy, active/expired/revoked scopes, helper methods) | Model loads, PHPStan clean |
+| 8.3 | Created `Permission` enum (View/Download/Edit/Share/Manage with rank-based satisfies() — download and edit are parallel rank 2) | 15 tests pass |
+| 8.4 | Created `AccessResolver` service (can, getPermission, whoHasAccess, whatDoesUserHaveAccessTo — checks owner, direct, team, tenant grants with temporal/view constraints) | All 15 tests pass |
+| 8.5 | Registered AccessResolver as scoped singleton in AppServiceProvider | Resolves per-request with tenant context |
+| 8.6 | Updated VaultItemPolicy to delegate to AccessResolver (view/update/delete check grants first, fall back to team/admin) | Existing tests still pass |
+| 8.7 | Created AccessGrantController (index — list grants, summary — grouped by subject type) | Routes registered |
+| 8.8 | Created AccessGrantResource (id, subject details, permission, temporal fields, granted_by, is_active) | Resource transforms correctly |
+| 8.9 | Registered 2 new routes (GET vault/items/{item}/access, GET vault/items/{item}/access/summary) | route:list shows 2 routes |
+| 8.10 | Wrote 15 feature tests covering all acceptance criteria | 119 passed, 338 assertions |
+| 8.11 | Ran verification: Pint (clean), PHPStan level 8 (0 errors), tests (119 passed) | All three pass clean |
+
+### API Endpoints Implemented
+
+| Method | Endpoint | Status | Description |
+|---|---|---|---|
+| GET | `/api/v1/vault/items/{item}/access` | 200 | List all active access grants for an item |
+| GET | `/api/v1/vault/items/{item}/access/summary` | 200 | Summary grouped by subject type (direct, team, company-wide) |
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Polymorphic grantable + subject | Single table handles grants for VaultItem, SecureFile, SecureNote, Folder to User, Team, or Tenant. Avoids duplicate tables. |
+| Permission enum with parallel ranks | `download` and `edit` are both rank 2 — neither satisfies the other. `manage` (rank 4) satisfies all. `share` (rank 3) satisfies view+download. |
+| AccessResolver as scoped singleton | Depends on TenantManager for current tenant context. Scoped = per-request, not shared across requests. |
+| Owner check first in resolver | Resource owner (user_id or created_by) gets Manage permission without any explicit grant. |
+| Grants queried with withoutTenant() | AccessGrant uses BelongsToTenant, but resolver queries by grantable_type/id. Uses withoutTenant() + explicit tenant_id filter for safety. |
+| VaultItemPolicy falls back to team/admin | If no explicit grant exists, team membership and admin privileges still work (backward compatible with Module 07). |
+| `isOwner` uses array_key_exists | `in_array` checks values, not keys. Fixed to use `array_key_exists` for column name check. |
+
+### Files Created/Modified
+
+| File | Action |
+|---|---|
+| `src/database/migrations/2026_09_02_100000_create_access_grants_table.php` | Created |
+| `src/app/Models/AccessGrant.php` | Created |
+| `src/app/Enums/Permission.php` | Created |
+| `src/app/Services/AccessResolver.php` | Created |
+| `src/database/factories/AccessGrantFactory.php` | Created |
+| `src/app/Http/Resources/V1/AccessGrantResource.php` | Created |
+| `src/app/Http/Controllers/Api/V1/AccessGrantController.php` | Created |
+| `src/app/Policies/VaultItemPolicy.php` | Modified — delegates to AccessResolver |
+| `src/app/Providers/AppServiceProvider.php` | Modified — registers AccessResolver as scoped singleton |
+| `src/routes/api.php` | Modified — 2 new routes |
+| `src/tests/Feature/Api/V1/Access/AccessGrantTest.php` | Created (15 tests) |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `AccessGrantTest` | 15 | 32 | Owner access, direct/team/tenant grants, expired/revoked/view-limit/start-time denial, permission hierarchy, parallel download/edit, highest permission wins, whoHasAccess, tenant isolation |
+| **Module 08 Total** | **15** | **32** | — |
+| **Cumulative Total** | **119** | **338** | — |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| `isOwner` always returns false | Used `in_array('user_id', $resource->getAttributes())` which checks values, not keys. | Changed to `array_key_exists('user_id', $resource->getAttributes())`. |
+| PHPStan: `permission` is `Permission\|string` | The cast makes it Permission at runtime, but PHPStan sees the raw column type. | Added `@var Permission` annotation in the loop. |
+| PHPStan: `sortByDesc` callback type mismatch | Collection type inference doesn't match the callable signature. | Replaced collection chain with a simple foreach loop. |
+| PHPStan: Resource `$this->permission->value` | `@mixin` doesn't propagate cast types. | Used `$this->resource->getAttribute('permission')` with annotation. |
+
+### Known Issues / Notes
+
+- `whatDoesUserHaveAccessTo()` is implemented but not exposed via API yet (future module).
+- Grant creation/revocation is NOT part of this module (Module 09 will add POST/DELETE endpoints).
+- Temporal access with durations (Module 14) and access requests (Module 15) are deferred.
+- The `start_on_first_view` logic checks if `first_viewed_at` is set; the actual first-view tracking will be implemented when view-counting is wired up in Module 09.
 
 ---
 

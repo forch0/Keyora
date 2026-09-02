@@ -5,7 +5,7 @@
 | **Module** | 08 |
 | **Name** | Permission System — Core (Access Grants Model & AccessResolver) |
 | **Dependencies** | Module 02, Module 03, Module 07 |
-| **Status** | Not Started |
+| **Status** | ✅ Complete |
 
 ---
 

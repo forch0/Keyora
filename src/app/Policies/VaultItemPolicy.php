@@ -4,16 +4,29 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\Permission;
 use App\Models\User;
 use App\Models\VaultItem;
+use App\Services\AccessResolver;
 
 class VaultItemPolicy
 {
+    public function __construct(
+        private readonly AccessResolver $accessResolver,
+    ) {}
+
     /**
-     * View: must be member of team (for team items) or any tenant member (for org-wide).
+     * View: owner, or has a grant with at least 'view' permission,
+     * or is a team member / tenant member (for team/org items).
      */
     public function view(User $user, VaultItem $item): bool
     {
+        // Check AccessResolver first (owner + grants)
+        if ($this->accessResolver->can($user, Permission::View, $item)) {
+            return true;
+        }
+
+        // Fall back to team/org membership for items without explicit grants
         if (! $user->isMemberOf($item->tenant)) {
             return false;
         }
@@ -52,15 +65,16 @@ class VaultItemPolicy
     }
 
     /**
-     * Update: creator, team lead, or admin.
+     * Update: owner, grant with 'edit', team lead, or admin.
      */
     public function update(User $user, VaultItem $item): bool
     {
-        if ($user->isAdminOf($item->tenant)) {
+        // Check AccessResolver (owner + grants)
+        if ($this->accessResolver->can($user, Permission::Edit, $item)) {
             return true;
         }
 
-        if ($item->user_id === $user->id) {
+        if ($user->isAdminOf($item->tenant)) {
             return true;
         }
 
@@ -70,14 +84,19 @@ class VaultItemPolicy
     }
 
     /**
-     * Delete: creator or admin.
+     * Delete: owner, grant with 'manage', or admin.
      */
     public function delete(User $user, VaultItem $item): bool
     {
+        // Check AccessResolver (owner + grants)
+        if ($this->accessResolver->can($user, Permission::Manage, $item)) {
+            return true;
+        }
+
         if ($user->isAdminOf($item->tenant)) {
             return true;
         }
 
-        return $item->user_id === $user->id;
+        return false;
     }
 }
