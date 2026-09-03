@@ -60,6 +60,7 @@
 | 30 | Bulk Operations | ✅ Complete | 2026-09-02 | BulkOperationService (bulkDelete, bulkMove, bulkArchive, bulkRestore, bulkTag, bulkShare, bulkCreate), thin BulkOperationController, 6 Form Requests, 7 endpoints under /personal-vault/items/bulk/*, per-item authorization (failed items counted not errored), all operations in DB transactions, reauth on bulk share, max 100 for operations max 50 for create, 16 new tests (407 total) |
 | 31 | Dashboard Caching & Performance | ✅ Complete | 2026-09-02 | Cache::remember (60s TTL) on personal/company/usage dashboards, DashboardCacheService for invalidation, DashboardCacheObserver on 5 models (PersonalVaultItem, SecureFile, SecureNote, Team, SecurityAlert), InvalidateDashboardCache event subscriber for access grant/request events, X-Cache-Status and X-Cache-TTL headers, cache warmup scheduled job (every 5 min), 10 new tests (417 total) |
 | KEY-32 | Production Readiness (Priority 1) | ✅ Complete | 2026-09-03 | Encryptable fail-closed decryption, GrantAccessAction race condition fix (transaction + lockForUpdate), SubjectType enum + subject_type whitelist on all access-grant endpoints, db:backup command (MySQL/PostgreSQL/SQLite) with daily scheduled rotation, health check endpoint (GET /api/v1/health), all 11 non-queued notifications now implement ShouldQueue, deployment runbook (docs/DEPLOYMENT.md), 11 new tests (428 total) |
+| KEY-33 | Priority 2 Fixes (2.1-2.8) | ✅ Complete | 2026-09-03 | Bulk share dispatches AccessGranted events, offboarding invalidates dashboard caches, access_grants composite indexes, BulkOperationService uses AccessResolver for tenant-scoped permission checks, route paths standardized to /vault/items/bulk/*, AccessResolver::isOwner() re-evaluates tenant membership for created_by, AccessResolver N+1 fixed (subject filtering pushed into query), AccessGrantController cleanup (policy extraction, BulkGrantAccessRequest, countdown via resolver), 2 new tests (430 total) |
 
 ---
 
@@ -158,6 +159,88 @@
 - The `SubjectType` enum is currently used for validation only; the database still stores full class strings in `subject_type` / `grantable_type` columns. A future migration to store enum values instead of class strings is possible but would require data migration and is not urgent for the internal-tool scope.
 - The health check endpoint writes a `health-check` file to the local disk on first call; this is cleaned up automatically by the check itself on subsequent calls.
 - Priority 2-4 items from `TODO.md` are not part of this branch — they are tracked for future work.
+
+---
+
+## KEY-33 — Priority 2 Fixes (2.1-2.8) — Detailed Log
+
+> Branch: `feature/KEY-33-priority-2-fixes`
+> Scope: All 8 Priority 2 items from `TODO.md` (correctness + performance + consistency fixes).
+
+### Completed Steps
+
+| Step | Description | Verification |
+|---|---|---|
+| 2.1 | `BulkOperationService::bulkShare` now dispatches `AccessGranted` event per grant, enabling cache invalidation via event subscriber | `test_bulk_share_dispatches_access_granted_event` — 3 events for 3 items |
+| 2.2 | `OffboardEmployeeAction` now explicitly invalidates company, usage, and personal dashboard caches after offboarding (pivot updates don't trigger model observers) | `test_cache_invalidated_on_member_offboard` — cache cleared without manual invalidation |
+| 2.3 | Added composite indexes on `access_grants`: `(subject_type, subject_id, revoked_at)` and `(tenant_id, revoked_at, expires_at)`; other requested indexes already existed or were covered by composites | Migration `2026_09_03_300000_add_dashboard_indexes` applied |
+| 2.4 | `BulkOperationService::actorCanDelete` and `actorCanShare` now use `AccessResolver` for tenant-scoped models instead of just checking tenant membership; `actorOwns` only checks `user_id` (actual ownership) | Existing `test_bulk_share_skips_unauthorized` still passes |
+| 2.5 | Standardized bulk operation routes from `/personal-vault/items/bulk/*` to `/vault/items/bulk/*` to match existing vault route convention; added `whereNumber` constraints on `{item}/{folder}/{tag}` params to prevent route conflicts | All 18 bulk tests pass with new paths; 34 vault tests pass with `whereNumber` |
+| 2.6 | `AccessResolver::isOwner()` no longer grants `Manage` forever via `created_by`; creator must still be an active tenant member; uses proper attribute accessors instead of fragile `getAttributes()` | `test_offboarded_creator_loses_ownership_of_tenant_scoped_resource` — offboarded creator denied Manage |
+| 2.7 | `AccessResolver::getPermission()` now uses `activeGrantsForUser()` which pushes subject filtering (user/team/tenant) into the DB query, eliminating N+1 per-grant team membership lookups; removed dead `grantAppliesToUser()` method | All 56 access tests pass |
+| 2.8a | Extracted duplicated authz block from `index`/`summary` to `VaultItemPolicy::viewAccessGrants`; controller now uses `$this->authorize()` | All access grant tests pass |
+| 2.8b | Created `BulkGrantAccessRequest` form request for `bulkStore` (was inline `$request->validate()`) | Form request class created |
+| 2.8c | `countdown` now routes through `AccessResolver::userGrantFor()` instead of raw `AccessGrant::withoutTenant()->where(...)` query | `test_expiration_countdown_endpoint` passes |
+
+### Files Created
+
+| File | Purpose |
+|---|---|
+| `src/app/Http/Requests/Access/BulkGrantAccessRequest.php` | Form request for bulk access grants (team_ids + permission validation) |
+| `src/database/migrations/2026_09_03_300000_add_dashboard_indexes.php` | Composite indexes on access_grants for dashboard/resolver queries |
+
+### Files Modified
+
+| File | Change |
+|---|---|
+| `src/app/Services/BulkOperationService.php` | Dispatches `AccessGranted` per grant in `bulkShare`; injected `AccessResolver`; `actorCanDelete`/`actorCanShare` use resolver for tenant-scoped models; `actorOwns` only checks `user_id` |
+| `src/app/Actions/OffboardEmployeeAction.php` | Injected `DashboardCacheService`; invalidates company/usage/personal caches after offboarding |
+| `src/app/Services/AccessResolver.php` | `isOwner()` re-evaluates tenant membership for `created_by`; uses attribute accessors not `getAttributes()`; `getPermission()` uses `activeGrantsForUser()` (query-level subject filtering); added `userGrantFor()` method; removed `grantAppliesToUser()` |
+| `src/app/Http/Controllers/Api/V1/AccessGrantController.php` | `index`/`summary` use `$this->authorize('viewAccessGrants')`; `bulkStore` uses `BulkGrantAccessRequest`; `countdown` uses `AccessResolver::userGrantFor()` |
+| `src/app/Policies/VaultItemPolicy.php` | Added `viewAccessGrants()` method (owner, Share permission, or admin) |
+| `src/routes/api.php` | Bulk routes moved from `/personal-vault/items/bulk/*` to `/vault/items/bulk/*`; added `whereNumber()` on all `{item}/{folder}/{tag}` params in personal vault routes |
+| `src/tests/Feature/Api/V1/BulkOperations/BulkOperationsTest.php` | Added `test_bulk_share_dispatches_access_granted_event`; updated all bulk URLs to `/vault/items/bulk/*` |
+| `src/tests/Feature/Api/V1/Dashboard/DashboardCachingTest.php` | Updated `test_cache_invalidated_on_member_offboard` to verify automatic cache invalidation (removed manual `invalidateCompanyDashboard` call) |
+| `src/tests/Feature/Api/V1/Access/AccessRevocationTest.php` | Added `test_offboarded_creator_loses_ownership_of_tenant_scoped_resource` |
+| `TODO.md` | Checked off all Priority 2 items (2.1-2.8) |
+
+### Test Results
+
+| Test Class | Tests | Assertions | Covers |
+|---|---|---|---|
+| `BulkOperationsTest` (new test) | 1 | 1 | Bulk share dispatches AccessGranted events |
+| `AccessRevocationTest` (new test) | 1 | 2 | Offboarded creator loses ownership of tenant-scoped resource |
+| **New tests** | **2** | **3** | — |
+| **Total (all tests)** | **430** | **1311** | — |
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `php artisan test` | 430 passed, 0 failed (was 428) |
+| `vendor/bin/phpstan analyse` | No errors (level 8) |
+| `vendor/bin/pint --test` | 0 style issues |
+
+### Bugs Found and Fixed
+
+| Bug | Cause | Fix |
+|---|---|---|
+| Bulk share didn't dispatch domain events | `AccessGrant::create()` called directly, bypassing `GrantAccessAction` which dispatches events | Added `AccessGranted::dispatch($grant, $actor)` after each grant creation in `bulkShare` |
+| Offboarding didn't invalidate dashboard caches | `OffboardEmployeeAction` updates `tenant_user` pivot, which doesn't trigger `DashboardCacheObserver` (model observers only fire on model CRUD) | Added explicit `DashboardCacheService` calls in the action |
+| Any tenant member could bulk-delete tenant-scoped items | `actorOwns()` fell back to tenant membership check for models without `user_id` | `actorOwns` now only checks `user_id`; `actorCanDelete`/`actorCanShare` use `AccessResolver` for tenant-scoped models |
+| `created_by` granted Manage forever | `isOwner()` checked `created_by` statically without verifying current tenant membership | `isOwner()` now verifies creator is still an active tenant member via `User::isMemberOf()` |
+| AccessResolver N+1 on team membership | `grantAppliesToUser()` ran `$user->teams()->where()->exists()` per grant in a `filter()` loop | New `activeGrantsForUser()` pushes `whereIn('subject_id', $teamIds)` into the query |
+| Route conflict: `items/bulk` matched `items/{item}` | No numeric constraint on `{item}` parameter | Added `->whereNumber('item')` to all item/folder/tag routes |
+| Duplicated authz block in controller | `index` and `summary` had identical inline `if (!can(Share) && user_id !== ... && !isAdminOf)` blocks | Extracted to `VaultItemPolicy::viewAccessGrants`, controller uses `$this->authorize()` |
+| `bulkStore` used inline validation | `$request->validate([...])` instead of a Form Request | Created `BulkGrantAccessRequest` form request |
+| `countdown` bypassed AccessResolver | Raw `AccessGrant::withoutTenant()->where(...)` query | New `AccessResolver::userGrantFor()` method; controller calls it |
+
+### Known Issues / Notes
+
+- Item 2.3 "Verify query performance with EXPLAIN on key queries" is deferred — requires a production-like dataset to benchmark meaningfully
+- The route path standardization (2.5) changed bulk operation URLs from `/personal-vault/items/bulk/*` to `/vault/items/bulk/*`; any API clients or frontend code calling the old paths need updating
+- The `whereNumber` constraints on personal vault routes prevent non-numeric values from matching `{item}/{folder}/{tag}` parameters, which was necessary to avoid conflicts with the `bulk` literal segment
+- The `AccessResolver::isOwner()` change for `created_by` means offboarded creators of teams, folders, and secure links lose Manage access; this is the correct behavior but should be communicated to users
 
 ---
 
@@ -294,19 +377,19 @@ docker compose ps
 
 ---
 
-## Current Status (as of 2026-09-02)
+## Current Status (as of 2026-09-03)
 
-### Completed Modules: 01–24 (24 modules)
+### Completed Modules: 01–24 + 27–31 + KEY-32 + KEY-33 (33 entries)
 
 | Metric | Value |
 |---|---|
-| Total tests | 361 |
-| Total assertions | 975 |
+| Total tests | 430 |
+| Total assertions | 1311 |
 | Pint | Clean |
 | PHPStan | Level 8, 0 errors |
-| Modules complete | 24 |
+| Modules complete | 31 |
 | Modules skipped | 2 (25–26: billing — open source) |
-| Modules planned | 5 (27–31) |
+| Production-readiness branches | 2 (KEY-32 Priority 1, KEY-33 Priority 2) |
 
 ### Skipped Modules
 
