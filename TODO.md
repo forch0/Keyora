@@ -84,48 +84,8 @@ These are nice-to-haves that improve maintainability but aren't urgent.
 
 ---
 
-## Priority 4 — Future Modules / Features
-
-These are larger efforts that would extend the platform beyond its current scope.
-
-### 4.1 Import / Export
-- [ ] Bulk import vault items from CSV/JSON (password managers, spreadsheets)
-- [ ] Export all items for a user or tenant (encrypted bundle)
-- [ ] Support Bitwarden/1Password/LastPass import formats
-
-### 4.2 Webhooks
-- [ ] Outgoing webhooks for key events (access granted, file uploaded, employee offboarded)
-- [ ] Configurable per-tenant webhook endpoints
-- [ ] Signed payloads with retry logic
-
-### 4.3 SSO / SAML
-- [ ] Single sign-on integration (SAML 2.0 or OIDC)
-- [ ] Map IdP groups to tenant roles
-- [ ] JIT provisioning on first login
-
-### 4.4 Mobile API Considerations
-- [ ] Audit API responses for mobile-friendliness (payload size, nested includes)
-- [ ] Consider GraphQL or a lighter resource format for mobile clients
-- [ ] Push notification support for access requests / expirations
-
-### 4.5 Audit Log Export & Retention
-- [ ] Export audit logs to external SIEM (via webhook or scheduled dump)
-- [ ] Configurable retention period per tenant
-- [ ] Immutable log storage option (write-once)
-
-### 4.6 Zero-Knowledge Encryption (Future)
-- [ ] Current model: server-side encryption keyed by `APP_KEY`
-- [ ] If repositioned as a public product, redesign for client-side encryption
-- [ ] User-derived key from master password (PBKDF2/Argon2 → symmetric key)
-- [ ] Server never sees plaintext or decryption key
-- [ ] Key rotation and recovery flow
-- [ ] This is a major architectural change — not a patch, a rewrite of the encryption layer
-
----
-
 ## Notes
 
 - Priority 1 and 2 items are complete (branches `feature/KEY-32-production-readiness` and `feature/KEY-33-priority-2-fixes`)
 - The project is suitable for internal deployment with real credentials after Priority 1
 - Priority 3 items improve maintainability and should be done within the first quarter
-- Priority 4 items are scope expansions, not corrections
