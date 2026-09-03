@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Api\V1\Access;
 
 use App\Actions\OffboardEmployeeAction;
+use App\Enums\Permission;
 use App\Models\AccessGrant;
 use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\VaultItem;
 use App\Notifications\AccessRevokedNotification;
+use App\Services\AccessResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\Helpers\AuthHelper;
@@ -277,5 +279,29 @@ class AccessRevocationTest extends TestCase
             ->postJson("/api/v1/vault/items/{$item->id}/access/revoke-all");
 
         $response->assertStatus(403);
+    }
+
+    public function test_offboarded_creator_loses_ownership_of_tenant_scoped_resource(): void
+    {
+        [$tenant, $admin, $adminToken, $member] = $this->setupTenantAndUsers();
+
+        // Member creates a team (created_by = member)
+        $team = Team::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Member Team',
+            'created_by' => $member->id,
+        ]);
+
+        $resolver = app(AccessResolver::class);
+
+        // Before offboarding: member is the creator and an active tenant member → isOwner → Manage
+        $this->assertTrue($resolver->can($member, Permission::Manage, $team));
+
+        // Offboard the member
+        $action = app(OffboardEmployeeAction::class);
+        $action($admin, $member, $tenant, 'test offboarding');
+
+        // After offboarding: member is still the creator but no longer an active tenant member
+        $this->assertFalse($resolver->can($member, Permission::Manage, $team));
     }
 }

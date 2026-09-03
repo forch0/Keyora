@@ -50,28 +50,22 @@ class AccessResolver
             return Permission::Manage;
         }
 
-        // 2. Gather all active grants for this resource
-        $grants = $this->activeGrantsFor($resource);
+        // 2. Gather all active grants for this resource that apply to the user
+        //    (subject filtering pushed into the query to avoid N+1 per-grant team lookups)
+        $grants = $this->activeGrantsForUser($resource, $user);
 
         if ($grants->isEmpty()) {
             return null;
         }
 
-        // 3. Filter to grants that apply to this user
-        $applicableGrants = $grants->filter(fn (AccessGrant $grant) => $this->grantAppliesToUser($grant, $user));
-
-        if ($applicableGrants->isEmpty()) {
-            return null;
-        }
-
-        // 4. Filter out grants that fail temporal/view constraints
-        $validGrants = $applicableGrants->filter(fn (AccessGrant $grant) => $this->grantIsCurrentlyValid($grant));
+        // 3. Filter out grants that fail temporal/view constraints
+        $validGrants = $grants->filter(fn (AccessGrant $grant) => $this->grantIsCurrentlyValid($grant));
 
         if ($validGrants->isEmpty()) {
             return null;
         }
 
-        // 5. Return the highest permission from valid grants
+        // 4. Return the highest permission from valid grants
         /** @var Permission|null $highest */
         $highest = null;
         foreach ($validGrants as $grant) {
@@ -95,6 +89,20 @@ class AccessResolver
         return $this->activeGrantsFor($resource)
             ->filter(fn (AccessGrant $grant) => $this->grantIsCurrentlyValid($grant))
             ->values();
+    }
+
+    /**
+     * Get the user's active grant for a resource (if any).
+     *
+     * Returns the most recent active grant that applies to the user,
+     * or null if the user has no grants (e.g. they are the owner).
+     */
+    public function userGrantFor(User $user, Model $resource): ?AccessGrant
+    {
+        return $this->activeGrantsForUser($resource, $user)
+            ->filter(fn (AccessGrant $grant) => $this->grantIsCurrentlyValid($grant))
+            ->sortByDesc('id')
+            ->first();
     }
 
     /**
@@ -139,17 +147,38 @@ class AccessResolver
 
     /**
      * Check if the user is the owner/creator of the resource.
+     *
+     * For user-owned models (user_id column), ownership is permanent —
+     * the user owns the item regardless of tenant membership.
+     *
+     * For tenant-scoped models (created_by column), the creator only
+     * retains ownership while they are still an active member of the
+     * resource's tenant. An offboarded creator loses Manage access.
      */
     private function isOwner(User $user, Model $resource): bool
     {
-        // Check user_id column (common to VaultItem, PersonalVaultItem, etc.)
-        if (array_key_exists('user_id', $resource->getAttributes())) {
-            return (int) $resource->getOriginal('user_id') === $user->id;
+        // Check user_id column (PersonalVaultItem — user-owned, not tenant-scoped)
+        $userId = $resource->getAttribute('user_id');
+        if ($userId !== null) {
+            return (int) $userId === $user->id;
         }
 
-        // Check created_by column (used by Team, Folder, etc.)
-        if (array_key_exists('created_by', $resource->getAttributes())) {
-            return (int) $resource->getOriginal('created_by') === $user->id;
+        // Check created_by column (Team, VaultFolder, FileFolder, NoteFolder, SecureLink)
+        // Creator only retains ownership while actively belonging to the resource's tenant.
+        $createdBy = $resource->getAttribute('created_by');
+        if ($createdBy !== null && (int) $createdBy === $user->id) {
+            $tenantId = $resource->getAttribute('tenant_id');
+
+            // If the resource has no tenant_id, fall back to the current tenant context
+            if ($tenantId === null) {
+                $tenantId = $this->tenantManager->currentTenantId();
+            }
+
+            if ($tenantId !== null) {
+                $tenant = Tenant::find((int) $tenantId);
+
+                return $tenant !== null && $user->isMemberOf($tenant);
+            }
         }
 
         return false;
@@ -176,30 +205,46 @@ class AccessResolver
     }
 
     /**
-     * Check if a grant's subject applies to the given user.
+     * Get active grants for a resource that apply to a specific user.
+     *
+     * Pushes subject filtering (user, team, tenant) into the query
+     * to avoid N+1 per-grant team/tenant membership lookups.
+     *
+     * @return Collection<int, AccessGrant>
      */
-    private function grantAppliesToUser(AccessGrant $grant, User $user): bool
+    private function activeGrantsForUser(Model $resource, User $user): Collection
     {
-        // Direct user grant
-        if ($grant->subject_type === User::class && (int) $grant->subject_id === $user->id) {
-            return true;
-        }
+        $tenantId = $this->tenantManager->currentTenantId();
+        $teamIds = $user->teams()->pluck('teams.id')->all();
 
-        // Team grant — user must be a member of the team
-        if ($grant->subject_type === Team::class) {
-            return $user->teams()
-                ->where('teams.id', $grant->subject_id)
-                ->exists();
-        }
+        $subjectConditions = function (Builder $q) use ($user, $teamIds, $tenantId): void {
+            $q->where(function (Builder $sub) use ($user): void {
+                $sub->where('subject_type', User::class)
+                    ->where('subject_id', $user->id);
+            });
 
-        // Tenant-wide grant — user must be a member of the tenant
-        if ($grant->subject_type === Tenant::class) {
-            return $user->tenants()
-                ->where('tenants.id', $grant->subject_id)
-                ->exists();
-        }
+            if (! empty($teamIds)) {
+                $q->orWhere(function (Builder $sub) use ($teamIds): void {
+                    $sub->where('subject_type', Team::class)
+                        ->whereIn('subject_id', $teamIds);
+                });
+            }
 
-        return false;
+            if ($tenantId !== null) {
+                $q->orWhere(function (Builder $sub) use ($tenantId): void {
+                    $sub->where('subject_type', Tenant::class)
+                        ->where('subject_id', $tenantId);
+                });
+            }
+        };
+
+        return AccessGrant::withoutTenant()
+            ->where('tenant_id', $tenantId)
+            ->where('grantable_type', $resource::class)
+            ->where('grantable_id', $resource->getKey())
+            ->where($subjectConditions)
+            ->active()
+            ->get();
     }
 
     /**

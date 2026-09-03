@@ -10,6 +10,7 @@ use App\Actions\UpdateAccessAction;
 use App\Enums\AccessDuration;
 use App\Enums\Permission;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Access\BulkGrantAccessRequest;
 use App\Http\Requests\Access\GrantAccessRequest;
 use App\Http\Requests\Access\UpdateAccessRequest;
 use App\Http\Resources\V1\AccessGrantResource;
@@ -39,13 +40,9 @@ class AccessGrantController extends Controller
      */
     public function index(Request $request, VaultItem $item): AnonymousResourceCollection
     {
-        $user = $this->authenticatedUser($request);
+        $this->authenticatedUser($request);
 
-        if (! $this->accessResolver->can($user, Permission::Share, $item)) {
-            if ($item->user_id !== $user->id && ! $user->isAdminOf($item->tenant)) {
-                abort(403);
-            }
-        }
+        $this->authorize('viewAccessGrants', $item);
 
         $grants = $this->accessResolver->whoHasAccess($item);
 
@@ -57,13 +54,9 @@ class AccessGrantController extends Controller
      */
     public function summary(Request $request, VaultItem $item): JsonResponse
     {
-        $user = $this->authenticatedUser($request);
+        $this->authenticatedUser($request);
 
-        if (! $this->accessResolver->can($user, Permission::Share, $item)) {
-            if ($item->user_id !== $user->id && ! $user->isAdminOf($item->tenant)) {
-                abort(403);
-            }
-        }
+        $this->authorize('viewAccessGrants', $item);
 
         $grants = $this->accessResolver->whoHasAccess($item);
 
@@ -109,20 +102,14 @@ class AccessGrantController extends Controller
     /**
      * Bulk grant access to multiple teams.
      */
-    public function bulkStore(Request $request, VaultItem $item): AnonymousResourceCollection
+    public function bulkStore(BulkGrantAccessRequest $request, VaultItem $item): AnonymousResourceCollection
     {
         $user = $this->authenticatedUser($request);
 
-        $validated = $request->validate([
-            'team_ids' => ['required', 'array', 'min:1'],
-            'team_ids.*' => ['required', 'integer', 'exists:'.Team::class.',id'],
-            'permission' => ['required', 'string', 'in:view,download,edit,share,manage'],
-        ]);
-
-        $permission = Permission::from($validated['permission']);
+        $permission = Permission::from($request->validated('permission'));
         $grants = [];
 
-        foreach ($validated['team_ids'] as $teamId) {
+        foreach ($request->validated('team_ids') as $teamId) {
             $grants[] = ($this->grantAccess)(
                 grantedBy: $user,
                 resource: $item,
@@ -168,14 +155,7 @@ class AccessGrantController extends Controller
     {
         $user = $this->authenticatedUser($request);
 
-        $grant = AccessGrant::withoutTenant()
-            ->where('grantable_type', VaultItem::class)
-            ->where('grantable_id', $item->id)
-            ->where('subject_type', User::class)
-            ->where('subject_id', $user->id)
-            ->whereNull('revoked_at')
-            ->latest()
-            ->first();
+        $grant = $this->accessResolver->userGrantFor($user, $item);
 
         if ($grant === null) {
             abort(404, 'No active access grant found for this resource.');

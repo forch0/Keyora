@@ -99,4 +99,20 @@ class VaultItemPolicy
 
         return false;
     }
+
+    /**
+     * View access grants: owner, user with Share permission, or admin.
+     */
+    public function viewAccessGrants(User $user, VaultItem $item): bool
+    {
+        if ($this->accessResolver->can($user, Permission::Share, $item)) {
+            return true;
+        }
+
+        if ($item->user_id === $user->id) {
+            return true;
+        }
+
+        return $user->isAdminOf($item->tenant);
+    }
 }

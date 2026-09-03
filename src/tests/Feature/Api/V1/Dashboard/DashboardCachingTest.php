@@ -118,16 +118,19 @@ class DashboardCachingTest extends TestCase
         $this->withHeaders($headers)->getJson('/api/v1/dashboard/company');
         $this->assertTrue(Cache::has("dashboard:company:{$tenant->id}"));
 
-        // Offboard the member
+        // Prime the member's personal cache directly
+        app(DashboardCacheService::class)->invalidatePersonalDashboardById($member->id);
+        Cache::put("dashboard:personal:{$member->id}", ['data'], 60);
+        $this->assertTrue(Cache::has("dashboard:personal:{$member->id}"));
+
+        // Offboard the member — the action should invalidate caches
+        // (offboarding updates a pivot, not a model, so observers don't fire)
         $this->withHeaders($headers)
             ->postJson("/api/v1/tenants/{$tenant->id}/members/{$member->id}/offboard")
             ->assertStatus(204);
 
-        // Manually invalidate via the service (offboarding updates a pivot, not a model,
-        // so the model observer doesn't fire — the offboard action should call the service)
-        app(DashboardCacheService::class)->invalidateCompanyDashboard($tenant);
-
         $this->assertFalse(Cache::has("dashboard:company:{$tenant->id}"));
+        $this->assertFalse(Cache::has("dashboard:personal:{$member->id}"));
     }
 
     public function test_cache_invalidated_on_access_grant(): void

@@ -73,64 +73,64 @@ These are the items that should be resolved before putting real credentials in t
 These are real issues but won't block deployment. Fix them once the system is running.
 
 ### 2.1 Bulk Operations: Dispatch Domain Events
-- [ ] `BulkOperationService::bulkShare` creates `AccessGrant` without dispatching `AccessGranted` event
-- [ ] This means cache invalidation via event subscriber doesn't fire for bulk shares
-- [ ] Dispatch `AccessGranted` for each grant created in bulk share
-- [ ] Same for any other bulk methods that create domain objects
-- [ ] File: `src/app/Services/BulkOperationService.php`
+- [x] `BulkOperationService::bulkShare` creates `AccessGrant` without dispatching `AccessGranted` event
+- [x] This means cache invalidation via event subscriber doesn't fire for bulk shares
+- [x] Dispatch `AccessGranted` for each grant created in bulk share
+- [x] Same for any other bulk methods that create domain objects
+- [x] File: `src/app/Services/BulkOperationService.php`
 
 ### 2.2 Offboarding: Invalidate Dashboard Cache
-- [ ] Member offboarding updates a pivot record, not a model
-- [ ] `DashboardCacheObserver` doesn't fire for pivot updates
-- [ ] The offboard action/service should call `DashboardCacheService::invalidateCompanyDashboard()` explicitly
-- [ ] File: wherever the offboard logic lives (check `TenantMemberController` or related Action)
+- [x] Member offboarding updates a pivot record, not a model
+- [x] `DashboardCacheObserver` doesn't fire for pivot updates
+- [x] The offboard action/service should call `DashboardCacheService::invalidateCompanyDashboard()` explicitly
+- [x] File: wherever the offboard logic lives (check `TenantMemberController` or related Action)
 
 ### 2.3 Database Indexes for Dashboard Queries
-- [ ] `DashboardService` runs multiple COUNT queries per dashboard request
-- [ ] Add indexes on:
-  - `personal_vault_items`: `(user_id, archived_at)`
-  - `personal_vault_items`: `(user_id, last_accessed_at)`
-  - `secure_files`: `(tenant_id)`
-  - `secure_notes`: `(tenant_id)`
-  - `access_grants`: `(subject_type, subject_id, revoked_at)`
-  - `access_grants`: `(tenant_id, revoked_at, expires_at)`
-  - `activity_logs`: `(tenant_id, created_at)`
-  - `security_alerts`: `(user_id, read_at)`
-- [ ] Create a migration for these indexes
+- [x] `DashboardService` runs multiple COUNT queries per dashboard request
+- [x] Add indexes on:
+  - `personal_vault_items`: `(user_id, archived_at)` — already existed
+  - `personal_vault_items`: `(user_id, last_accessed_at)` — already existed
+  - `secure_files`: `(tenant_id)` — covered by existing composite indexes
+  - `secure_notes`: `(tenant_id)` — covered by existing composite indexes
+  - `access_grants`: `(subject_type, subject_id, revoked_at)` — added in migration
+  - `access_grants`: `(tenant_id, revoked_at, expires_at)` — added in migration
+  - `activity_logs`: `(tenant_id, created_at)` — already existed
+  - `security_alerts`: `(user_id, read_at)` — already existed
+- [x] Create a migration for these indexes
 - [ ] Verify query performance with `EXPLAIN` on key queries
 
 ### 2.4 Ownership Check in BulkOperationService
-- [ ] `actorOwns()` for tenant-scoped models checks only tenant membership, not actual ownership
-- [ ] Any tenant member can bulk-delete any tenant-scoped item, even if they don't own it
-- [ ] Should check `user_id` on the item if the model has one, or check a proper permission
-- [ ] File: `src/app/Services/BulkOperationService.php` line ~260
+- [x] `actorOwns()` for tenant-scoped models checks only tenant membership, not actual ownership
+- [x] Any tenant member can bulk-delete any tenant-scoped item, even if they don't own it
+- [x] Should check `user_id` on the item if the model has one, or check a proper permission
+- [x] File: `src/app/Services/BulkOperationService.php` line ~260
 
 ### 2.5 Route Path Consistency
-- [ ] Module 29 uses `/api/v1/vault/trash/{item}/restore`
-- [ ] Module 30 uses `/api/v1/personal-vault/items/bulk/delete`
-- [ ] Pick one convention and standardize:
+- [x] Module 29 uses `/api/v1/vault/trash/{item}/restore`
+- [x] Module 30 uses `/api/v1/personal-vault/items/bulk/delete`
+- [x] Pick one convention and standardize:
   - Option A: `/api/v1/personal-vault/items/{item}/restore` (resource-based)
   - Option B: `/api/v1/vault/items/{item}/restore` (shorter)
-- [ ] Update routes, controllers, tests, and Scramble docs
+- [x] Update routes, controllers, tests, and Scramble docs
 
 ### 2.6 AccessResolver::isOwner() Is Over-Permissive
-- [ ] `isOwner()` checks `user_id` OR `created_by` via `array_key_exists($resource->getAttributes())`
-- [ ] Any model with a `created_by` column grants `Permission::Manage` to the creator forever — even after they should have lost access (e.g. offboarded, removed from team, access revoked)
-- [ ] Owner status should be re-evaluated against current tenant membership / active grants, not just a static column
-- [ ] Also fragile: depends on the attribute being loaded in `$resource->getAttributes()` — lazy-loaded or projected models may not have it
-- [ ] File: `src/app/Services/AccessResolver.php` lines ~143-156
+- [x] `isOwner()` checks `user_id` OR `created_by` via `array_key_exists($resource->getAttributes())`
+- [x] Any model with a `created_by` column grants `Permission::Manage` to the creator forever — even after they should have lost access (e.g. offboarded, removed from team, access revoked)
+- [x] Owner status should be re-evaluated against current tenant membership / active grants, not just a static column
+- [x] Also fragile: depends on the attribute being loaded in `$resource->getAttributes()` — lazy-loaded or projected models may not have it
+- [x] File: `src/app/Services/AccessResolver.php` lines ~143-156
 
 ### 2.7 AccessResolver N+1 and In-Memory Filtering
-- [ ] `activeGrantsFor()` loads all grants for a resource into a collection, then `grantAppliesToUser()` runs `$user->teams()->where(...)->exists()` per grant inside a `filter()` loop
-- [ ] At ~100 users this is fine (matches the stated scope), but it's an N+1 and won't scale beyond that
-- [ ] Push the subject filtering into the query: build `whereIn('subject_id', $teamIds)` etc. in `activeGrantsFor()` so the DB does the work in one round-trip
-- [ ] File: `src/app/Services/AccessResolver.php` lines ~166-203
+- [x] `activeGrantsFor()` loads all grants for a resource into a collection, then `grantAppliesToUser()` runs `$user->teams()->where(...)->exists()` per grant inside a `filter()` loop
+- [x] At ~100 users this is fine (matches the stated scope), but it's an N+1 and won't scale beyond that
+- [x] Push the subject filtering into the query: build `whereIn('subject_id', $teamIds)` etc. in `activeGrantsFor()` so the DB does the work in one round-trip
+- [x] File: `src/app/Services/AccessResolver.php` lines ~166-203
 
 ### 2.8 AccessGrantController Cleanup
-- [ ] `index` and `summary` duplicate the same authz block: `if (! can(Share) && user_id !== ... && ! isAdminOf)` — extract to a policy method (e.g. `viewAccessGrants` on `VaultItemPolicy`)
-- [ ] `bulkStore` uses inline `$request->validate([...])` instead of a Form Request like the rest of the codebase — create `BulkGrantAccessRequest`
-- [ ] `countdown` bypasses `AccessResolver` entirely and does its own raw `AccessGrant::withoutTenant()->where(...)` query — route through the resolver or a dedicated method on it
-- [ ] File: `src/app/Http/Controllers/Api/V1/AccessGrantController.php`
+- [x] `index` and `summary` duplicate the same authz block: `if (! can(Share) && user_id !== ... && ! isAdminOf)` — extract to a policy method (e.g. `viewAccessGrants` on `VaultItemPolicy`)
+- [x] `bulkStore` uses inline `$request->validate([...])` instead of a Form Request like the rest of the codebase — create `BulkGrantAccessRequest`
+- [x] `countdown` bypasses `AccessResolver` entirely and does its own raw `AccessGrant::withoutTenant()->where(...)` query — route through the resolver or a dedicated method on it
+- [x] File: `src/app/Http/Controllers/Api/V1/AccessGrantController.php`
 
 ---
 

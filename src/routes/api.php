@@ -162,24 +162,25 @@ Route::prefix('v1')->group(function (): void {
         Route::get('items/recent', [PersonalVaultItemController::class, 'recent']);
         Route::get('items/favorites', [PersonalVaultItemController::class, 'favorites']);
         Route::get('items/archived', [PersonalVaultItemController::class, 'archived']);
-        Route::get('items/{item}', [PersonalVaultItemController::class, 'show']);
+        Route::get('items/{item}', [PersonalVaultItemController::class, 'show'])
+            ->whereNumber('item');
         Route::put('items/{item}', [PersonalVaultItemController::class, 'update'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('item');
         Route::delete('items/{item}', [PersonalVaultItemController::class, 'destroy'])
-            ->middleware('reauth', 'rate.limit:sensitive');
+            ->middleware('reauth', 'rate.limit:sensitive')->whereNumber('item');
         Route::post('items/{item}/favorite', [PersonalVaultItemController::class, 'toggleFavorite'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('item');
         Route::post('items/{item}/archive', [PersonalVaultItemController::class, 'archive'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('item');
         Route::post('items/{item}/restore', [PersonalVaultItemController::class, 'restore'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('item');
 
         // Soft-delete management (Module 29)
         Route::get('trash', [PersonalVaultItemController::class, 'trash']);
         Route::post('trash/{item}/restore', [PersonalVaultItemController::class, 'restoreFromTrash'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('item');
         Route::delete('trash/{item}/force', [PersonalVaultItemController::class, 'forceDelete'])
-            ->middleware('reauth', 'rate.limit:sensitive');
+            ->middleware('reauth', 'rate.limit:sensitive')->whereNumber('item');
         Route::delete('trash', [PersonalVaultItemController::class, 'emptyTrash'])
             ->middleware('reauth', 'rate.limit:sensitive');
 
@@ -188,27 +189,29 @@ Route::prefix('v1')->group(function (): void {
 
         // Folders
         Route::get('folders', [PersonalVaultFolderController::class, 'index']);
-        Route::get('folders/{folder}', [PersonalVaultFolderController::class, 'show']);
+        Route::get('folders/{folder}', [PersonalVaultFolderController::class, 'show'])
+            ->whereNumber('folder');
         Route::post('folders', [PersonalVaultFolderController::class, 'store'])
             ->middleware('rate.limit:write');
         Route::put('folders/{folder}', [PersonalVaultFolderController::class, 'update'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('folder');
         Route::delete('folders/{folder}', [PersonalVaultFolderController::class, 'destroy'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('folder');
 
         // Tags
         Route::get('tags', [PersonalVaultTagController::class, 'index']);
-        Route::get('tags/{tag}', [PersonalVaultTagController::class, 'show']);
+        Route::get('tags/{tag}', [PersonalVaultTagController::class, 'show'])
+            ->whereNumber('tag');
         Route::post('tags', [PersonalVaultTagController::class, 'store'])
             ->middleware('rate.limit:write');
         Route::put('tags/{tag}', [PersonalVaultTagController::class, 'update'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('tag');
         Route::delete('tags/{tag}', [PersonalVaultTagController::class, 'destroy'])
-            ->middleware('rate.limit:write');
+            ->middleware('rate.limit:write')->whereNumber('tag');
     });
 
     // Bulk operations (Module 30)
-    Route::middleware(['auth:sanctum', 'rate.limit:write'])->prefix('personal-vault/items/bulk')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'rate.limit:write'])->prefix('vault/items/bulk')->group(function (): void {
         Route::post('delete', [BulkOperationController::class, 'bulkDeletePersonalVaultItems']);
         Route::post('move', [BulkOperationController::class, 'bulkMovePersonalVaultItems']);
         Route::post('archive', [BulkOperationController::class, 'bulkArchivePersonalVaultItems']);

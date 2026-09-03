@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\EmployeeOffboardedNotification;
 use App\Services\ActivityLogger;
+use App\Services\DashboardCacheService;
 use Illuminate\Support\Carbon;
 
 class OffboardEmployeeAction
@@ -17,6 +18,7 @@ class OffboardEmployeeAction
     public function __construct(
         private readonly EmergencyRevokeAction $emergencyRevoke,
         private readonly ActivityLogger $activityLogger,
+        private readonly DashboardCacheService $dashboardCacheService,
     ) {}
 
     /**
@@ -63,10 +65,16 @@ class OffboardEmployeeAction
         // 6. Dispatch event
         EmployeeOffboarded::dispatch($targetUser, $offboardedBy, $tenant, $reason);
 
-        // 7. Notify the offboarded user
+        // 7. Invalidate dashboard caches — offboarding updates the tenant_user
+        // pivot, which doesn't trigger model observers.
+        $this->dashboardCacheService->invalidateCompanyDashboard($tenant);
+        $this->dashboardCacheService->invalidateUsageDashboard($tenant);
+        $this->dashboardCacheService->invalidatePersonalDashboard($targetUser);
+
+        // 8. Notify the offboarded user
         $targetUser->notify(new EmployeeOffboardedNotification($tenant, $reason));
 
-        // 8. Log activity
+        // 9. Log activity
         $this->activityLogger->log('member.offboarded', $offboardedBy, $tenant, [
             'offboarded_user_id' => $targetUser->id,
             'offboarded_user_name' => $targetUser->name,

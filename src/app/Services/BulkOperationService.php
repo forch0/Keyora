@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\Permission;
 use App\Enums\SubjectType;
+use App\Events\AccessGranted;
 use App\Models\AccessGrant;
 use App\Models\PersonalVaultItem;
 use App\Models\User;
@@ -17,6 +19,7 @@ class BulkOperationService
 {
     public function __construct(
         private readonly ActivityLogger $activityLogger,
+        private readonly AccessResolver $accessResolver,
     ) {}
 
     /**
@@ -215,7 +218,7 @@ class BulkOperationService
                     continue;
                 }
 
-                AccessGrant::create([
+                $grant = AccessGrant::create([
                     'tenant_id' => $tenantId,
                     'grantable_type' => $modelClass,
                     'grantable_id' => $id,
@@ -225,6 +228,8 @@ class BulkOperationService
                     'expires_at' => $expiresAt,
                     'granted_by' => $actor->id,
                 ]);
+
+                AccessGranted::dispatch($grant, $actor);
                 $shared++;
             }
 
@@ -292,19 +297,14 @@ class BulkOperationService
     }
 
     /**
-     * Check if the actor owns the item.
+     * Check if the actor owns the item (has a user_id matching the actor).
      */
     private function actorOwns(Model $item, User $actor): bool
     {
         $userId = $item->getAttribute('user_id');
+
         if ($userId !== null) {
             return $userId === $actor->id;
-        }
-
-        // For tenant-scoped models, check tenant membership
-        $tenantId = $item->getAttribute('tenant_id');
-        if ($tenantId !== null) {
-            return $actor->tenants()->where('tenants.id', $tenantId)->exists();
         }
 
         return false;
@@ -312,18 +312,43 @@ class BulkOperationService
 
     /**
      * Check if the actor can delete the item.
+     *
+     * For user-owned models (PersonalVaultItem), only the owner can delete.
+     * For tenant-scoped models (VaultItem, SecureFile, SecureNote), the
+     * actor must have Manage permission via AccessResolver.
      */
     private function actorCanDelete(Model $item, User $actor): bool
     {
-        return $this->actorOwns($item, $actor);
+        if ($this->actorOwns($item, $actor)) {
+            return true;
+        }
+
+        // Tenant-scoped models: check Manage permission via AccessResolver
+        if ($item->getAttribute('tenant_id') !== null) {
+            return $this->accessResolver->can($actor, Permission::Manage, $item);
+        }
+
+        return false;
     }
 
     /**
      * Check if the actor can share the item.
+     *
+     * For user-owned models, only the owner can share.
+     * For tenant-scoped models, the actor must have Share permission.
      */
     private function actorCanShare(Model $item, User $actor): bool
     {
-        return $this->actorOwns($item, $actor);
+        if ($this->actorOwns($item, $actor)) {
+            return true;
+        }
+
+        // Tenant-scoped models: check Share permission via AccessResolver
+        if ($item->getAttribute('tenant_id') !== null) {
+            return $this->accessResolver->can($actor, Permission::Share, $item);
+        }
+
+        return false;
     }
 
     /**
