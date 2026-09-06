@@ -2,18 +2,20 @@ import { useState } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Eye, EyeOff, X } from 'lucide-react'
+import { Plus, Eye, EyeOff, X, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { ApiError } from '@/types/api-error'
 import type { VaultItem } from '@/types/vault'
 import type { VaultItemFormData, ItemTypeCode } from '@/features/vault/hooks/use-vault-item-mutations'
 import { FolderSelector } from '@/features/vault/components/FolderSelector'
 import { TagSelector } from '@/features/vault/components/TagSelector'
+import { PasswordGenerator } from '@/features/tools/PasswordGenerator'
 
 // ─── Types & validation ─────────────────────────────────────────────────────
 
@@ -70,6 +72,7 @@ export function VaultItemForm({
     register,
     control,
     handleSubmit,
+    setValue,
     setError,
     formState: { errors },
   } = useForm<FormValues>({
@@ -216,7 +219,29 @@ export function VaultItemForm({
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
-                {/* TODO: Module F08 — password generator button */}
+                {/* Password generator popover (Module F08) */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0"
+                      title="Generate password"
+                    >
+                      <Wand2 className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="end">
+                    <PasswordGenerator
+                      compact
+                      onUsePassword={(pw) => {
+                        setValue('password', pw)
+                        setShowPassword(true)
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
             {errors.password && (

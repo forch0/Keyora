@@ -12,6 +12,7 @@ import { VaultListPage } from '@/features/vault/pages/VaultListPage'
 import { VaultItemDetailPage } from '@/features/vault/pages/VaultItemDetailPage'
 import { VaultItemCreatePage } from '@/features/vault/pages/VaultItemCreatePage'
 import { VaultItemEditPage } from '@/features/vault/pages/VaultItemEditPage'
+import { ToolsPage } from '@/features/tools/ToolsPage'
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <Route path="/activity" element={<PlaceholderPage title="Activity Logs" module="Module F19" />} />
           <Route path="/admin" element={<PlaceholderPage title="Admin" module="Module F21" />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" module="Module F23" />} />
+          <Route path="/tools" element={<ToolsPage />} />
         </Route>
 
         {/* 404 catch-all */}
