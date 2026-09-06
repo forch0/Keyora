@@ -28,6 +28,7 @@ import { PasswordField } from '@/components/shared/PasswordField'
 import { ItemTypeIcon, itemTypeLabel } from '@/components/shared/ItemTypeIcon'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { AccessManagementPanel } from '@/features/access/components/AccessManagementPanel'
+import { SecureLinksPanel } from '@/features/secure-links/components/SecureLinksPanel'
 import {
   useOrgVaultItem,
   useDeleteOrgVaultItem,
@@ -226,6 +227,9 @@ export function SharedVaultItemDetailPage() {
 
       {/* Access management */}
       <AccessManagementPanel resource="vault/items" id={item.id} />
+
+      {/* Secure links */}
+      <SecureLinksPanel resource="vault/items" id={item.id} />
 
       {/* Delete dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

@@ -24,6 +24,7 @@ import { TeamsListPage } from '@/features/teams/pages/TeamsListPage'
 import { TeamMembersPage } from '@/features/teams/pages/TeamMembersPage'
 import { AccessRequestsPage } from '@/features/access-requests/pages/AccessRequestsPage'
 import { RequestHistoryPage } from '@/features/access-requests/pages/RequestHistoryPage'
+import { PublicLinkPage } from '@/features/secure-links/pages/PublicLinkPage'
 
 function App() {
   return (
@@ -35,6 +36,9 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Public secure link access (no auth required) */}
+        <Route path="/s/:token" element={<PublicLinkPage />} />
 
         {/* Protected routes — wrapped in AppLayout with sidebar + navbar */}
         <Route
