@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Models\User;
 use App\Services\ActivityLogger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -26,7 +27,8 @@ class RestoreModelAction
             throw new \InvalidArgumentException('Model does not use SoftDeletes.');
         }
 
-        // @phpstan-ignore-next-line staticMethod.notFound (SoftDeletes trait provides onlyTrashed via class-string)
+        /** @var Model&SoftDeletes $modelClass */
+        /** @var Builder<Model> $query */
         $query = $modelClass::onlyTrashed()->where('id', $id);
 
         if ($ownerColumn !== 'tenant_id') {
@@ -39,6 +41,7 @@ class RestoreModelAction
             abort(404);
         }
 
+        // @phpstan-ignore-next-line staticMethod.notFound (SoftDeletes trait provides restore() on model instance)
         $model->restore();
 
         $this->activityLogger->log(

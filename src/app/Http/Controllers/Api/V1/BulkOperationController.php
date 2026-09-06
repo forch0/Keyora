@@ -12,7 +12,6 @@ use App\Http\Requests\Bulk\BulkMoveRequest;
 use App\Http\Requests\Bulk\BulkShareRequest;
 use App\Http\Requests\Bulk\BulkTagRequest;
 use App\Models\PersonalVaultItem;
-use App\Models\User;
 use App\Services\BulkOperationService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -127,16 +126,5 @@ class BulkOperationController extends Controller
         );
 
         return response()->json(['data' => $result], 201);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

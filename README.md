@@ -46,13 +46,19 @@ Keyora is designed to be a comprehensive secrets management solution that serves
 - **Full audit trails** — Every access, share, and revocation is logged and traceable.
 - **Secure external sharing** — Share sensitive data with external parties via password-protected, OTP-verified, or expiring secure links.
 
+### Security Model
+
+Keyora uses **server-side encryption** (AES-256-CBC via Laravel's `Crypt` facade, keyed by `APP_KEY`). Sensitive fields — passwords, usernames, notes, file metadata — are encrypted at rest in the database. This is **not** zero-knowledge / client-side encryption: the server can decrypt stored values to serve them to authenticated users. Protect `APP_KEY` and database access accordingly.
+
+**Threat model**: Keyora is designed as an **internal tool** for a single company and its subsidiaries (~100 authenticated staff), deployed behind a VPN/firewall with no public attack surface. All API endpoints (except health check and auth) require authentication via Laravel Sanctum.
+
 ---
 
 ## Key Features
 
 ### Personal Vault
 
-A private, encrypted vault for individual users to store and organize their sensitive data.
+A private, server-side encrypted vault for individual users to store and organize their sensitive data.
 
 - Save login credentials, API keys, server credentials, and database credentials
 - Secure notes, secure cards, and secure identities
@@ -290,10 +296,10 @@ Standout capabilities that set Keyora apart:
 | Layer | Technology |
 |---|---|
 | **Backend** | Laravel 13 (PHP 8.4+) |
-| **Database** | MySQL 8.0 |
+| **Database** | PostgreSQL 16 |
 | **Frontend** | API-only (frontend TBD) |
 | **Authentication** | Laravel Sanctum |
-| **Encryption** | AES-256 (via Laravel Crypt) |
+| **Encryption** | AES-256-CBC server-side (via Laravel Crypt, keyed by `APP_KEY`) |
 | **File Storage** | Laravel Filesystem (local private disk / S3) |
 | **Queue** | Redis 7 |
 | **Cache** | Redis 7 |

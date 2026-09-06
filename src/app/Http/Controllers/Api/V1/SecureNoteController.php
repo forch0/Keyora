@@ -215,7 +215,12 @@ class SecureNoteController extends Controller
     public function trash(Request $request): AnonymousResourceCollection
     {
         $tenantId = $this->tenantManager->currentTenantId();
-        $items = ($this->listTrash)(SecureNote::class, $this->authenticatedUser($request), $tenantId);
+        $items = ($this->listTrash)(
+            SecureNote::class,
+            $this->authenticatedUser($request),
+            $tenantId,
+            $request->integer('per_page', 20),
+        );
 
         return SecureNoteResource::collection($items);
     }
@@ -249,16 +254,5 @@ class SecureNoteController extends Controller
         $count = ($this->emptyTrash)(SecureNote::class, $this->authenticatedUser($request), $tenantId);
 
         return response()->json(['deleted' => $count]);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

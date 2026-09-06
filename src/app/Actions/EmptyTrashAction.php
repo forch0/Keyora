@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -28,7 +29,8 @@ class EmptyTrashAction
             throw new \InvalidArgumentException('Model does not use SoftDeletes.');
         }
 
-        // @phpstan-ignore-next-line staticMethod.notFound (SoftDeletes trait provides onlyTrashed via class-string)
+        /** @var Model&SoftDeletes $modelClass */
+        /** @var Builder<Model> $query */
         $query = $modelClass::onlyTrashed();
 
         if (in_array('user_id', (new $modelClass)->getFillable(), true) && $tenantId === null) {

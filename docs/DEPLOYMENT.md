@@ -13,7 +13,7 @@
 |---|---|---|
 | **PHP** | 8.3 | 8.4+ |
 | **PHP Extensions** | bcmath, ctype, json, mbstring, openssl, pdo, tokenizer, xml | + redis, gd (if file previews needed) |
-| **Database** | MySQL 8.0 / PostgreSQL 16 | PostgreSQL 16 |
+| **Database** | PostgreSQL 16 | PostgreSQL 16 |
 | **Redis** | 7.0+ (for queue + cache) | 7.2+ |
 | **Web Server** | Nginx + PHP-FPM | Nginx + PHP-FPM |
 | **Storage** | 10 GB (for encrypted files) | 50+ GB depending on usage |
@@ -22,7 +22,7 @@
 ### Required Software
 
 - `composer` (PHP dependency manager)
-- `mysqldump` or `pg_dump` (for database backups)
+- `pg_dump` (for database backups; `mysqldump` also supported if using MySQL)
 - `supervisor` or `systemd` (for queue worker process management)
 - `cron` (for scheduled tasks)
 
@@ -42,10 +42,10 @@ APP_KEY=              # Generate with: php artisan key:generate
 APP_DEBUG=false
 APP_URL=https://keyora.your-company.internal
 
-# Database
-DB_CONNECTION=pgsql   # or mysql
+# Database — PostgreSQL 16 is the primary and recommended engine
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=5432          # 3306 for mysql
+DB_PORT=5432
 DB_DATABASE=keyora
 DB_USERNAME=keyora
 DB_PASSWORD=<strong-password>
@@ -81,6 +81,7 @@ FILESYSTEM_DISK=local
 - **`QUEUE_CONNECTION`**: Must be `redis` (not `sync`). Synchronous queues will block HTTP responses while sending email.
 
 ---
+
 
 ## 3. Installation
 

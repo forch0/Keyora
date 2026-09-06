@@ -15,7 +15,6 @@ use App\Http\Requests\Access\UpdateAccessRequest;
 use App\Http\Resources\V1\AccessGrantResource;
 use App\Models\AccessGrant;
 use App\Models\SecureNote;
-use App\Models\User;
 use App\Services\AccessResolver;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -107,16 +106,5 @@ class NoteAccessController extends Controller
         }
 
         return null;
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

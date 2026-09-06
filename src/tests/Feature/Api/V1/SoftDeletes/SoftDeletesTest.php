@@ -224,6 +224,81 @@ class SoftDeletesTest extends TestCase
         $response->assertJsonMissing(['name' => 'Active']);
     }
 
+    public function test_trash_listing_is_paginated(): void
+    {
+        [$user, $token] = $this->createAndAuthUser();
+
+        // Create 25 trashed items — exceeds default per_page of 20
+        for ($i = 0; $i < 25; $i++) {
+            $item = PersonalVaultItem::create([
+                'user_id' => $user->id,
+                'name' => "Trashed Item {$i}",
+                'type' => 'password',
+                'username' => "u{$i}",
+                'password' => 's',
+            ]);
+            $item->delete();
+        }
+
+        $response = $this->withHeaders($this->authHeaders($token))
+            ->getJson('/api/v1/vault/trash');
+
+        $response->assertStatus(200);
+        // Paginated responses include meta with total, per_page, current_page
+        $response->assertJsonStructure([
+            'data',
+            'meta' => ['total', 'per_page', 'current_page'],
+        ]);
+        $response->assertJsonPath('meta.total', 25);
+        $response->assertJsonPath('meta.per_page', 20);
+        // Page 1 should have 20 items
+        $this->assertCount(20, $response->json('data'));
+    }
+
+    public function test_trash_listing_respects_per_page_parameter(): void
+    {
+        [$user, $token] = $this->createAndAuthUser();
+
+        for ($i = 0; $i < 10; $i++) {
+            $item = PersonalVaultItem::create([
+                'user_id' => $user->id,
+                'name' => "Item {$i}",
+                'type' => 'password',
+                'username' => "u{$i}",
+                'password' => 's',
+            ]);
+            $item->delete();
+        }
+
+        $response = $this->withHeaders($this->authHeaders($token))
+            ->getJson('/api/v1/vault/trash?per_page=5');
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('meta.per_page', 5);
+        $this->assertCount(5, $response->json('data'));
+    }
+
+    public function test_trash_listing_caps_per_page_at_100(): void
+    {
+        [$user, $token] = $this->createAndAuthUser();
+
+        $item = PersonalVaultItem::create([
+            'user_id' => $user->id,
+            'name' => 'Item',
+            'type' => 'password',
+            'username' => 'u',
+            'password' => 's',
+        ]);
+        $item->delete();
+
+        $response = $this->withHeaders($this->authHeaders($token))
+            ->getJson('/api/v1/vault/trash?per_page=500');
+
+        $response->assertStatus(200);
+        // per_page should be capped at 100, not 500
+        $response->assertJsonPath('meta.per_page', 100);
+    }
+
     public function test_empty_trash_deletes_all(): void
     {
         [$user, $token] = $this->createAndAuthUser();

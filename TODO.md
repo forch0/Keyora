@@ -16,76 +16,69 @@
 - [x] Module 31 — Dashboard caching
 - [x] KEY-32 — Priority 1 production readiness (1.1–1.8)
 - [x] KEY-33 — Priority 2 fixes (2.1–2.8)
+- [x] KEY-34 — Priority 3 quality of life (3.1–3.10)
 
 ---
 
-## Priority 3 — Quality of Life
-
-These are nice-to-haves that improve maintainability but aren't urgent.
+## Priority 3 — Quality of Life (Complete)
 
 ### 3.1 CI Pipeline
-- [ ] No CI exists — no automated test/static analysis enforcement on push
-- [ ] Add GitHub Actions workflow running `php artisan test`, `vendor/bin/phpstan analyse`, `vendor/bin/pint --test`
-- [ ] Run on push to `main` and on PRs
-- [ ] Cache Composer dependencies in CI for speed
-- [ ] Consider adding `composer audit` for vulnerability scanning
+- [x] GitHub Actions workflow running `php artisan test`, `vendor/bin/phpstan analyse`, `vendor/bin/pint --test`
+- [x] Runs on push to `main`/`develop` and on PRs
+- [x] Composer dependencies cached in CI
+- [x] `composer audit` included (non-blocking)
 
 ### 3.2 Pin Composer Dependencies
-- [ ] `composer.json` uses floating `^` ranges for all deps (framework, sanctum, scramble, larastan, pint, etc.)
-- [ ] Pin to exact versions or tight ranges to prevent unvetted releases being pulled
-- [ ] Run `composer update` deliberately, not as a side effect of `composer install`
-- [ ] Commit `composer.lock` (verify it's not gitignored)
+- [x] All deps pinned to exact versions in `composer.json` (PHP kept at `^8.3`)
+- [x] `composer.lock` committed and tracked
+- [x] Replaced `*` and `@alpha` constraints with exact versions
 
 ### 3.3 Structured Logging
-- [ ] All log calls use `Log::info()` / `Log::error()` with string messages
-- [ ] Switch to structured logging: `Log::info('event', ['user_id' => $id, 'action' => $action])`
-- [ ] Add a logging channel config for JSON output in production (easier to parse/ship to log aggregator)
-- [ ] Ensure decryption failures (from `Encryptable` trait) include enough context for debugging
+- [x] JSON logging channel added to `config/logging.php` (daily rotation, `JsonFormatter`)
+- [x] `.env.example` documents `LOG_STACK=json` for production
+- [x] Existing log calls already use structured context arrays (Encryptable, PersonalVaultItem, VaultItem)
 
 ### 3.4 Trash Pagination
-- [ ] `PersonalVaultItemController::trash()` returns all trashed items without pagination
-- [ ] `ListTrash` action likely returns a collection, not a paginator
-- [ ] Add `->paginate(20)` like the other list endpoints
-- [ ] Same for `SecureFileController::trash()` and `SecureNoteController::trash()`
+- [x] `ListTrashAction` already returns `LengthAwarePaginator` — trash endpoints were already paginated
+- [x] Added `per_page` query parameter support (default 20, capped at 100)
+- [x] Updated all 4 trash controllers (vault items, notes, files, teams)
+- [x] Added tests for pagination metadata, per_page, and cap
 
 ### 3.5 Controller Consistency
-- [ ] Some controllers use `$request->user()` directly, others use `$this->authenticatedUser($request)`
-- [ ] Standardize on one pattern (prefer the helper since it handles null and aborts 401)
-- [ ] Audit all controllers in `app/Http/Controllers/Api/V1/` for this inconsistency
+- [x] `authenticatedUser()` extracted to base `Controller` class (protected method)
+- [x] Removed 27 duplicated private helper methods across controllers
+- [x] Fixed direct `$request->user()` call in `PersonalVaultItemController::index()`
 
 ### 3.6 PHPStan Ignore Cleanup
-- [ ] 3 `@phpstan-ignore-next-line` annotations exist in `ForceDeleteModelAction`, `RestoreModelAction`, `EmptyTrashAction`
-- [ ] All ignore `staticMethod.notFound` for `onlyTrashed()` on SoftDeletes trait
-- [ ] Investigate whether a phpstan.neon config tweak or a docblock can resolve these without ignores
+- [x] Reduced from 3 `@phpstan-ignore-next-line` to 1
+- [x] `onlyTrashed()` calls resolved via `@var Model&SoftDeletes` + `@var Builder<Model>` intersection types
+- [x] Remaining 1 ignore: `restore()` instance method call in `RestoreModelAction` (unavoidable — PHPStan can't resolve trait methods on instance variables)
 
 ### 3.7 Database Engine Documentation Consistency
-- [ ] `.env.example` uses MySQL (`DB_CONNECTION=mysql`)
-- [ ] `BUILD_LOG.md` and `docs/ARCHITECTURE.md` say PostgreSQL
-- [ ] `docker-compose.yml` uses PostgreSQL
-- [ ] `phpunit.xml` uses SQLite in-memory
-- [ ] Pick one primary engine (PostgreSQL is the documented choice) and update `.env.example` to match
-- [ ] Document that SQLite is for tests only
+- [x] `.env.example` updated from MySQL to PostgreSQL (`DB_CONNECTION=pgsql`, port 5432)
+- [x] `docs/DEPLOYMENT.md` updated — PostgreSQL 16 is the primary engine
+- [x] `phpunit.xml` annotated — SQLite in-memory is for tests only
+- [x] `docker-compose.yml` already used PostgreSQL 16
 
 ### 3.8 README Encryption Claims
-- [ ] README says "AES-256 (via Laravel Crypt)" which is accurate
-- [ ] But "private, encrypted vault" could be misread as zero-knowledge (like Bitwarden/1Password)
-- [ ] Add a note clarifying this is server-side encryption keyed by `APP_KEY`, not client-side zero-knowledge
-- [ ] State the threat model explicitly: internal tool, behind VPN, authenticated users
+- [x] Added "Security Model" section clarifying server-side encryption (not zero-knowledge)
+- [x] Updated tech table: "AES-256-CBC server-side (via Laravel Crypt, keyed by `APP_KEY`)"
+- [x] Added threat model: internal tool, behind VPN/firewall, ~100 authenticated staff
 
 ### 3.9 BUILD_LOG.md Size
-- [ ] BUILD_LOG.md is very large with detailed per-module logs
-- [ ] Consider moving detailed logs to `docs/learnings/` and keeping BUILD_LOG as a summary table only
-- [ ] Or archive old module logs (01–24) into a separate file
+- [x] BUILD_LOG.md was already trimmed to 64 lines (summary table only) — no action needed
 
 ### 3.10 API Versioning Strategy
-- [ ] Routes are under `/api/v1` but there's no plan for `v2` or deprecation
-- [ ] Document the versioning policy: when does `v2` happen? How long is `v1` supported?
-- [ ] Consider adding a `Accept: application/vnd.keyora.v1+json` header strategy or just keep URL-based
+- [x] Created `docs/API_VERSIONING.md` with full versioning/deprecation policy
+- [x] URL-based versioning (`/api/v1/`, `/api/v2/`)
+- [x] Documents breaking vs non-breaking changes
+- [x] v1 supported indefinitely; v2 gets 6-month overlap with deprecation headers
 
 ---
 
 ## Notes
 
-- Priority 1 and 2 items are complete (branches `feature/KEY-32-production-readiness` and `feature/KEY-33-priority-2-fixes`)
-- The project is suitable for internal deployment with real credentials after Priority 1
-- Priority 3 items improve maintainability and should be done within the first quarter
+- Priority 1, 2, and 3 items are complete
+- Branches: `feature/KEY-32-production-readiness`, `feature/KEY-33-priority-2-fixes`, `feature/KEY-34-priority-3-quality-of-life`
+- The project is suitable for internal deployment with real credentials
+- All priorities complete — no remaining TODO items

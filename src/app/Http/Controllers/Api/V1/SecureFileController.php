@@ -15,7 +15,6 @@ use App\Http\Requests\Files\UpdateFileRequest;
 use App\Http\Requests\Files\UploadFileRequest;
 use App\Http\Resources\V1\SecureFileResource;
 use App\Models\SecureFile;
-use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\TenantManager;
 use App\Services\ViewTracker;
@@ -270,7 +269,12 @@ class SecureFileController extends Controller
     public function trash(Request $request): AnonymousResourceCollection
     {
         $tenantId = app(TenantManager::class)->currentTenantId();
-        $items = ($this->listTrash)(SecureFile::class, $this->authenticatedUser($request), $tenantId);
+        $items = ($this->listTrash)(
+            SecureFile::class,
+            $this->authenticatedUser($request),
+            $tenantId,
+            $request->integer('per_page', 20),
+        );
 
         return SecureFileResource::collection($items);
     }
@@ -304,16 +308,5 @@ class SecureFileController extends Controller
         $count = ($this->emptyTrash)(SecureFile::class, $this->authenticatedUser($request), $tenantId);
 
         return response()->json(['deleted' => $count]);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

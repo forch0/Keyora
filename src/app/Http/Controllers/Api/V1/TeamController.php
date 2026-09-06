@@ -125,7 +125,12 @@ class TeamController extends Controller
     public function trash(Request $request): AnonymousResourceCollection
     {
         $tenantId = app(TenantManager::class)->currentTenantId();
-        $items = ($this->listTrash)(Team::class, $this->authenticatedUser($request), $tenantId);
+        $items = ($this->listTrash)(
+            Team::class,
+            $this->authenticatedUser($request),
+            $tenantId,
+            $request->integer('per_page', 20),
+        );
 
         return TeamResource::collection($items);
     }
@@ -148,16 +153,5 @@ class TeamController extends Controller
         ($this->forceDeleteModel)(Team::class, $team, $this->authenticatedUser($request), 'tenant_id');
 
         return response()->json(null, 204);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

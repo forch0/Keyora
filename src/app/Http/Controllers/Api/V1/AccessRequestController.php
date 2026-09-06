@@ -15,7 +15,6 @@ use App\Http\Resources\V1\AccessRequestResource;
 use App\Models\AccessRequest;
 use App\Models\SecureFile;
 use App\Models\SecureNote;
-use App\Models\User;
 use App\Models\VaultItem;
 use App\Notifications\AccessRequestApprovedNotification;
 use App\Notifications\AccessRequestReceived;
@@ -192,16 +191,5 @@ class AccessRequestController extends Controller
         return $resource->getAttribute('title')
             ?? $resource->getAttribute('name')
             ?? 'Resource #'.$resource->getKey();
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

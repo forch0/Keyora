@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -71,6 +72,19 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+        ],
+
+        'json' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/keyora.json.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'max_files' => env('LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+            'formatter' => JsonFormatter::class,
+            'formatter_with' => [
+                'includeStacktraces' => env('LOG_JSON_STACKTRACES', false),
+            ],
+            'processors' => [PsrLogMessageProcessor::class],
         ],
 
         'monthly' => [

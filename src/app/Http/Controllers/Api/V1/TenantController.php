@@ -82,21 +82,4 @@ class TenantController extends Controller
 
         return response()->json(null, 204);
     }
-
-    /**
-     * Get the authenticated user or throw.
-     *
-     * The auth:sanctum middleware guarantees a user, but PHPStan needs help
-     * understanding that $request->user() is non-null in protected routes.
-     */
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
-    }
 }

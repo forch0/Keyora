@@ -45,15 +45,4 @@ class DeviceController extends Controller
 
         return response()->json(null, 204);
     }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
-    }
 }

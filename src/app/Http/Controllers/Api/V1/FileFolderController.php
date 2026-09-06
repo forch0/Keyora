@@ -10,7 +10,6 @@ use App\Http\Requests\Files\UpdateFileFolderRequest;
 use App\Http\Resources\V1\FileFolderResource;
 use App\Models\FileFolder;
 use App\Models\SecureFile;
-use App\Models\User;
 use App\Services\TenantManager;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -95,16 +94,5 @@ class FileFolderController extends Controller
         $folder->delete();
 
         return response()->json(null, 204);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

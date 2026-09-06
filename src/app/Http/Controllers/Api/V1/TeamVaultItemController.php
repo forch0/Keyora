@@ -13,7 +13,6 @@ use App\Http\Requests\Team\UpdateVaultItemRequest;
 use App\Http\Resources\V1\VaultItemResource;
 use App\Models\Team;
 use App\Models\Tenant;
-use App\Models\User;
 use App\Models\VaultItem;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -121,16 +120,5 @@ class TeamVaultItemController extends Controller
         ($this->deleteItem)($item);
 
         return response()->json(null, 204);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

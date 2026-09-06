@@ -21,7 +21,6 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Models\SecurityAlert;
-use App\Models\User;
 use App\Notifications\NewDeviceLogin;
 use App\Services\ActivityLogger;
 use App\Services\DeviceDetector;
@@ -264,22 +263,5 @@ class AuthController extends Controller
                 ],
             ],
         ], 422);
-    }
-
-    /**
-     * Get the authenticated user or throw.
-     *
-     * The auth:sanctum middleware guarantees a user, but PHPStan needs help
-     * understanding that $request->user() is non-null in protected routes.
-     */
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

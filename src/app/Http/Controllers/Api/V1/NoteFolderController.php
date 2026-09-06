@@ -10,7 +10,6 @@ use App\Http\Requests\Notes\UpdateNoteFolderRequest;
 use App\Http\Resources\V1\NoteFolderResource;
 use App\Models\NoteFolder;
 use App\Models\SecureNote;
-use App\Models\User;
 use App\Services\TenantManager;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -86,16 +85,5 @@ class NoteFolderController extends Controller
         $folder->delete();
 
         return response()->json(null, 204);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

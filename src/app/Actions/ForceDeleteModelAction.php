@@ -9,6 +9,7 @@ use App\Models\AccessRequest;
 use App\Models\SecureFile;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +31,8 @@ class ForceDeleteModelAction
             throw new \InvalidArgumentException('Model does not use SoftDeletes.');
         }
 
-        // @phpstan-ignore-next-line staticMethod.notFound (SoftDeletes trait provides onlyTrashed via class-string)
+        /** @var Model&SoftDeletes $modelClass */
+        /** @var Builder<Model> $query */
         $query = $modelClass::onlyTrashed()->where('id', $id);
 
         if ($ownerColumn !== 'tenant_id') {

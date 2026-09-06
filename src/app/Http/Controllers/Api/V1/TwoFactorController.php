@@ -14,7 +14,6 @@ use App\Http\Requests\Auth\ConfirmTwoFactorRequest;
 use App\Http\Requests\Auth\DisableTwoFactorRequest;
 use App\Http\Requests\Auth\VerifyTwoFactorRequest;
 use App\Http\Resources\V1\UserResource;
-use App\Models\User;
 use App\Services\ReauthenticationService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -138,16 +137,5 @@ class TwoFactorController extends Controller
             ->additional(['token' => $result['token']])
             ->response()
             ->setStatusCode(200);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

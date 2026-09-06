@@ -306,14 +306,4 @@ class TenantMemberController extends Controller
     /**
      * Get the authenticated user or throw.
      */
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
-    }
 }

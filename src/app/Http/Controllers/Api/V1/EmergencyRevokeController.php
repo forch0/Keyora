@@ -154,15 +154,4 @@ class EmergencyRevokeController extends Controller
             abort(403, 'You need manage permission to revoke all access for this resource.');
         }
     }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
-    }
 }

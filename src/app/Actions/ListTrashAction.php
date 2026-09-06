@@ -19,11 +19,14 @@ class ListTrashAction
      * @param  class-string<Model>  $modelClass
      * @return LengthAwarePaginator<int, Model>
      */
-    public function __invoke(string $modelClass, User $user, ?int $tenantId = null, int $perPage = 15): LengthAwarePaginator
+    public function __invoke(string $modelClass, User $user, ?int $tenantId = null, int $perPage = 20): LengthAwarePaginator
     {
         if (! in_array(SoftDeletes::class, class_uses_recursive($modelClass), true)) {
             throw new \InvalidArgumentException('Model does not use SoftDeletes.');
         }
+
+        // Cap per_page to prevent excessive result sets
+        $perPage = max(1, min($perPage, 100));
 
         /** @var Model&SoftDeletes $modelClass */
         /** @var Builder<Model> $query */

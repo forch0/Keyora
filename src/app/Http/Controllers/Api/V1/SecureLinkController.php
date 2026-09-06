@@ -13,7 +13,6 @@ use App\Models\SecureFile;
 use App\Models\SecureLink;
 use App\Models\SecureLinkAccess;
 use App\Models\SecureNote;
-use App\Models\User;
 use App\Models\VaultItem;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Model;
@@ -109,16 +108,5 @@ class SecureLinkController extends Controller
             ->get();
 
         return SecureLinkResource::collection($links);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

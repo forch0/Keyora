@@ -75,18 +75,16 @@ class PersonalVaultItemController extends Controller
         }
 
         if ($request->has('shared')) {
-            $currentUser = $request->user();
-            if ($currentUser instanceof User) {
-                if ($request->boolean('shared')) {
-                    $userId = $currentUser->id;
-                    $query->whereRaw('id IN (SELECT grantable_id FROM access_grants WHERE grantable_type = ? AND subject_type = ? AND subject_id = ? AND revoked_at IS NULL)', [
-                        VaultItem::class,
-                        User::class,
-                        $userId,
-                    ]);
-                } else {
-                    $query->where('user_id', $currentUser->id);
-                }
+            $currentUser = $this->authenticatedUser($request);
+            if ($request->boolean('shared')) {
+                $userId = $currentUser->id;
+                $query->whereRaw('id IN (SELECT grantable_id FROM access_grants WHERE grantable_type = ? AND subject_type = ? AND subject_id = ? AND revoked_at IS NULL)', [
+                    VaultItem::class,
+                    User::class,
+                    $userId,
+                ]);
+            } else {
+                $query->where('user_id', $currentUser->id);
             }
         }
 
@@ -317,7 +315,12 @@ class PersonalVaultItemController extends Controller
      */
     public function trash(Request $request): AnonymousResourceCollection
     {
-        $items = ($this->listTrash)(PersonalVaultItem::class, $this->authenticatedUser($request));
+        $items = ($this->listTrash)(
+            PersonalVaultItem::class,
+            $this->authenticatedUser($request),
+            null,
+            $request->integer('per_page', 20),
+        );
 
         return PersonalVaultItemResource::collection($items);
     }
@@ -350,16 +353,5 @@ class PersonalVaultItemController extends Controller
         $count = ($this->emptyTrash)(PersonalVaultItem::class, $this->authenticatedUser($request));
 
         return response()->json(['deleted' => $count]);
-    }
-
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
     }
 }

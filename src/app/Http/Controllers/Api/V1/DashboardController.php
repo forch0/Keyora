@@ -81,17 +81,6 @@ class DashboardController extends Controller
             ->header('X-Cache-TTL', (string) self::CACHE_TTL);
     }
 
-    private function authenticatedUser(Request $request): User
-    {
-        $user = $request->user();
-
-        if ($user === null) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        return $user;
-    }
-
     private function resolveTenant(): Tenant
     {
         $tenantId = $this->tenantManager->currentTenantId();
