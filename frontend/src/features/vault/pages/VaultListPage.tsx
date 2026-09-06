@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { VaultItemCard } from '@/components/shared/VaultItemCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useVaultItems, useSearchVaultItems } from '@/features/vault/hooks/use-vault-items'
+import { useTags } from '@/features/vault/hooks/use-vault-organization'
+import { FolderTree } from '@/features/vault/components/FolderTree'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { VaultItemListParams } from '@/types/vault'
 
@@ -37,6 +39,8 @@ export function VaultListPage() {
   const showFavorites = searchParams.get('filter') === 'favorites'
   const showArchived = searchParams.get('filter') === 'archived'
   const sortBy = searchParams.get('sort') ?? 'name'
+  const folderId = searchParams.get('folder')
+  const tagId = searchParams.get('tag')
 
   const [searchQuery, setSearchQuery] = useState('')
   const debouncedSearch = useDebounce(searchQuery, 300)
@@ -58,6 +62,7 @@ export function VaultListPage() {
 
   const listQuery = useVaultItems(listParams)
   const searchQuery_ = useSearchVaultItems(debouncedSearch, isSearching)
+  const { data: tags } = useTags()
 
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams)
@@ -80,22 +85,58 @@ export function VaultListPage() {
   const meta = listQuery.data?.meta
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Personal Vault</h1>
-        <Button asChild>
-          <Link to="/vault/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Item
-          </Link>
-        </Button>
-      </div>
+    <div className="flex gap-6">
+      {/* Folder tree sidebar */}
+      <aside className="hidden w-56 shrink-0 lg:block">
+        <FolderTree
+          selectedFolderId={folderId ? Number(folderId) : null}
+          onSelectFolder={(id) => updateParam('folder', id ? String(id) : null)}
+        />
 
-      {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search vault items..."
+        {/* Tag filter chips */}
+        {tags && tags.length > 0 && (
+          <div className="mt-4 space-y-1">
+            <h3 className="px-2 py-1 font-medium text-sm">Tags</h3>
+            <div className="flex flex-wrap gap-1.5 px-2">
+              {tags.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={() =>
+                    updateParam('tag', tagId === String(tag.id) ? null : String(tag.id))
+                  }
+                  className={cn(
+                    'rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                    tagId === String(tag.id)
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border hover:bg-accent',
+                  )}
+                  style={tag.color && tagId !== String(tag.id) ? { borderColor: tag.color } : undefined}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Personal Vault</h1>
+          <Button asChild>
+            <Link to="/vault/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Item
+            </Link>
+          </Button>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search vault items..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-9"
@@ -221,6 +262,7 @@ export function VaultListPage() {
           )}
         </>
       )}
+      </div>
     </div>
   )
 }

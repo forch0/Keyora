@@ -5,7 +5,7 @@
 | **Module** | F06 |
 | **Name** | Personal Vault — Part 3: Folders, Tags & Organization |
 | **Dependencies** | F04, F05 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 

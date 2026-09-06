@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator'
 import type { ApiError } from '@/types/api-error'
 import type { VaultItem } from '@/types/vault'
 import type { VaultItemFormData, ItemTypeCode } from '@/features/vault/hooks/use-vault-item-mutations'
+import { FolderSelector } from '@/features/vault/components/FolderSelector'
+import { TagSelector } from '@/features/vault/components/TagSelector'
 
 // ─── Types & validation ─────────────────────────────────────────────────────
 
@@ -38,6 +40,8 @@ const baseSchema = z.object({
     )
     .optional()
     .nullable(),
+  folder_id: z.number().nullable().optional(),
+  tag_ids: z.array(z.number()).optional().nullable(),
 })
 
 type FormValues = z.infer<typeof baseSchema>
@@ -78,6 +82,8 @@ export function VaultItemForm({
       url: initialData?.url ?? '',
       notes: initialData?.notes ?? '',
       custom_fields: initialData?.custom_fields ?? [],
+      folder_id: initialData?.folder_id ?? null,
+      tag_ids: initialData?.tags?.map((t) => t.id) ?? [],
     },
   })
 
@@ -95,6 +101,8 @@ export function VaultItemForm({
       url: values.url || null,
       notes: values.notes || null,
       custom_fields: values.custom_fields?.length ? values.custom_fields : null,
+      folder_id: values.folder_id ?? null,
+      tag_ids: values.tag_ids ?? null,
     }
     onSubmit(data)
   }
@@ -291,20 +299,38 @@ export function VaultItemForm({
         </CardContent>
       </Card>
 
-      {/* Folder & Tags placeholders (Module F06) */}
+      {/* Folder & Tags */}
       <Card>
         <CardHeader>
           <CardTitle>Organization</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-muted-foreground text-sm">
-          <div>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
             <Label>Folder</Label>
-            <p className="mt-1">Folder selection available in Module F06</p>
+            <Controller
+              control={control}
+              name="folder_id"
+              render={({ field }) => (
+                <FolderSelector
+                  value={field.value ?? null}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </div>
           <Separator />
-          <div>
+          <div className="space-y-2">
             <Label>Tags</Label>
-            <p className="mt-1">Tag selection available in Module F06</p>
+            <Controller
+              control={control}
+              name="tag_ids"
+              render={({ field }) => (
+                <TagSelector
+                  selectedTagIds={field.value ?? []}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </div>
         </CardContent>
       </Card>
