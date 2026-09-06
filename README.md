@@ -24,7 +24,6 @@
   - [Employee Lifecycle](#employee-lifecycle)
   - [Account Security](#account-security)
   - [Dashboards](#dashboards)
-  - [SaaS Features](#saas-features)
   - [Integrations](#integrations)
   - [Advanced / Differentiating Features](#advanced--differentiating-features)
 - [Tech Stack](#tech-stack)
@@ -243,16 +242,6 @@ Role-based dashboards for personal and company-wide visibility.
 - Security activity and expiring access
 - Recent activity feed
 
-### SaaS Features
-
-Multi-tier subscription model with self-service management.
-
-- Plans: **Free**, **Team**, **Business**, **Enterprise**
-- Subscription management (upgrade, downgrade, cancel)
-- Storage, member, and vault limits per plan
-- Usage dashboard
-- Billing history and invoices
-
 ### Integrations
 
 Extensible platform with API access and third-party integrations.
@@ -304,7 +293,6 @@ Standout capabilities that set Keyora apart:
 | **Queue** | Redis 7 |
 | **Cache** | Redis 7 |
 | **API** | RESTful JSON API (`/api/v1/`) |
-| **Payments** | Paystack (subscription billing & invoicing) |
 | **Dev Tools** | Docker, Telescope, Nimbus, Pint, Larastan |
 
 ---
@@ -416,10 +404,10 @@ keyora/
 │   └── php/local.ini            # PHP INI overrides
 ├── docker-compose.yml           # Docker Compose (app, nginx, mysql, redis, mailpit)
 ├── docs/
-│   └── modules/                 # 26 module documentation files
+│   └── modules/                 # Module documentation files
 │       ├── 00-index.md          # Module index & dependency graph
 │       ├── 01-project-setup.md  # ... through ...
-│       └── 26-saas-billing-part-2.md
+│       └── 31-dashboard-caching.md
 ├── BUILD_LOG.md                 # Implementation progress tracker
 ├── PRD.md                       # Product Requirements Document
 ├── ARCHITECTURE.md              # Architecture & ADRs
