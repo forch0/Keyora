@@ -4,10 +4,12 @@ import { useUIStore } from '@/stores/ui-store'
 import { Sidebar } from './Sidebar'
 import { Navbar } from './Navbar'
 import { useTenantAutoSelect } from '@/features/tenant/hooks/use-tenant-auto-select'
+import { useTenantQueryInvalidation } from '@/features/tenant/hooks/use-tenant-query-invalidation'
 
 export function AppLayout() {
   const { sidebarCollapsed } = useUIStore()
   useTenantAutoSelect()
+  useTenantQueryInvalidation()
 
   return (
     <div className="min-h-screen bg-background">
