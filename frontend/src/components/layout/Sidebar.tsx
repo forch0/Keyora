@@ -12,6 +12,7 @@ import {
   Wrench,
   ChevronLeft,
   X,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores/ui-store'
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { to: '/access-requests', label: 'Access Requests', icon: KeyRound },
   { to: '/activity', label: 'Activity Logs', icon: Activity },
   { to: '/admin', label: 'Admin', icon: Shield },
+  { to: '/admin/teams', label: 'Teams', icon: Users },
   { to: '/tools', label: 'Tools', icon: Wrench },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
