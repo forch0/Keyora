@@ -8,6 +8,8 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
+import { VaultListPage } from '@/features/vault/pages/VaultListPage'
+import { VaultItemDetailPage } from '@/features/vault/pages/VaultItemDetailPage'
 
 function App() {
   return (
@@ -29,8 +31,8 @@ function App() {
           }
         >
           <Route path="/" element={<PlaceholderPage title="Dashboard" module="Module F09" />} />
-          <Route path="/vault" element={<PlaceholderPage title="Personal Vault" module="Module F04" />} />
-          <Route path="/vault/items/:id" element={<PlaceholderPage title="Vault Item" module="Module F04" />} />
+          <Route path="/vault" element={<VaultListPage />} />
+          <Route path="/vault/items/:id" element={<VaultItemDetailPage />} />
           <Route path="/vault/trash" element={<PlaceholderPage title="Trash" module="Module F07" />} />
           <Route path="/shared" element={<PlaceholderPage title="Shared Vault" module="Module F11" />} />
           <Route path="/files" element={<PlaceholderPage title="Secure Files" module="Module F16" />} />
