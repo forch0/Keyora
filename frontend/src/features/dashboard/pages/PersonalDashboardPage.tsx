@@ -16,18 +16,17 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard } from '@/components/shared/StatCard'
 import { RecentItemsList } from '@/components/shared/RecentItemsList'
 import { usePersonalDashboard } from '@/features/dashboard/hooks/use-dashboard'
-import { useRecentVaultItems } from '@/features/vault/hooks/use-vault-items'
 import { useAuthStore } from '@/stores/auth-store'
 import type { VaultItem } from '@/types/vault'
 
 export function PersonalDashboardPage() {
   const user = useAuthStore((s) => s.user)
   const { data: dashboard, isLoading } = usePersonalDashboard()
-  const { data: recentItems } = useRecentVaultItems()
+  const recentItems = dashboard?.recently_viewed as VaultItem[] | undefined
 
-  const totalItems = dashboard ? Number(dashboard.vault_summary.total_items) : 0
-  const favoritesCount = dashboard ? Number(dashboard.vault_summary.favorites_count) : 0
-  const archivedCount = dashboard ? Number(dashboard.vault_summary.archived_count) : 0
+  const totalItems = dashboard?.vault_summary.total_items ?? 0
+  const favoritesCount = dashboard?.vault_summary.favorites_count ?? 0
+  const archivedCount = dashboard?.vault_summary.archived_count ?? 0
 
   return (
     <div className="space-y-6">

@@ -6,10 +6,10 @@ import type { ApiError } from '@/types/api-error'
 
 export interface PersonalDashboard {
   vault_summary: {
-    total_items: string
-    by_type: string
-    favorites_count: string
-    archived_count: string
+    total_items: number
+    by_type: Record<string, number>
+    favorites_count: number
+    archived_count: number
   }
   recently_viewed: unknown[]
   recently_added: unknown[]
@@ -19,7 +19,7 @@ export interface PersonalDashboard {
   }
   expiring_access: {
     count: number
-    items: string
+    items: unknown[]
   }
   pending_requests: {
     sent: number
@@ -55,7 +55,7 @@ export interface CompanyDashboard {
   }
   expiring_access: {
     count: number
-    items: string
+    items: unknown[]
   }
   recent_activity: unknown[]
 }

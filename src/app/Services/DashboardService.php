@@ -193,7 +193,7 @@ class DashboardService
             ->where('subject_type', User::class)
             ->where('subject_id', $user->id)
             ->whereNull('revoked_at')
-            ->orderByDesc('granted_at')
+            ->orderByDesc('created_at')
             ->limit(5)
             ->pluck('grantable_id', 'grantable_type')
             ->toArray();
