@@ -17,7 +17,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F09 | Dashboard | [F09-dashboard.md](modules/F09-dashboard.md) | Complete | F03, F04 |
 | F10 | Tenant Context & Workspace Switcher | [F10-tenant-context.md](modules/F10-tenant-context.md) | Complete | F02, F03 |
 | F11 | Shared Vault — Org & Team Items | [F11-shared-vault.md](modules/F11-shared-vault.md) | Not Started | F04, F05, F10 |
-| F12 | Teams Management | [F12-teams.md](modules/F12-teams.md) | Not Started | F10, F11 |
+| F12 | Teams Management | [F12-teams.md](modules/F12-teams.md) | Complete | F10, F11 |
 | F13 | Access Management — Grants & Sharing | [F13-access-management.md](modules/F13-access-management.md) | Not Started | F05, F11 |
 | F14 | Access Requests & Approval Workflow | [F14-access-requests.md](modules/F14-access-requests.md) | Not Started | F13 |
 | F15 | Secure External Sharing (Links) | [F15-secure-sharing.md](modules/F15-secure-sharing.md) | Not Started | F13 |

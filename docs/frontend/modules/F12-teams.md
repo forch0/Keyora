@@ -5,7 +5,7 @@
 | **Module** | F12 |
 | **Name** | Teams Management |
 | **Dependencies** | F10, F11 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
