@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Providers } from '@/components/Providers'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { SessionExpiredHandler } from '@/components/SessionExpiredHandler'
+import { ReauthDialog } from '@/features/auth/components/ReauthDialog'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PlaceholderPage, NotFoundPage } from '@/components/layout/PlaceholderPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
@@ -30,6 +31,7 @@ function App() {
   return (
     <Providers>
       <SessionExpiredHandler />
+      <ReauthDialog />
       <Routes>
         {/* Public auth routes */}
         <Route path="/login" element={<LoginPage />} />
