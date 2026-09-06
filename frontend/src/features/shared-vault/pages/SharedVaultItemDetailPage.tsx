@@ -29,6 +29,7 @@ import { ItemTypeIcon, itemTypeLabel } from '@/components/shared/ItemTypeIcon'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { AccessManagementPanel } from '@/features/access/components/AccessManagementPanel'
 import { SecureLinksPanel } from '@/features/secure-links/components/SecureLinksPanel'
+import { ResourceActivityPanel } from '@/features/activity-logs/components/ResourceActivityPanel'
 import {
   useOrgVaultItem,
   useDeleteOrgVaultItem,
@@ -230,6 +231,9 @@ export function SharedVaultItemDetailPage() {
 
       {/* Secure links */}
       <SecureLinksPanel resource="vault/items" id={item.id} />
+
+      {/* Activity history */}
+      <ResourceActivityPanel resource="vault/items" id={item.id} />
 
       {/* Delete dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

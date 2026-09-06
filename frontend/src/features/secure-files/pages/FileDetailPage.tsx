@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CopyButton } from '@/components/shared/CopyButton'
 import { AccessManagementPanel } from '@/features/access/components/AccessManagementPanel'
 import { SecureLinksPanel } from '@/features/secure-links/components/SecureLinksPanel'
+import { ResourceActivityPanel } from '@/features/activity-logs/components/ResourceActivityPanel'
 import {
   useFile,
   useDownloadFile,
@@ -324,6 +325,9 @@ export function FileDetailPage() {
 
       {/* Secure links */}
       <SecureLinksPanel resource="files" id={fileId} />
+
+      {/* Activity history */}
+      <ResourceActivityPanel resource="files" id={fileId} />
     </div>
   )
 }

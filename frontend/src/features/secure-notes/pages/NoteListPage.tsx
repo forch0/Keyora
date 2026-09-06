@@ -38,7 +38,7 @@ import type { SecureNote, NoteFolder } from '@/types/secure-note'
 const PER_PAGE = 20
 
 function preview(content: string, max = 120): string {
-  const stripped = content.replace(/[#*`>\-\[\]]/g, '').trim()
+  const stripped = content.replace(/[#*`>\-[\]]/g, '').trim()
   return stripped.length > max ? stripped.slice(0, max) + '...' : stripped
 }
 
