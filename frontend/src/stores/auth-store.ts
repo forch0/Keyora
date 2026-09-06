@@ -30,10 +30,20 @@ interface AuthState {
 }
 
 const TOKEN_KEY = 'keyora_token'
+const TENANT_KEY = 'keyora_tenant_id'
 
 function getStoredToken(): string | null {
   try {
     return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+function getStoredTenantId(): number | null {
+  try {
+    const raw = localStorage.getItem(TENANT_KEY)
+    return raw ? Number(raw) : null
   } catch {
     return null
   }
@@ -44,7 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: getStoredToken(),
   twoFactorToken: null,
-  selectedTenantId: null,
+  selectedTenantId: getStoredTenantId(),
 
   setUser: (user) =>
     set((state) => ({
@@ -69,11 +79,23 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setTwoFactorToken: (twoFactorToken) => set({ twoFactorToken }),
 
-  setTenant: (selectedTenantId) => set({ selectedTenantId }),
+  setTenant: (selectedTenantId) => {
+    try {
+      if (selectedTenantId !== null) {
+        localStorage.setItem(TENANT_KEY, String(selectedTenantId))
+      } else {
+        localStorage.removeItem(TENANT_KEY)
+      }
+    } catch {
+      // localStorage may be unavailable
+    }
+    set({ selectedTenantId })
+  },
 
   clear: () => {
     try {
       localStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(TENANT_KEY)
     } catch {
       // localStorage may be unavailable
     }

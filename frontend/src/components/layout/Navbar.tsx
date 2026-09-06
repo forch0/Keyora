@@ -1,6 +1,7 @@
 import { Menu, Search, Bell } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { UserMenu } from './UserMenu'
+import { TenantSwitcher } from './TenantSwitcher'
 
 export function Navbar() {
   const { setMobileSidebarOpen } = useUIStore()
@@ -15,6 +16,9 @@ export function Navbar() {
       >
         <Menu className="h-5 w-5" />
       </button>
+
+      {/* Tenant switcher */}
+      <TenantSwitcher />
 
       {/* Global search trigger (Module F18) */}
       <button

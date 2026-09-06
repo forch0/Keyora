@@ -3,9 +3,11 @@ import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores/ui-store'
 import { Sidebar } from './Sidebar'
 import { Navbar } from './Navbar'
+import { useTenantAutoSelect } from '@/features/tenant/hooks/use-tenant-auto-select'
 
 export function AppLayout() {
   const { sidebarCollapsed } = useUIStore()
+  useTenantAutoSelect()
 
   return (
     <div className="min-h-screen bg-background">
