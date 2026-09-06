@@ -294,7 +294,7 @@ Standout capabilities that set Keyora apart:
 | **Cache** | Redis 7 |
 | **API** | RESTful JSON API (`/api/v1/`) |
 | **Dev Tools** | Docker, Telescope, Nimbus, Pint, Larastan |
-| **Testing** | PHPUnit — 436 tests passing (1,329 assertions) |
+| **Testing** | PHPUnit — 442 tests passing (1,348 assertions) |
 | **Static Analysis** | PHPStan level 8 (via Larastan) — 0 errors |
 
 ---
