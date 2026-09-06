@@ -15,6 +15,11 @@ import { VaultItemEditPage } from '@/features/vault/pages/VaultItemEditPage'
 import { ToolsPage } from '@/features/tools/ToolsPage'
 import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashboardPage'
 import { CompanyDashboardPage } from '@/features/dashboard/pages/CompanyDashboardPage'
+import { SharedVaultListPage } from '@/features/shared-vault/pages/SharedVaultListPage'
+import { SharedVaultItemDetailPage } from '@/features/shared-vault/pages/SharedVaultItemDetailPage'
+import { SharedVaultItemCreatePage } from '@/features/shared-vault/pages/SharedVaultItemCreatePage'
+import { SharedVaultItemEditPage } from '@/features/shared-vault/pages/SharedVaultItemEditPage'
+import { TeamVaultListPage } from '@/features/shared-vault/pages/TeamVaultListPage'
 
 function App() {
   return (
@@ -41,7 +46,11 @@ function App() {
           <Route path="/vault/items/:id" element={<VaultItemDetailPage />} />
           <Route path="/vault/items/:id/edit" element={<VaultItemEditPage />} />
           <Route path="/vault/trash" element={<PlaceholderPage title="Trash" module="Module F07" />} />
-          <Route path="/shared" element={<PlaceholderPage title="Shared Vault" module="Module F11" />} />
+          <Route path="/shared" element={<SharedVaultListPage />} />
+          <Route path="/shared/new" element={<SharedVaultItemCreatePage />} />
+          <Route path="/shared/items/:id" element={<SharedVaultItemDetailPage />} />
+          <Route path="/shared/items/:id/edit" element={<SharedVaultItemEditPage />} />
+          <Route path="/shared/teams/:teamId" element={<TeamVaultListPage />} />
           <Route path="/files" element={<PlaceholderPage title="Secure Files" module="Module F16" />} />
           <Route path="/notes" element={<PlaceholderPage title="Secure Notes" module="Module F17" />} />
           <Route path="/access-requests" element={<PlaceholderPage title="Access Requests" module="Module F14" />} />
