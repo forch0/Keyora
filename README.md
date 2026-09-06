@@ -306,6 +306,8 @@ Standout capabilities that set Keyora apart:
 | **API** | RESTful JSON API (`/api/v1/`) |
 | **Payments** | Paystack (subscription billing & invoicing) |
 | **Dev Tools** | Docker, Telescope, Nimbus, Pint, Larastan |
+| **Testing** | PHPUnit — 436 tests passing (1,329 assertions) |
+| **Static Analysis** | PHPStan level 8 (via Larastan) — 0 errors |
 
 ---
 
