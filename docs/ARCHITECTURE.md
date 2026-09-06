@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| **Document Version** | 1.0 |
-| **Last Updated** | 2026-08-31 |
+| **Document Version** | 2.0 |
+| **Last Updated** | 2026-09-02 |
 | **Status** | Active |
 
 ---
@@ -23,7 +23,9 @@
   - [1.8 ADR-008: File Storage](#18-adr-008-file-storage)
   - [1.9 ADR-009: Database Choice](#19-adr-009-database-choice)
   - [1.10 ADR-010: Frontend Strategy](#110-adr-010-frontend-strategy)
-  - [1.11 ADR-011: Payment Provider — Paystack](#111-adr-011-payment-provider--paystack)
+  - [1.11 ADR-011: Open-Source Project (No Billing)](#111-adr-011-open-source-project-no-billing)
+  - [1.12 ADR-012: Native TOTP Implementation](#112-adr-012-native-totp-implementation)
+  - [1.13 ADR-013: Re-authentication via Token Age + Cache](#113-adr-013-re-authentication-via-token-age--cache)
 - [2. System Architecture](#2-system-architecture)
   - [2.1 High-Level Diagram](#21-high-level-diagram)
   - [2.2 Layered Architecture](#22-layered-architecture)
@@ -353,7 +355,6 @@ Use **Laravel Queues with Redis** as the queue driver.
 | `default` | General jobs (notifications, emails) | Normal |
 | `expirations` | Access expiration checks, revocations | High |
 | `audit` | Audit log writes | Low |
-| `billing` | Paystack webhooks, invoice generation | High |
 
 **Jobs:**
 
@@ -363,7 +364,6 @@ Use **Laravel Queues with Redis** as the queue driver.
 | `SendAccessRequestNotification` | Access request created | `default` |
 | `SendExpirationWarning` | 24h before access expires | `default` |
 | `LogActivity` | After any logged action | `audit` |
-| `ProcessPaystackWebhook` | Paystack webhook received | `billing` |
 | `SendInviteEmail` | Employee invited | `default` |
 
 **Consequences**
@@ -414,7 +414,7 @@ Use **Laravel Filesystem with local disk for MVP**, designed for seamless S3 mig
 | Field | Value |
 |---|---|
 | **Status** | Accepted |
-| **Date** | 2026-08-31 |
+| **Date** | 2026-09-01 (updated from MySQL to PostgreSQL) |
 
 **Context**
 
@@ -422,17 +422,21 @@ Need to choose between MySQL and PostgreSQL for the primary database.
 
 **Decision**
 
-Use **MySQL 8.0** for MVP.
+Use **PostgreSQL 16** for MVP and production.
 
 **Rationale**
 
-- Most common Laravel deployment — best community support and documentation
-- Simpler to set up in development environments
-- JSON column support (needed for `activity_logs.properties` and flexible metadata)
-- Adequate performance for MVP scale (up to 1,000 concurrent users)
+- Row-level security support for multi-tenant isolation (future)
+- Full-text search capabilities (useful for search on non-encrypted metadata)
+- JSONB column support (needed for `activity_logs.properties` and flexible metadata)
+- UUID column support for externally-referenced models
+- Superior performance for complex aggregate queries (dashboards)
 - Laravel's query builder and Eloquent work equally well with both
 
-**Future consideration:** PostgreSQL may be preferred if we need row-level security policies, full-text search on encrypted metadata, or schema-per-tenant isolation.
+**Implementation**
+
+- Docker: `postgres:16-alpine` on port 5432
+- Migrations use PostgreSQL-compatible schema builders
 
 ---
 
@@ -461,62 +465,95 @@ The MVP is API-only. A frontend will be built later to consume the API.
 
 ---
 
-### 1.11 ADR-011: Payment Provider — Paystack
+### 1.11 ADR-011: Open-Source Project (No Billing)
 
 | Field | Value |
 |---|---|
 | **Status** | Accepted |
-| **Date** | 2026-08-31 |
+| **Date** | 2026-09-02 |
 
 **Context**
 
-Keyora is a SaaS product requiring subscription billing, invoicing, and payment processing. Need to choose a payment provider.
+Keyora was originally planned as a SaaS product with Paystack billing. The project direction has changed — it will be open-sourced with no billing.
 
 **Decision**
 
-Use **Paystack** as the payment provider.
-
-**Rationale**
-
-- Strong support for African and emerging markets (Nigeria, Ghana, Kenya, South Africa, etc.)
-- Accepts global cards (Visa, Mastercard, Verve)
-- Subscription/recurring billing support via Paystack Plans
-- Webhook system for payment event notifications
-- Clean REST API with official PHP SDK
-- Lower transaction fees than Stripe for African markets
-- No Laravel Cashier integration — custom service layer wraps Paystack API
+**Skip all billing modules.** Remove Paystack integration from the roadmap. The `plan` column on tenants remains for usage-limit tiers (free/team/business/enterprise) but has no billing or payment associated with it.
 
 **Implementation**
 
-- `PaystackService` in `app/Services/` wraps Paystack HTTP API
-- Paystack secret key stored in `.env` (`PAYSTACK_SECRET_KEY`)
-- Paystack public key stored in `.env` (`PAYSTACK_PUBLIC_KEY`)
-- Webhook endpoint at `POST /api/v1/billing/webhook` (unauthenticated, verified via Paystack signature header)
-- `ProcessPaystackWebhook` job handles webhook events asynchronously
-- Subscription plans created in Paystack dashboard, referenced by `plan_code` in DB
-- Tenant `plan` column maps to Paystack plan codes
-- Invoice/receipt data stored locally in `billing_invoices` table
-
-**Supported webhook events:**
-
-| Event | Action |
-|---|---|
-| `subscription.create` | Record new subscription |
-| `subscription.disable` | Mark subscription cancelled |
-| `subscription.enable` | Mark subscription active |
-| `invoice.create` | Store invoice record |
-| `invoice.payment_failed` | Mark invoice unpaid, alert user |
-| `charge.success` | Record payment, update tenant plan |
-| `charge.failed` | Log failure, alert user |
+- `config/plans.php` defines usage limits per tier (max_members, max_storage_mb, max_vault_items)
+- No payment provider, no invoices, no subscriptions, no webhooks
+- Modules 25 and 26 (SaaS & Billing) are marked as skipped
+- The `billing` queue channel is removed from the queue configuration
 
 **Consequences**
 
-- No Laravel Cashier — custom billing service required (more work but more control)
-- Must handle webhook signature verification manually
-- Subscription state synced between Paystack and local DB
-- Plan changes (upgrade/downgrade) require Paystack API call + local DB update
-- Refunds processed via Paystack dashboard or API
-- Currency: NGN by default, multi-currency support via Paystack
+- Simpler infrastructure — no payment provider credentials or webhook endpoints
+- Plan tiers are purely for usage limits, not revenue
+- Open-source contributors can self-host without payment setup
+- Future billing can be added as a separate package if needed
+
+---
+
+### 1.12 ADR-012: Native TOTP Implementation
+
+| Field | Value |
+|---|---|
+| **Status** | Accepted |
+| **Date** | 2026-09-02 |
+
+**Context**
+
+Module 23 requires TOTP-based 2FA. Options were to use a package (`pragmarx/google2fa`, `spomky-labs/otphp`) or implement natively.
+
+**Decision**
+
+Implement TOTP natively using PHP's `hash_hmac` and `random_bytes` — no external package.
+
+**Rationale**
+
+- RFC 6238 TOTP is a well-defined algorithm (~50 lines of code)
+- Avoids adding a dependency for a self-contained feature
+- Full control over secret generation, base32 encoding, and verification logic
+- The `TwoFactorService` handles: secret generation, QR URI creation, code verification (±1 window for clock drift), recovery code generation/hashing/consumption
+
+**Consequences**
+
+- Maintenance burden is on the project (but the algorithm is stable and unchanging)
+- No package updates to track for security patches
+- Recovery codes use bcrypt hashing + `Crypt::encryptString` for storage
+
+---
+
+### 1.13 ADR-013: Re-authentication via Token Age + Cache
+
+| Field | Value |
+|---|---|
+| **Status** | Accepted |
+| **Date** | 2026-09-02 |
+
+**Context**
+
+Sensitive actions (vault item deletion, secure link creation, offboarding, emergency revocation) require recent authentication. Need a mechanism to track "recently authenticated" state.
+
+**Decision**
+
+Use a dual-check approach in `RequireReauthentication` middleware:
+1. **Token age** — if the current API token was created within 15 minutes, the user is considered recently authenticated (login itself is a form of re-auth)
+2. **Cache timestamp** — `ReauthenticationService` stores a `reauth:{user_id}` timestamp in cache when the user re-authenticates with their password
+
+**Rationale**
+
+- Token-age check means existing tests (which create fresh tokens) don't need to re-authenticate
+- Cache timestamp provides explicit re-authentication without requiring a new login
+- 15-minute window balances security and usability
+
+**Consequences**
+
+- Tests for re-authentication expiration must explicitly age the token
+- The middleware returns HTTP 423 when neither condition is met
+- Re-authentication endpoint resets the cache timestamp
 
 ---
 
@@ -578,11 +615,11 @@ Use **Paystack** as the payment provider.
            ┌───────────────┼───────────────┐
            ▼               ▼               ▼
     ┌─────────────┐ ┌────────────┐ ┌────────────┐
-    │   MySQL     │ │   Redis    │ │  Storage   │
+    │ PostgreSQL  │ │   Redis    │ │  Storage   │
     │             │ │            │ │  (local)   │
     │ • Primary   │ │ • Queue    │ │ • Files    │
     │   database  │ │ • Cache    │ │ • Private  │
-    │             │ │ • Sessions │ │            │
+    │             │ │            │ │            │
     └─────────────┘ └────────────┘ └────────────┘
 ```
 
@@ -635,8 +672,7 @@ HTTP Request
     │── throttle:api (rate limiting)
     │── auth:sanctum (authentication)
     │── tenant.resolve (set current tenant)
-    │── twofa.require (if 2FA enabled)
-    │── reauth.required (if sensitive action)
+    │── reauth (if sensitive action — 15min window)
     │
     ▼
 [Controller Method]
@@ -909,9 +945,11 @@ $table->unsignedBigInteger('tenant_id');
 
 ### 4.5 Soft Deletes
 
-- Use soft deletes on models where data retention matters: `VaultItem`, `SecureFile`, `SecureNote`, `Folder`
-- Do NOT use soft deletes on: `ActivityLog` (append-only), `AccessGrant` (hard delete on revocation), `AccessRequest` (keep history via status, not soft delete)
+- Use soft deletes on models where data retention matters: `VaultItem`, `SecureFile`, `SecureNote`, `Tenant` (already have it)
+- Module 29 (planned) will add soft deletes to: `PersonalVaultItem`, `Team`, `AccessGrant`, `AccessRequest`, `SecureLink`, `SecurityAlert`, `UserDevice`
+- Do NOT use soft deletes on: `ActivityLog` (append-only), `ResourceView` (analytics), `SecureLinkAccess` (access tracking), `TenantInvitation` (transient)
 - Soft-deleted records are excluded from default queries — use `withTrashed()` / `onlyTrashed()` explicitly
+- Force delete endpoints (planned in Module 29) permanently remove records and clean up related data
 
 ---
 
@@ -993,11 +1031,23 @@ DELETE /access-requests/{request}  -- Cancel request
 GET    /activity-logs              -- List activity logs (filtered)
 GET    /activity-logs/summary      -- Aggregated stats
 
-GET    /billing/subscription       -- Current subscription
-POST   /billing/subscription       -- Create/upgrade subscription
-DELETE /billing/subscription       -- Cancel subscription
-GET    /billing/invoices           -- List invoices
-GET    /billing/usage              -- Usage stats
+GET    /security-alerts            -- List security alerts
+POST   /security-alerts/{id}/read  -- Mark alert as read
+GET    /devices                    -- List active devices
+DELETE /devices/{id}               -- Revoke a device
+
+POST   /auth/2fa/enable            -- Enable 2FA (generate secret + QR)
+POST   /auth/2fa/confirm           -- Confirm 2FA with TOTP code
+POST   /auth/2fa/disable           -- Disable 2FA (requires password)
+GET    /auth/2fa/recovery-codes    -- Regenerate recovery codes (requires re-auth)
+POST   /auth/2fa/verify            -- Verify 2FA during login
+POST   /auth/reauthenticate        -- Re-authenticate with password
+GET    /auth/reauthenticate/status -- Check if re-auth is needed
+POST   /auth/logout-all            -- Revoke all API tokens
+
+GET    /dashboard/personal         -- Personal dashboard summary
+GET    /dashboard/company          -- Company dashboard (admin/owner)
+GET    /dashboard/usage            -- Usage dashboard (admin/owner)
 ```
 
 ### 5.3 HTTP Methods
@@ -1095,6 +1145,7 @@ All API responses use a consistent envelope:
 | `404 Not Found` | Resource doesn't exist | Invalid ID, wrong endpoint |
 | `409 Conflict` | State conflict | Duplicate resource, concurrent modification |
 | `422 Unprocessable Entity` | Validation error | Form Request validation failure |
+| `423 Locked` | Re-authentication required | Sensitive action without recent auth |
 | `429 Too Many Requests` | Rate limited | Throttle exceeded |
 | `500 Internal Server Error` | Server error | Unhandled exception |
 
@@ -1126,25 +1177,29 @@ GET /vault/items?sort=-created_at,name
 
 ### 5.8 Rate Limiting
 
+**Currently implemented (Module 02):**
+
 | Endpoint Group | Limit | Window |
 |---|---|---|
 | Auth (login, register) | 5 requests | per minute per IP |
 | Auth (forgot-password) | 3 requests | per minute per IP |
-| General API (authenticated) | 60 requests | per minute per token |
-| File upload | 10 requests | per minute per token |
-| File download | 20 requests | per minute per token |
 
-```php
-// routes/api.php
-Route::middleware(['throttle:60,1'])->group(function () {
-    // General API routes
-});
+**Planned (Module 27 — Rate Limiting & API Throttling):**
 
-Route::middleware(['throttle:5,1'])->group(function () {
-    Route::post('auth/login', [AuthController::class, 'login']);
-    Route::post('auth/register', [AuthController::class, 'register']);
-});
-```
+| Profile | Limit | Window | Applies to |
+|---|---|---|---|
+| `read` | 60 requests | per minute per user | GET endpoints |
+| `write` | 30 requests | per minute per user | POST/PUT/DELETE endpoints |
+| `sensitive` | 10 requests | per minute per user | Offboard, revoke-all, 2FA, password change, secure link creation, vault item deletion |
+| `auth.login` | 5 requests | per minute per IP | Login |
+| `auth.register` | 5 requests | per minute per IP | Register |
+| `auth.forgot_password` | 3 requests | per minute per IP | Forgot password |
+| `2fa.verify` | 5 requests | per minute per user | 2FA verification |
+
+- Configurable via `config/rate_limits.php`
+- Per-tenant rate limiting (higher tiers get higher limits)
+- 429 response includes `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After` headers
+- Repeated violations on sensitive actions create security alerts
 
 ### 5.9 Error Handling
 
@@ -1168,7 +1223,6 @@ All exceptions handled centrally in `app/Exceptions/Handler.php`:
 | `CONFLICT_*` | State conflicts |
 | `RATE_LIMIT_*` | Rate limiting |
 | `TENANT_*` | Tenant-related errors |
-| `BILLING_*` | Subscription/billing errors |
 
 ---
 
@@ -1196,19 +1250,26 @@ app/
 │   │   └── Api/
 │   │       └── V1/
 │   │           ├── AuthController.php
+│   │           ├── TwoFactorController.php
 │   │           ├── TenantController.php
+│   │           ├── TenantMemberController.php
 │   │           ├── TeamController.php
 │   │           ├── VaultItemController.php
+│   │           ├── PersonalVaultItemController.php
 │   │           ├── SecureFileController.php
 │   │           ├── SecureNoteController.php
 │   │           ├── AccessGrantController.php
 │   │           ├── AccessRequestController.php
 │   │           ├── SecureLinkController.php
+│   │           ├── PublicLinkController.php
 │   │           ├── ActivityLogController.php
-│   │           └── BillingController.php
+│   │           ├── SecurityAlertController.php
+│   │           ├── DeviceController.php
+│   │           ├── EmergencyRevokeController.php
+│   │           ├── SearchController.php
+│   │           └── DashboardController.php
 │   ├── Middleware/
 │   │   ├── ResolveTenant.php
-│   │   ├── RequireTwoFactor.php
 │   │   └── RequireReauthentication.php
 │   ├── Requests/
 │   │   ├── Auth/
@@ -1274,11 +1335,16 @@ app/
 │   └── RouteServiceProvider.php
 ├── Services/
 │   ├── AccessResolver.php
-│   ├── EncryptionService.php
 │   ├── ActivityLogger.php
 │   ├── TenantManager.php
 │   ├── PasswordGenerator.php
-│   └── SecureLinkService.php
+│   ├── PasswordStrengthChecker.php
+│   ├── TwoFactorService.php
+│   ├── ReauthenticationService.php
+│   ├── DashboardService.php
+│   ├── DeviceDetector.php
+│   ├── GlobalSearch.php
+│   └── ViewTracker.php
 ├── Actions/
 │   ├── CreateVaultItemAction.php
 │   ├── UpdateVaultItemAction.php
@@ -1931,8 +1997,8 @@ indent_size = 2
 | File contents | Filesystem permissions (private storage) for MVP; encrypted in future |
 | API tokens | SHA-256 hash (Laravel Sanctum default) |
 | Secure link passwords | bcrypt (same as user passwords) |
-| 2FA secrets | AES-256 via `Crypt` facade |
-| Recovery codes | bcrypt (one-time use, hashed) |
+| 2FA secrets | AES-256 via `Crypt::encryptString()` — decrypted on demand by `TwoFactorService` |
+| Recovery codes | Each code bcrypt-hashed, JSON of hashes encrypted via `Crypt::encryptString()` |
 
 **Never log or expose:**
 

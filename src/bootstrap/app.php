@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Middleware\RateLimitByProfile;
 use App\Http\Middleware\RequireReauthentication;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\TenantRateLimit;
+use App\Providers\EventServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,15 +17,21 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withProviders([
+        EventServiceProvider::class,
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->api(prepend: [
-            EnsureFrontendRequestsAreStateful::class,
-        ]);
-
         $middleware->alias([
             'tenant.resolve' => ResolveTenant::class,
             'reauth' => RequireReauthentication::class,
+            'rate.limit' => RateLimitByProfile::class,
+            'tenant.rate' => TenantRateLimit::class,
         ]);
+
+        // API-only app: no login route exists. Override Laravel's default
+        // redirect to route('login') so unauthenticated API requests get a
+        // 401 JSON response instead of a 500 "Route [login] not defined" error.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

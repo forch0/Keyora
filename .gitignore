@@ -2,7 +2,8 @@
 # Laravel app has its own .gitignore in src/
 
 #Docs
-docs/modules
+# docs/modules
+# docs/learnings
 
 # Docker
 docker/data/

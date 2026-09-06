@@ -176,7 +176,7 @@ return [
                 |
                 */
 
-                'api_base_url' => env('NIMBUS_API_BASE_URL', 'http://nginx:80'),
+                'api_base_url' => env('NIMBUS_API_BASE_URL'),
             ],
 
             /*
