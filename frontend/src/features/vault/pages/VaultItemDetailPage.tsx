@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -5,21 +6,36 @@ import {
   Pencil,
   Trash2,
   Archive,
+  RotateCcw,
   Globe,
   User as UserIcon,
   FileText,
+  Lock,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { CopyButton } from '@/components/shared/CopyButton'
 import { PasswordField } from '@/components/shared/PasswordField'
 import { ItemTypeIcon, itemTypeLabel } from '@/components/shared/ItemTypeIcon'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useVaultItem, useToggleFavorite } from '@/features/vault/hooks/use-vault-items'
-import { Lock } from 'lucide-react'
+import {
+  useDeleteVaultItem,
+  useArchiveVaultItem,
+  useRestoreVaultItem,
+} from '@/features/vault/hooks/use-vault-item-mutations'
 
 export function VaultItemDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -28,10 +44,39 @@ export function VaultItemDetailPage() {
 
   const { data: item, isLoading, isError } = useVaultItem(itemId)
   const toggleFavorite = useToggleFavorite()
+  const deleteItem = useDeleteVaultItem()
+  const archiveItem = useArchiveVaultItem()
+  const restoreItem = useRestoreVaultItem()
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleToggleFavorite = () => {
     if (!item) return
     toggleFavorite.mutate({ id: item.id, favorite: !item.favorite })
+  }
+
+  const handleDelete = () => {
+    deleteItem.mutate(itemId, {
+      onSuccess: () => {
+        toast.success('Item moved to trash.')
+        navigate('/vault', { replace: true })
+      },
+      onError: () => toast.error('Failed to delete item.'),
+    })
+  }
+
+  const handleArchive = () => {
+    archiveItem.mutate(itemId, {
+      onSuccess: () => toast.success('Item archived.'),
+      onError: () => toast.error('Failed to archive item.'),
+    })
+  }
+
+  const handleRestore = () => {
+    restoreItem.mutate(itemId, {
+      onSuccess: () => toast.success('Item restored.'),
+      onError: () => toast.error('Failed to restore item.'),
+    })
   }
 
   if (isLoading) {
@@ -58,6 +103,8 @@ export function VaultItemDetailPage() {
     )
   }
 
+  const isArchived = !!item.archived_at
+
   return (
     <div className="space-y-4">
       {/* Back link */}
@@ -78,7 +125,7 @@ export function VaultItemDetailPage() {
             <h1 className="text-2xl font-bold">{item.name}</h1>
             <div className="mt-1 flex items-center gap-2">
               <Badge variant="secondary">{itemTypeLabel(item.type)}</Badge>
-              {item.archived_at && <Badge variant="outline">Archived</Badge>}
+              {isArchived && <Badge variant="outline">Archived</Badge>}
               {item.favorite && (
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               )}
@@ -86,7 +133,7 @@ export function VaultItemDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -102,15 +149,43 @@ export function VaultItemDetailPage() {
             />
             {item.favorite ? 'Unfavorite' : 'Favorite'}
           </Button>
-          <Button variant="outline" size="sm" disabled title="Module F05">
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" disabled title="Module F05">
-            <Archive className="mr-2 h-4 w-4" />
-            Archive
-          </Button>
-          <Button variant="destructive" size="sm" disabled title="Module F05">
+
+          {!isArchived && (
+            <Link to={`/vault/items/${itemId}/edit`}>
+              <Button variant="outline" size="sm">
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            </Link>
+          )}
+
+          {isArchived ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRestore}
+              disabled={restoreItem.isPending}
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Restore
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleArchive}
+              disabled={archiveItem.isPending}
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              Archive
+            </Button>
+          )}
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowDeleteDialog(true)}
+          >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
@@ -244,6 +319,31 @@ export function VaultItemDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete vault item?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &ldquo;{item.name}&rdquo;? This moves it to the
+              trash, where it can be permanently deleted or restored later.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteItem.isPending}
+            >
+              {deleteItem.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

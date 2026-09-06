@@ -5,7 +5,7 @@
 | **Module** | F05 |
 | **Name** | Personal Vault — Part 2: Create, Edit & Delete |
 | **Dependencies** | F04 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 

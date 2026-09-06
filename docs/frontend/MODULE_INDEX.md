@@ -10,7 +10,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F02 | Authentication & 2FA | [F02-authentication.md](modules/F02-authentication.md) | Complete | F01 |
 | F03 | App Shell & Navigation | [F03-app-shell.md](modules/F03-app-shell.md) | Complete | F02 |
 | F04 | Personal Vault — Part 1: List & Detail | [F04-personal-vault-part-1.md](modules/F04-personal-vault-part-1.md) | Complete | F02, F03 |
-| F05 | Personal Vault — Part 2: Create, Edit & Delete | [F05-personal-vault-part-2.md](modules/F05-personal-vault-part-2.md) | Not Started | F04 |
+| F05 | Personal Vault — Part 2: Create, Edit & Delete | [F05-personal-vault-part-2.md](modules/F05-personal-vault-part-2.md) | Complete | F04 |
 | F06 | Personal Vault — Part 3: Folders, Tags & Organization | [F06-personal-vault-part-3.md](modules/F06-personal-vault-part-3.md) | Not Started | F04, F05 |
 | F07 | Personal Vault — Part 4: Trash & Bulk Operations | [F07-personal-vault-part-4.md](modules/F07-personal-vault-part-4.md) | Not Started | F05, F06 |
 | F08 | Password Tools | [F08-password-tools.md](modules/F08-password-tools.md) | Not Started | F03 |

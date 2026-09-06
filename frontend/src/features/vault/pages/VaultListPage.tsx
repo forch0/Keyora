@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, Star, Archive, Plus, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -82,9 +83,11 @@ export function VaultListPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Personal Vault</h1>
-        <Button disabled title="Module F05">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Item
+        <Button asChild>
+          <Link to="/vault/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Item
+          </Link>
         </Button>
       </div>
 
