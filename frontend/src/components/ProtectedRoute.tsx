@@ -11,11 +11,12 @@ import { useCurrentUser } from '@/features/auth/hooks/use-auth'
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, user } = useAuthStore()
   const location = useLocation()
-  const { isLoading } = useCurrentUser()
+  const query = useCurrentUser()
 
   // Have a token but no user yet — fetching session
   if (token && !user) {
-    if (isLoading) {
+    // Show spinner while query is loading OR hasn't resolved yet
+    if (query.isLoading || query.isPending) {
       return (
         <div className="flex min-h-screen items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
