@@ -22,6 +22,8 @@ import { SharedVaultItemEditPage } from '@/features/shared-vault/pages/SharedVau
 import { TeamVaultListPage } from '@/features/shared-vault/pages/TeamVaultListPage'
 import { TeamsListPage } from '@/features/teams/pages/TeamsListPage'
 import { TeamMembersPage } from '@/features/teams/pages/TeamMembersPage'
+import { AccessRequestsPage } from '@/features/access-requests/pages/AccessRequestsPage'
+import { RequestHistoryPage } from '@/features/access-requests/pages/RequestHistoryPage'
 
 function App() {
   return (
@@ -55,7 +57,8 @@ function App() {
           <Route path="/shared/teams/:teamId" element={<TeamVaultListPage />} />
           <Route path="/files" element={<PlaceholderPage title="Secure Files" module="Module F16" />} />
           <Route path="/notes" element={<PlaceholderPage title="Secure Notes" module="Module F17" />} />
-          <Route path="/access-requests" element={<PlaceholderPage title="Access Requests" module="Module F14" />} />
+          <Route path="/access-requests" element={<AccessRequestsPage />} />
+          <Route path="/access-requests/history" element={<RequestHistoryPage />} />
           <Route path="/activity" element={<PlaceholderPage title="Activity Logs" module="Module F19" />} />
           <Route path="/admin" element={<CompanyDashboardPage />} />
           <Route path="/admin/teams" element={<TeamsListPage />} />

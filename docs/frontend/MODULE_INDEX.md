@@ -19,7 +19,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F11 | Shared Vault — Org & Team Items | [F11-shared-vault.md](modules/F11-shared-vault.md) | Not Started | F04, F05, F10 |
 | F12 | Teams Management | [F12-teams.md](modules/F12-teams.md) | Complete | F10, F11 |
 | F13 | Access Management — Grants & Sharing | [F13-access-management.md](modules/F13-access-management.md) | Complete | F05, F11 |
-| F14 | Access Requests & Approval Workflow | [F14-access-requests.md](modules/F14-access-requests.md) | Not Started | F13 |
+| F14 | Access Requests & Approval Workflow | [F14-access-requests.md](modules/F14-access-requests.md) | Complete | F13 |
 | F15 | Secure External Sharing (Links) | [F15-secure-sharing.md](modules/F15-secure-sharing.md) | Not Started | F13 |
 | F16 | Secure Files | [F16-secure-files.md](modules/F16-secure-files.md) | Not Started | F03, F10, F13 |
 | F17 | Secure Notes | [F17-secure-notes.md](modules/F17-secure-notes.md) | Not Started | F03, F10, F13 |
