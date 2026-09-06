@@ -30,7 +30,6 @@ import { CopyButton } from '@/components/shared/CopyButton'
 import { PasswordField } from '@/components/shared/PasswordField'
 import { ItemTypeIcon, itemTypeLabel } from '@/components/shared/ItemTypeIcon'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { AccessManagementPanel } from '@/features/access/components/AccessManagementPanel'
 import { useVaultItem, useToggleFavorite } from '@/features/vault/hooks/use-vault-items'
 import {
   useDeleteVaultItem,
@@ -320,9 +319,6 @@ export function VaultItemDetailPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Access management */}
-      <AccessManagementPanel resource="vault/items" id={item.id} />
 
       {/* Delete confirmation dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
