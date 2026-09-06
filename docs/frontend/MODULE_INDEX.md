@@ -6,7 +6,7 @@ This document tracks all frontend build modules in dependency order. Each module
 
 | # | Module | File | Status | Dependencies |
 |---|---|---|---|---|
-| F01 | Project Setup & Foundation | [F01-project-setup.md](modules/F01-project-setup.md) | Not Started | — |
+| F01 | Project Setup & Foundation | [F01-project-setup.md](modules/F01-project-setup.md) | Complete | — |
 | F02 | Authentication & 2FA | [F02-authentication.md](modules/F02-authentication.md) | Not Started | F01 |
 | F03 | App Shell & Navigation | [F03-app-shell.md](modules/F03-app-shell.md) | Not Started | F02 |
 | F04 | Personal Vault — Part 1: List & Detail | [F04-personal-vault-part-1.md](modules/F04-personal-vault-part-1.md) | Not Started | F02, F03 |

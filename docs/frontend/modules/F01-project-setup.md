@@ -5,7 +5,7 @@
 | **Module** | F01 |
 | **Name** | Project Setup & Foundation |
 | **Dependencies** | — |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
