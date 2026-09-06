@@ -13,6 +13,8 @@ import { VaultItemDetailPage } from '@/features/vault/pages/VaultItemDetailPage'
 import { VaultItemCreatePage } from '@/features/vault/pages/VaultItemCreatePage'
 import { VaultItemEditPage } from '@/features/vault/pages/VaultItemEditPage'
 import { ToolsPage } from '@/features/tools/ToolsPage'
+import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashboardPage'
+import { CompanyDashboardPage } from '@/features/dashboard/pages/CompanyDashboardPage'
 
 function App() {
   return (
@@ -33,7 +35,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<PlaceholderPage title="Dashboard" module="Module F09" />} />
+          <Route path="/" element={<PersonalDashboardPage />} />
           <Route path="/vault" element={<VaultListPage />} />
           <Route path="/vault/new" element={<VaultItemCreatePage />} />
           <Route path="/vault/items/:id" element={<VaultItemDetailPage />} />
@@ -44,7 +46,7 @@ function App() {
           <Route path="/notes" element={<PlaceholderPage title="Secure Notes" module="Module F17" />} />
           <Route path="/access-requests" element={<PlaceholderPage title="Access Requests" module="Module F14" />} />
           <Route path="/activity" element={<PlaceholderPage title="Activity Logs" module="Module F19" />} />
-          <Route path="/admin" element={<PlaceholderPage title="Admin" module="Module F21" />} />
+          <Route path="/admin" element={<CompanyDashboardPage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" module="Module F23" />} />
           <Route path="/tools" element={<ToolsPage />} />
         </Route>

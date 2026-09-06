@@ -14,7 +14,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F06 | Personal Vault — Part 3: Folders, Tags & Organization | [F06-personal-vault-part-3.md](modules/F06-personal-vault-part-3.md) | Complete | F04, F05 |
 | F07 | Personal Vault — Part 4: Trash & Bulk Operations | [F07-personal-vault-part-4.md](modules/F07-personal-vault-part-4.md) | Not Started | F05, F06 |
 | F08 | Password Tools | [F08-password-tools.md](modules/F08-password-tools.md) | Complete | F03 |
-| F09 | Dashboard | [F09-dashboard.md](modules/F09-dashboard.md) | Not Started | F03, F04 |
+| F09 | Dashboard | [F09-dashboard.md](modules/F09-dashboard.md) | Complete | F03, F04 |
 | F10 | Tenant Context & Workspace Switcher | [F10-tenant-context.md](modules/F10-tenant-context.md) | Not Started | F02, F03 |
 | F11 | Shared Vault — Org & Team Items | [F11-shared-vault.md](modules/F11-shared-vault.md) | Not Started | F04, F05, F10 |
 | F12 | Teams Management | [F12-teams.md](modules/F12-teams.md) | Not Started | F10, F11 |

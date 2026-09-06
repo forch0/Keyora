@@ -5,7 +5,7 @@
 | **Module** | F09 |
 | **Name** | Dashboard |
 | **Dependencies** | F03, F04 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
