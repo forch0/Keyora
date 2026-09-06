@@ -29,6 +29,9 @@ import { PublicLinkPage } from '@/features/secure-links/pages/PublicLinkPage'
 import { FileListPage } from '@/features/secure-files/pages/FileListPage'
 import { FileDetailPage } from '@/features/secure-files/pages/FileDetailPage'
 import { FileTrashPage } from '@/features/secure-files/pages/FileTrashPage'
+import { NoteListPage } from '@/features/secure-notes/pages/NoteListPage'
+import { NoteDetailPage } from '@/features/secure-notes/pages/NoteDetailPage'
+import { NoteTrashPage } from '@/features/secure-notes/pages/NoteTrashPage'
 
 function App() {
   return (
@@ -67,7 +70,10 @@ function App() {
           <Route path="/files" element={<FileListPage />} />
           <Route path="/files/:id" element={<FileDetailPage />} />
           <Route path="/files/trash" element={<FileTrashPage />} />
-          <Route path="/notes" element={<PlaceholderPage title="Secure Notes" module="Module F17" />} />
+          <Route path="/notes" element={<NoteListPage />} />
+          <Route path="/notes/new" element={<NoteDetailPage />} />
+          <Route path="/notes/:id" element={<NoteDetailPage />} />
+          <Route path="/notes/trash" element={<NoteTrashPage />} />
           <Route path="/access-requests" element={<AccessRequestsPage />} />
           <Route path="/access-requests/history" element={<RequestHistoryPage />} />
           <Route path="/activity" element={<PlaceholderPage title="Activity Logs" module="Module F19" />} />
