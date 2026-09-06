@@ -15,8 +15,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   // Have a token but no user yet — fetching session
   if (token && !user) {
-    // Show spinner while query is loading OR hasn't resolved yet
-    if (query.isLoading || query.isPending) {
+    // Show spinner while query is loading, pending, or hasn't started fetching yet
+    if (query.isLoading || query.isPending || query.fetchStatus === 'idle') {
       return (
         <div className="flex min-h-screen items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
