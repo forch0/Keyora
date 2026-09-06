@@ -14,6 +14,7 @@ use App\Http\Requests\SecureLinks\EmailVerifyRequest;
 use App\Http\Requests\SecureLinks\VerifyLinkRequest;
 use App\Http\Resources\V1\PublicLinkResource;
 use App\Models\SecureLink;
+use App\Services\TenantManager;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class PublicLinkController extends Controller
         private readonly SendLinkEmailVerificationAction $sendEmailVerification,
         private readonly ConfirmLinkEmailVerificationAction $confirmEmailVerification,
         private readonly AccessSharedLinkAction $accessLink,
+        private readonly TenantManager $tenantManager,
     ) {}
 
     /**
@@ -131,6 +133,12 @@ class PublicLinkController extends Controller
 
         if ($link === null) {
             abort(404, 'Link not found.');
+        }
+
+        // Set tenant context from the link so tenant-scoped resource
+        // models (e.g. VaultItem) can be queried on the public route.
+        if ($link->tenant_id !== null) {
+            $this->tenantManager->setCurrentTenant($link->tenant_id);
         }
 
         return $link;
