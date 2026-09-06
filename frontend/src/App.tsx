@@ -26,6 +26,9 @@ import { TeamMembersPage } from '@/features/teams/pages/TeamMembersPage'
 import { AccessRequestsPage } from '@/features/access-requests/pages/AccessRequestsPage'
 import { RequestHistoryPage } from '@/features/access-requests/pages/RequestHistoryPage'
 import { PublicLinkPage } from '@/features/secure-links/pages/PublicLinkPage'
+import { FileListPage } from '@/features/secure-files/pages/FileListPage'
+import { FileDetailPage } from '@/features/secure-files/pages/FileDetailPage'
+import { FileTrashPage } from '@/features/secure-files/pages/FileTrashPage'
 
 function App() {
   return (
@@ -61,7 +64,9 @@ function App() {
           <Route path="/shared/items/:id" element={<SharedVaultItemDetailPage />} />
           <Route path="/shared/items/:id/edit" element={<SharedVaultItemEditPage />} />
           <Route path="/shared/teams/:teamId" element={<TeamVaultListPage />} />
-          <Route path="/files" element={<PlaceholderPage title="Secure Files" module="Module F16" />} />
+          <Route path="/files" element={<FileListPage />} />
+          <Route path="/files/:id" element={<FileDetailPage />} />
+          <Route path="/files/trash" element={<FileTrashPage />} />
           <Route path="/notes" element={<PlaceholderPage title="Secure Notes" module="Module F17" />} />
           <Route path="/access-requests" element={<AccessRequestsPage />} />
           <Route path="/access-requests/history" element={<RequestHistoryPage />} />
