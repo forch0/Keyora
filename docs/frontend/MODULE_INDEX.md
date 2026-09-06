@@ -23,7 +23,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F15 | Secure External Sharing (Links) | [F15-secure-sharing.md](modules/F15-secure-sharing.md) | Complete | F13 |
 | F16 | Secure Files | [F16-secure-files.md](modules/F16-secure-files.md) | Complete | F03, F10, F13 |
 | F17 | Secure Notes | [F17-secure-notes.md](modules/F17-secure-notes.md) | Complete | F03, F10, F13 |
-| F18 | Search & Discovery | [F18-search.md](modules/F18-search.md) | Not Started | F04, F11, F16, F17 |
+| F18 | Search & Discovery | [F18-search.md](modules/F18-search.md) | Complete | F04, F11, F16, F17 |
 | F19 | Activity Logs | [F19-activity-logs.md](modules/F19-activity-logs.md) | Not Started | F03, F10 |
 | F20 | Security Alerts & Devices | [F20-security-alerts.md](modules/F20-security-alerts.md) | Not Started | F03 |
 | F21 | Admin — Tenant & Member Management | [F21-admin-tenant-management.md](modules/F21-admin-tenant-management.md) | Not Started | F10, F12 |

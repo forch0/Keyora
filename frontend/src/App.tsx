@@ -32,6 +32,8 @@ import { FileTrashPage } from '@/features/secure-files/pages/FileTrashPage'
 import { NoteListPage } from '@/features/secure-notes/pages/NoteListPage'
 import { NoteDetailPage } from '@/features/secure-notes/pages/NoteDetailPage'
 import { NoteTrashPage } from '@/features/secure-notes/pages/NoteTrashPage'
+import { RecentItemsPage } from '@/features/search/pages/RecentItemsPage'
+import { ExpiringAccessPage } from '@/features/search/pages/ExpiringAccessPage'
 
 function App() {
   return (
@@ -76,6 +78,8 @@ function App() {
           <Route path="/notes/trash" element={<NoteTrashPage />} />
           <Route path="/access-requests" element={<AccessRequestsPage />} />
           <Route path="/access-requests/history" element={<RequestHistoryPage />} />
+          <Route path="/recent" element={<RecentItemsPage />} />
+          <Route path="/expiring" element={<ExpiringAccessPage />} />
           <Route path="/activity" element={<PlaceholderPage title="Activity Logs" module="Module F19" />} />
           <Route path="/admin" element={<CompanyDashboardPage />} />
           <Route path="/admin/teams" element={<TeamsListPage />} />

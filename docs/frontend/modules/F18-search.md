@@ -5,7 +5,7 @@
 | **Module** | F18 |
 | **Name** | Search & Discovery |
 | **Dependencies** | F04, F11, F16, F17 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
