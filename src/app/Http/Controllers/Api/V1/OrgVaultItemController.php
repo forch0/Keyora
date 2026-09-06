@@ -67,7 +67,7 @@ class OrgVaultItemController extends Controller
     /**
      * Show an org-wide vault item.
      */
-    public function show(Request $request, VaultItem $item): JsonResponse
+    public function show(Request $request, Tenant $tenant, VaultItem $item): JsonResponse
     {
         $user = $this->authenticatedUser($request);
         $tenant = $this->currentTenant();
@@ -84,7 +84,7 @@ class OrgVaultItemController extends Controller
     /**
      * Update an org-wide vault item.
      */
-    public function update(UpdateVaultItemRequest $request, VaultItem $item): JsonResponse
+    public function update(UpdateVaultItemRequest $request, Tenant $tenant, VaultItem $item): JsonResponse
     {
         $user = $this->authenticatedUser($request);
         $tenant = $this->currentTenant();
@@ -107,7 +107,7 @@ class OrgVaultItemController extends Controller
     /**
      * Delete an org-wide vault item.
      */
-    public function destroy(Request $request, VaultItem $item): JsonResponse
+    public function destroy(Request $request, Tenant $tenant, VaultItem $item): JsonResponse
     {
         $user = $this->authenticatedUser($request);
         $tenant = $this->currentTenant();
