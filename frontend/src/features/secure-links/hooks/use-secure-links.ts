@@ -26,22 +26,33 @@ export function useSecureLinks(resource: SecureLinkResourceType, id: number) {
 
 export function useCreateSecureLink(resource: SecureLinkResourceType, id: number) {
   const queryClient = useQueryClient()
-  return useMutation<{ data: SecureLink }, ApiError, CreateSecureLinkInput>({
-    mutationFn: async (data) => {
-      try {
-        return await api.post<{ data: SecureLink }>(`/api/v1/${resource}/${id}/share-links`, data)
-      } catch (err) {
-        const apiErr = err as ApiError
-        if (apiErr.status === 423) {
-          setReauthRetry(() => queryClient.invalidateQueries({ queryKey: ['secure-links', resource, id] }))
-        }
-        throw err
-      }
-    },
+  const mutation = useMutation<{ data: SecureLink }, ApiError, CreateSecureLinkInput>({
+    mutationFn: (data) =>
+      api.post<{ data: SecureLink }>(`/api/v1/${resource}/${id}/share-links`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['secure-links', resource, id] })
     },
   })
+
+  return {
+    ...mutation,
+    mutate: (data: CreateSecureLinkInput, options?: Parameters<typeof mutation.mutate>[1]) => {
+      const retry = () => mutation.mutate(data, options)
+      mutation.mutate(data, {
+        ...options,
+        onError: (error, ...rest) => {
+          if (error.status === 423) {
+            setReauthRetry(retry)
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const origOnError = (options as any)?.onError
+          if (typeof origOnError === 'function') {
+            origOnError(error, ...rest)
+          }
+        },
+      })
+    },
+  }
 }
 
 export function useRevokeSecureLink() {

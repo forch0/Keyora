@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { fetchCsrfToken } from '@/api/csrf'
@@ -178,13 +179,15 @@ export function useCurrentUser() {
     retry: false,
   })
 
-  // Sync user data to store (v5 removed onSuccess/onError from useQuery)
-  if (query.data && query.data !== user) {
-    setUser(query.data)
-  }
-  if (query.isError && token) {
-    clear()
-  }
+  // Sync user data to store in useEffect (v5 removed onSuccess/onError from useQuery)
+  useEffect(() => {
+    if (query.data && query.data !== user) {
+      setUser(query.data)
+    }
+    if (query.isError && token) {
+      clear()
+    }
+  }, [query.data, query.isError, user, token, setUser, clear])
 
   return query
 }
