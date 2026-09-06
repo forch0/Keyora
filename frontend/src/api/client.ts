@@ -13,7 +13,14 @@ export const SESSION_EXPIRED_EVENT = 'keyora:session-expired'
 /** Endpoints that are not tenant-scoped and should not send X-Tenant-ID. */
 const TENANT_AGNOSTIC_PATTERNS = [
   /^\/api\/v1\/auth\//,
-  /^\/api\/v1\/vault\//, // personal vault
+  // Personal vault — but NOT share-links or access (those are tenant-scoped)
+  /^\/api\/v1\/vault\/items\/\d+\/?$/,
+  /^\/api\/v1\/vault\/items\/\d+\/edit$/,
+  /^\/api\/v1\/vault\/folders/,
+  /^\/api\/v1\/vault\/tags/,
+  /^\/api\/v1\/vault\/trash/,
+  /^\/api\/v1\/vault\/bulk/,
+  /^\/api\/v1\/vault\/recent/,
   /^\/api\/v1\/dashboard\/personal/,
   /^\/api\/v1\/security-alerts/,
   /^\/api\/v1\/devices/,
