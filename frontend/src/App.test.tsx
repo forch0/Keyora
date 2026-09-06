@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react'
 import App from '@/App'
 
 describe('App', () => {
-  it('renders the Keyora heading', () => {
+  it('renders the login page by default', () => {
     render(<App />)
-    expect(screen.getByText('Keyora')).toBeInTheDocument()
+    expect(screen.getByText('Sign in to Keyora')).toBeInTheDocument()
   })
 })

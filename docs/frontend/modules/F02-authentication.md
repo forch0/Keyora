@@ -5,7 +5,7 @@
 | **Module** | F02 |
 | **Name** | Authentication & 2FA |
 | **Dependencies** | F01 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
