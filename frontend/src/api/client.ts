@@ -115,6 +115,12 @@ async function request<T>(
     }
   }
 
+  // Bearer token for authenticated requests (Sanctum token-based auth)
+  const { token } = useAuthStore.getState()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   // Tenant header for tenant-scoped endpoints
   const { selectedTenantId } = useAuthStore.getState()
   if (selectedTenantId !== null && !isTenantAgnostic(path)) {

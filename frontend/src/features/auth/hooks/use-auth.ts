@@ -33,7 +33,7 @@ interface ResetPasswordResponse {
 // ─── useLogin ───────────────────────────────────────────────────────────────
 
 export function useLogin() {
-  const { setUser, setStatus, setTwoFactorToken } = useAuthStore()
+  const { setUser, setToken, setStatus, setTwoFactorToken } = useAuthStore()
 
   return useMutation<LoginResponse | TwoFactorChallengeResponse, ApiError, { email: string; password: string }>({
     mutationFn: async ({ email, password }) => {
@@ -50,6 +50,9 @@ export function useLogin() {
         setStatus('requires_2fa')
         return
       }
+      // Normal login — response has token
+      const loginResp = response as LoginResponse
+      setToken(loginResp.token)
       setUser(data as User)
     },
     onError: () => {
@@ -61,7 +64,7 @@ export function useLogin() {
 // ─── useVerify2fa ───────────────────────────────────────────────────────────
 
 export function useVerify2fa() {
-  const { twoFactorToken, setUser, setTwoFactorToken } = useAuthStore()
+  const { twoFactorToken, setUser, setToken, setTwoFactorToken } = useAuthStore()
 
   return useMutation<LoginResponse, ApiError, { code?: string; recoveryCode?: string }>({
     mutationFn: async ({ code, recoveryCode }) => {
@@ -75,6 +78,7 @@ export function useVerify2fa() {
       })
     },
     onSuccess: (response) => {
+      setToken(response.token)
       setUser(response.data)
       setTwoFactorToken(null)
     },
@@ -84,7 +88,7 @@ export function useVerify2fa() {
 // ─── useRegister ────────────────────────────────────────────────────────────
 
 export function useRegister() {
-  const { setUser } = useAuthStore()
+  const { setUser, setToken } = useAuthStore()
 
   return useMutation<
     LoginResponse,
@@ -101,6 +105,7 @@ export function useRegister() {
       })
     },
     onSuccess: (response) => {
+      setToken(response.token)
       setUser(response.data)
     },
   })
@@ -159,7 +164,7 @@ export function useResetPassword() {
 // ─── useCurrentUser ─────────────────────────────────────────────────────────
 
 export function useCurrentUser() {
-  const { user, setUser, clear } = useAuthStore()
+  const { user, token, setUser, clear } = useAuthStore()
 
   const query = useQuery<User, ApiError>({
     queryKey: ['auth', 'me'],
@@ -167,15 +172,17 @@ export function useCurrentUser() {
       const response = await api.get<{ data: User }>('/api/v1/auth/me')
       return response.data
     },
-    enabled: !!user,
+    // Fetch if we have a token but no user yet (session restore on refresh)
+    enabled: !!token && !user,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   })
 
   // Sync user data to store (v5 removed onSuccess/onError from useQuery)
   if (query.data && query.data !== user) {
     setUser(query.data)
   }
-  if (query.isError && user) {
+  if (query.isError && token) {
     clear()
   }
 

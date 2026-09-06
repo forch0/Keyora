@@ -18,18 +18,31 @@ export interface User {
 interface AuthState {
   status: AuthStatus
   user: User | null
+  token: string | null
   twoFactorToken: string | null
   selectedTenantId: number | null
   setUser: (user: User | null) => void
+  setToken: (token: string | null) => void
   setStatus: (status: AuthStatus) => void
   setTwoFactorToken: (token: string | null) => void
   setTenant: (tenantId: number | null) => void
   clear: () => void
 }
 
+const TOKEN_KEY = 'keyora_token'
+
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   status: 'unauthenticated',
   user: null,
+  token: getStoredToken(),
   twoFactorToken: null,
   selectedTenantId: null,
 
@@ -39,17 +52,37 @@ export const useAuthStore = create<AuthState>((set) => ({
       status: user ? 'authenticated' : state.status,
     })),
 
+  setToken: (token) => {
+    try {
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token)
+      } else {
+        localStorage.removeItem(TOKEN_KEY)
+      }
+    } catch {
+      // localStorage may be unavailable
+    }
+    set({ token })
+  },
+
   setStatus: (status) => set({ status }),
 
   setTwoFactorToken: (twoFactorToken) => set({ twoFactorToken }),
 
   setTenant: (selectedTenantId) => set({ selectedTenantId }),
 
-  clear: () =>
+  clear: () => {
+    try {
+      localStorage.removeItem(TOKEN_KEY)
+    } catch {
+      // localStorage may be unavailable
+    }
     set({
       status: 'unauthenticated',
       user: null,
+      token: null,
       twoFactorToken: null,
       selectedTenantId: null,
-    }),
+    })
+  },
 }))
