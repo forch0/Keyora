@@ -27,6 +27,7 @@ import { CopyButton } from '@/components/shared/CopyButton'
 import { PasswordField } from '@/components/shared/PasswordField'
 import { ItemTypeIcon, itemTypeLabel } from '@/components/shared/ItemTypeIcon'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { AccessManagementPanel } from '@/features/access/components/AccessManagementPanel'
 import {
   useOrgVaultItem,
   useDeleteOrgVaultItem,
@@ -222,6 +223,9 @@ export function SharedVaultItemDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Access management */}
+      <AccessManagementPanel resource="vault/items" id={item.id} />
 
       {/* Delete dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
