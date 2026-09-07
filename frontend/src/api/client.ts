@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/stores/auth-store'
 import { getCsrfToken } from './csrf'
 import { reauthManager } from './reauth-manager'
+import { handleApiError } from './error-handler'
 import type { ApiError } from '@/types/api-error'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
@@ -166,15 +167,22 @@ async function request<T>(
         return request<T>(path, options)
       } catch {
         // User cancelled re-auth
-        throw {
+        const cancelErr = {
           code: 'REAUTH_CANCELLED',
           message: 'Re-authentication cancelled.',
           status: 423,
         } satisfies ApiError
+        throw cancelErr
       }
     }
 
     const error = await parseError(response)
+
+    // Show global toast for non-validation errors (422 is handled by forms)
+    if (response.status !== 422) {
+      handleApiError(error)
+    }
+
     throw error
   }
 

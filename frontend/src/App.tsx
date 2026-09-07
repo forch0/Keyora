@@ -1,8 +1,13 @@
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Providers } from '@/components/Providers'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { SessionExpiredHandler } from '@/components/SessionExpiredHandler'
-import { ReauthDialog } from '@/features/auth/components/ReauthDialog'
+import { ReauthModal } from '@/components/ReauthModal'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { LockScreen } from '@/components/LockScreen'
+import { useActivityTracker } from '@/hooks/useActivityTracker'
+import { useLockStore } from '@/stores/lock-store'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PlaceholderPage, NotFoundPage } from '@/components/layout/PlaceholderPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
@@ -41,13 +46,38 @@ import { TenantSettingsPage } from '@/features/admin/pages/TenantSettingsPage'
 import { MembersListPage } from '@/features/admin/pages/MembersListPage'
 import { MemberDetailPage } from '@/features/admin/pages/MemberDetailPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
-import { ReauthModal } from '@/components/ReauthModal'
 
 function App() {
+  useActivityTracker()
+  const { isLocked, lock } = useLockStore()
+
+  // Cmd/Ctrl+L to manually lock
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'l' && !e.shiftKey && !e.altKey) {
+        e.preventDefault()
+        lock()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [lock])
+
+  if (isLocked) {
+    return (
+      <Providers>
+        <ErrorBoundary>
+          <LockScreen />
+          <ReauthModal />
+        </ErrorBoundary>
+      </Providers>
+    )
+  }
+
   return (
     <Providers>
+      <ErrorBoundary>
       <SessionExpiredHandler />
-      <ReauthDialog />
       <Routes>
         {/* Public auth routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -107,6 +137,7 @@ function App() {
 
       {/* Global re-authentication modal (Module F24) */}
       <ReauthModal />
+      </ErrorBoundary>
     </Providers>
   )
 }

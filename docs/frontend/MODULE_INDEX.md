@@ -30,8 +30,8 @@ This document tracks all frontend build modules in dependency order. Each module
 | F22 | Admin — Employee Lifecycle & Offboarding | [F22-employee-lifecycle.md](modules/F22-employee-lifecycle.md) | Complete | F13, F21 |
 | F23 | Settings — Profile, Password & 2FA | [F23-settings.md](modules/F23-settings.md) | Complete | F02 |
 | F24 | Re-authentication Flow | [F24-reauthentication.md](modules/F24-reauthentication.md) | Complete | F02, F13 |
-| F25 | Global Error Handling & Rate Limit UX | [F25-error-handling.md](modules/F25-error-handling.md) | Not Started | F01 |
-| F26 | Auto-lock & Session Management | [F26-auto-lock.md](modules/F26-auto-lock.md) | Not Started | F02 |
+| F25 | Global Error Handling & Rate Limit UX | [F25-error-handling.md](modules/F25-error-handling.md) | Complete | F01 |
+| F26 | Auto-lock & Session Management | [F26-auto-lock.md](modules/F26-auto-lock.md) | Complete | F02 |
 | F27 | Responsive Design & Mobile | [F27-responsive.md](modules/F27-responsive.md) | Not Started | All prior |
 | F28 | Testing & QA | [F28-testing.md](modules/F28-testing.md) | Not Started | All prior |
 | F29 | Production Build & Deployment | [F29-deployment.md](modules/F29-deployment.md) | Not Started | F28 |

@@ -5,7 +5,7 @@
 | **Module** | F25 |
 | **Name** | Global Error Handling & Rate Limit UX |
 | **Dependencies** | F01 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 

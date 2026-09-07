@@ -1,4 +1,6 @@
-import { Construction } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Construction, Home, FileQuestion } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface PlaceholderPageProps {
   title: string
@@ -23,10 +25,17 @@ export function PlaceholderPage({ title, module }: PlaceholderPageProps) {
 export function NotFoundPage() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <h2 className="text-xl font-semibold">Page not found</h2>
+      <FileQuestion className="h-12 w-12 text-muted-foreground" />
+      <h2 className="mt-4 text-xl font-semibold">Page not found</h2>
       <p className="mt-1 text-muted-foreground text-sm">
         The page you're looking for doesn't exist.
       </p>
+      <Button asChild className="mt-4" variant="outline" size="sm">
+        <Link to="/">
+          <Home className="mr-2 h-4 w-4" />
+          Back to Dashboard
+        </Link>
+      </Button>
     </div>
   )
 }

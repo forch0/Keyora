@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import { setReauthRetry } from '@/features/auth/components/ReauthDialog'
 import { useAuthStore } from '@/stores/auth-store'
 import type { ApiError } from '@/types/api-error'
 import type {
@@ -126,21 +125,7 @@ export function useReplaceFile(id: number) {
     },
   })
 
-  return {
-    ...mutation,
-    mutate: (file: File, options?: Parameters<typeof mutation.mutate>[1]) => {
-      const retry = () => mutation.mutate(file, options)
-      mutation.mutate(file, {
-        ...options,
-        onError: (error, ...rest) => {
-          if (error.status === 423) setReauthRetry(retry)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const origOnError = (options as any)?.onError
-          if (typeof origOnError === 'function') origOnError(error, ...rest)
-        },
-      })
-    },
-  }
+  return mutation
 }
 
 export function useDeleteFile() {

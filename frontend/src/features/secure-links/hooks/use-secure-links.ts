@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import { setReauthRetry } from '@/features/auth/components/ReauthDialog'
 import type { ApiError } from '@/types/api-error'
 import type {
   SecureLinkResourceType,
@@ -34,25 +33,7 @@ export function useCreateSecureLink(resource: SecureLinkResourceType, id: number
     },
   })
 
-  return {
-    ...mutation,
-    mutate: (data: CreateSecureLinkInput, options?: Parameters<typeof mutation.mutate>[1]) => {
-      const retry = () => mutation.mutate(data, options)
-      mutation.mutate(data, {
-        ...options,
-        onError: (error, ...rest) => {
-          if (error.status === 423) {
-            setReauthRetry(retry)
-          }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const origOnError = (options as any)?.onError
-          if (typeof origOnError === 'function') {
-            origOnError(error, ...rest)
-          }
-        },
-      })
-    },
-  }
+  return mutation
 }
 
 export function useRevokeSecureLink() {

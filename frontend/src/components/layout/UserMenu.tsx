@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Settings as SettingsIcon, User as UserIcon } from 'lucide-react'
+import { LogOut, Settings as SettingsIcon, User as UserIcon, Lock } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuthStore } from '@/stores/auth-store'
+import { useLockStore } from '@/stores/lock-store'
 import { useLogout } from '@/features/auth/hooks/use-auth'
 
 function getInitials(name: string): string {
@@ -22,6 +23,7 @@ function getInitials(name: string): string {
 export function UserMenu() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { lock } = useLockStore()
   const logout = useLogout()
 
   const handleLogout = () => {
@@ -59,6 +61,10 @@ export function UserMenu() {
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={lock}>
+          <Lock className="mr-2 h-4 w-4" />
+          Lock App
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout} className="text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
           Logout
