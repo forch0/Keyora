@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   UserCog,
   Activity,
+  UserMinus,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ import {
   useRemoveMember,
   useRevokeAllForUser,
 } from '@/features/admin/hooks/use-admin'
+import { OffboardDialog } from '@/features/admin/components/OffboardDialog'
 
 export function MemberDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -38,6 +40,7 @@ export function MemberDetailPage() {
 
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const [confirmingRemove, setConfirmingRemove] = useState(false)
+  const [showOffboard, setShowOffboard] = useState(false)
 
   const isOwner = member?.role === 'owner'
   const isSuspended = member?.status === 'suspended'
@@ -322,6 +325,57 @@ export function MemberDetailPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Offboard (Module F22) */}
+      {!isOwner && member.status !== 'left' && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <UserMinus className="h-5 w-5" />
+              Offboard Employee
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm">
+              Offboarding revokes all access grants, removes team memberships,
+              revokes API tokens and secure links, and ends workspace membership.
+              Use this when an employee leaves the company.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowOffboard(true)}
+            >
+              <UserMinus className="mr-1 h-4 w-4" />
+              Offboard {member.name}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Offboarded status banner */}
+      {member.status === 'left' && (
+        <Card className="border-muted bg-muted/30">
+          <CardContent className="flex items-center gap-3 p-4">
+            <UserMinus className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">This member has been offboarded</p>
+              <p className="text-muted-foreground text-xs">
+                All access has been revoked and team memberships removed.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {member && (
+        <OffboardDialog
+          member={member}
+          open={showOffboard}
+          onOpenChange={setShowOffboard}
+          onSuccess={() => navigate('/admin/members')}
+        />
+      )}
     </div>
   )
 }

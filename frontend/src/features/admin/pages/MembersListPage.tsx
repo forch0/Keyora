@@ -32,7 +32,7 @@ function roleBadge(role: string | null) {
 
 function statusBadge(status: string | null) {
   if (status === 'suspended') return <Badge variant="destructive">Suspended</Badge>
-  if (status === 'left') return <Badge variant="outline">Left</Badge>
+  if (status === 'left') return <Badge variant="outline">Offboarded</Badge>
   return <Badge variant="default" className="bg-green-600">Active</Badge>
 }
 
@@ -117,7 +117,7 @@ export function MembersListPage() {
                 onClick={() => setStatusFilter(s)}
                 className="h-7 capitalize"
               >
-                {s}
+                {s === 'left' ? 'Offboarded' : s}
               </Button>
             ))}
           </div>
@@ -201,6 +201,13 @@ function MemberRow({ member }: { member: TenantMember }) {
             <Link to={`/admin/members/${member.id}`}>
               <Settings className="mr-1 h-3.5 w-3.5" />
               Manage
+            </Link>
+          </Button>
+        )}
+        {isLeft && (
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/admin/members/${member.id}`}>
+              View
             </Link>
           </Button>
         )}

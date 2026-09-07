@@ -213,3 +213,25 @@ export function useCancelInvitation() {
     },
   })
 }
+
+// ─── Offboarding (Module F22) ───────────────────────────────────────────────
+
+export interface OffboardInput {
+  userId: number
+  reason?: string | null
+  transfer_resources_to?: number | null
+}
+
+export function useOffboardMember() {
+  const queryClient = useQueryClient()
+  return useMutation<void, ApiError, OffboardInput>({
+    mutationFn: ({ userId, reason, transfer_resources_to }) =>
+      api.post(
+        `/api/v1/tenants/${useAuthStore.getState().selectedTenantId}/members/${userId}/offboard`,
+        { reason, transfer_resources_to },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenant-members'] })
+    },
+  })
+}

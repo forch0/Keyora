@@ -27,7 +27,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F19 | Activity Logs | [F19-activity-logs.md](modules/F19-activity-logs.md) | Complete | F03, F10 |
 | F20 | Security Alerts & Devices | [F20-security-alerts.md](modules/F20-security-alerts.md) | Complete | F03 |
 | F21 | Admin — Tenant & Member Management | [F21-admin-tenant-management.md](modules/F21-admin-tenant-management.md) | Complete | F10, F12 |
-| F22 | Admin — Employee Lifecycle & Offboarding | [F22-employee-lifecycle.md](modules/F22-employee-lifecycle.md) | Not Started | F13, F21 |
+| F22 | Admin — Employee Lifecycle & Offboarding | [F22-employee-lifecycle.md](modules/F22-employee-lifecycle.md) | Complete | F13, F21 |
 | F23 | Settings — Profile, Password & 2FA | [F23-settings.md](modules/F23-settings.md) | Not Started | F02 |
 | F24 | Re-authentication Flow | [F24-reauthentication.md](modules/F24-reauthentication.md) | Not Started | F02, F13 |
 | F25 | Global Error Handling & Rate Limit UX | [F25-error-handling.md](modules/F25-error-handling.md) | Not Started | F01 |

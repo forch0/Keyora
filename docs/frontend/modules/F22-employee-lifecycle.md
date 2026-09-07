@@ -5,7 +5,7 @@
 | **Module** | F22 |
 | **Name** | Admin — Employee Lifecycle & Offboarding |
 | **Dependencies** | F13, F21 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
