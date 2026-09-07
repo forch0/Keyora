@@ -72,7 +72,7 @@ export function useSearchVaultItems(q: string, enabled = true) {
   return useQuery<VaultItem[], ApiError>({
     queryKey: ['vault-items', 'search', q],
     queryFn: async () => {
-      const response = await api.get<{ data: VaultItem[] }>('/api/v1/vault/items/search', { q })
+      const response = await api.get<{ data: VaultItem[] }>('/api/v1/vault/search', { q })
       return response.data
     },
     enabled: enabled && q.length > 0,

@@ -32,7 +32,7 @@ export function useAccessSummary(resource: ResourceType, id: number) {
   return useQuery<AccessSummary, ApiError>({
     queryKey: ['access-summary', resource, id],
     queryFn: () => api.get<AccessSummary>(`/api/v1/${resource}/${id}/access/summary`),
-    enabled: id > 0,
+    enabled: id > 0 && resource === 'vault/items',
   })
 }
 
@@ -45,7 +45,7 @@ export function useAccessCountdown(resource: ResourceType, id: number) {
       )
       return res.data
     },
-    enabled: id > 0,
+    enabled: id > 0 && resource === 'vault/items',
   })
 }
 

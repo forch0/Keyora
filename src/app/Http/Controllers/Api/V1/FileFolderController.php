@@ -35,7 +35,10 @@ class FileFolderController extends Controller
         $folders = FileFolder::withoutTenant()
             ->where('tenant_id', $tenantId)
             ->whereNull('parent_id')
-            ->with(['children', 'files'])
+            ->with([
+                'children' => fn ($q) => $q->withoutTenant()->where('tenant_id', $tenantId),
+                'files' => fn ($q) => $q->withoutTenant()->where('tenant_id', $tenantId),
+            ])
             ->get();
 
         return FileFolderResource::collection($folders);

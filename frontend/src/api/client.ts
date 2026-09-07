@@ -25,7 +25,6 @@ const TENANT_AGNOSTIC_PATTERNS = [
   /^\/api\/v1\/security-alerts/,
   /^\/api\/v1\/devices/,
   /^\/api\/v1\/activity-logs$/,
-  /^\/api\/v1\/search/,
   /^\/api\/v1\/tools\//,
   /^\/api\/v1\/access-requests/,
   /^\/api\/v1\/secure-links\//,

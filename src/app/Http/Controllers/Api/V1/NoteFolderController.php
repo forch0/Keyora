@@ -40,7 +40,10 @@ class NoteFolderController extends Controller
                 }
             })
             ->whereNull('parent_id')
-            ->with(['children', 'notes'])
+            ->with([
+                'children',
+                'notes' => fn ($q) => $q->withoutTenant(),
+            ])
             ->get();
 
         return NoteFolderResource::collection($folders);
