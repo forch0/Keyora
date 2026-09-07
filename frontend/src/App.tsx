@@ -37,6 +37,9 @@ import { ExpiringAccessPage } from '@/features/search/pages/ExpiringAccessPage'
 import { ActivityLogsPage } from '@/features/activity-logs/pages/ActivityLogsPage'
 import { SecurityAlertsPage } from '@/features/security-alerts/pages/SecurityAlertsPage'
 import { DevicesPage } from '@/features/security-alerts/pages/DevicesPage'
+import { TenantSettingsPage } from '@/features/admin/pages/TenantSettingsPage'
+import { MembersListPage } from '@/features/admin/pages/MembersListPage'
+import { MemberDetailPage } from '@/features/admin/pages/MemberDetailPage'
 
 function App() {
   return (
@@ -87,6 +90,9 @@ function App() {
           <Route path="/security-alerts" element={<SecurityAlertsPage />} />
           <Route path="/settings/devices" element={<DevicesPage />} />
           <Route path="/admin" element={<CompanyDashboardPage />} />
+          <Route path="/admin/settings" element={<TenantSettingsPage />} />
+          <Route path="/admin/members" element={<MembersListPage />} />
+          <Route path="/admin/members/:id" element={<MemberDetailPage />} />
           <Route path="/admin/teams" element={<TeamsListPage />} />
           <Route path="/admin/teams/:teamId/members" element={<TeamMembersPage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" module="Module F23" />} />

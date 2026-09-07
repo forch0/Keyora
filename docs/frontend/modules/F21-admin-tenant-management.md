@@ -5,7 +5,7 @@
 | **Module** | F21 |
 | **Name** | Admin — Tenant & Member Management |
 | **Dependencies** | F10, F12 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
