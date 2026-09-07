@@ -5,7 +5,7 @@
 | **Module** | F24 |
 | **Name** | Re-authentication Flow |
 | **Dependencies** | F02, F13 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 

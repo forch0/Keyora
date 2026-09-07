@@ -41,6 +41,7 @@ import { TenantSettingsPage } from '@/features/admin/pages/TenantSettingsPage'
 import { MembersListPage } from '@/features/admin/pages/MembersListPage'
 import { MemberDetailPage } from '@/features/admin/pages/MemberDetailPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
+import { ReauthModal } from '@/components/ReauthModal'
 
 function App() {
   return (
@@ -103,6 +104,9 @@ function App() {
         {/* 404 catch-all */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+      {/* Global re-authentication modal (Module F24) */}
+      <ReauthModal />
     </Providers>
   )
 }
