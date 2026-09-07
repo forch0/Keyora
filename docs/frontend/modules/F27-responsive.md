@@ -5,7 +5,7 @@
 | **Module** | F27 |
 | **Name** | Responsive Design & Mobile |
 | **Dependencies** | All prior |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 

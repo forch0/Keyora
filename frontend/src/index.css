@@ -128,3 +128,44 @@
     @apply font-sans;
     }
 }
+
+/* ─── Responsive & mobile optimizations (Module F27) ──────────────────── */
+
+/* Prevent horizontal scroll on mobile from wide content */
+@layer base {
+  html, body {
+    overflow-x: hidden;
+  }
+}
+
+/* Ensure touch targets are at least 44x44 on mobile */
+@media (max-width: 767px) {
+  button,
+  [role="button"],
+  a.btn,
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* But not for inline buttons that are part of compact UI */
+  button.no-touch-min,
+  .no-touch-min button {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+/* Full-width inputs on mobile */
+@media (max-width: 639px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    width: 100%;
+  }
+}

@@ -87,11 +87,11 @@ export function TenantSwitcher() {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
-            <Building2 className="h-4 w-4" />
-            <span className="max-w-[120px] truncate">
+            <Building2 className="h-4 w-4 shrink-0" />
+            <span className="hidden max-w-[120px] truncate sm:inline">
               {currentTenant?.name ?? 'Select workspace'}
             </span>
-            <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+            <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64" align="start">

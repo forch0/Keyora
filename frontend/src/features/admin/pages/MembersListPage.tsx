@@ -60,16 +60,16 @@ export function MembersListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="shrink-0">
             <Link to="/admin">
               <ArrowLeft className="mr-1 h-4 w-4" />
               Admin
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Members</h1>
+            <h1 className="text-xl font-bold sm:text-2xl">Members</h1>
             <p className="text-muted-foreground text-sm">
               Manage workspace members and roles
             </p>
