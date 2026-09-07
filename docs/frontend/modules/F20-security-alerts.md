@@ -5,7 +5,7 @@
 | **Module** | F20 |
 | **Name** | Security Alerts & Devices |
 | **Dependencies** | F03 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 

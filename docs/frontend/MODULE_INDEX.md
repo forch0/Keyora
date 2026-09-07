@@ -25,7 +25,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F17 | Secure Notes | [F17-secure-notes.md](modules/F17-secure-notes.md) | Complete | F03, F10, F13 |
 | F18 | Search & Discovery | [F18-search.md](modules/F18-search.md) | Complete | F04, F11, F16, F17 |
 | F19 | Activity Logs | [F19-activity-logs.md](modules/F19-activity-logs.md) | Complete | F03, F10 |
-| F20 | Security Alerts & Devices | [F20-security-alerts.md](modules/F20-security-alerts.md) | Not Started | F03 |
+| F20 | Security Alerts & Devices | [F20-security-alerts.md](modules/F20-security-alerts.md) | Complete | F03 |
 | F21 | Admin — Tenant & Member Management | [F21-admin-tenant-management.md](modules/F21-admin-tenant-management.md) | Not Started | F10, F12 |
 | F22 | Admin — Employee Lifecycle & Offboarding | [F22-employee-lifecycle.md](modules/F22-employee-lifecycle.md) | Not Started | F13, F21 |
 | F23 | Settings — Profile, Password & 2FA | [F23-settings.md](modules/F23-settings.md) | Not Started | F02 |

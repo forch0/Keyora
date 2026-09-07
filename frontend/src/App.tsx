@@ -35,6 +35,8 @@ import { NoteTrashPage } from '@/features/secure-notes/pages/NoteTrashPage'
 import { RecentItemsPage } from '@/features/search/pages/RecentItemsPage'
 import { ExpiringAccessPage } from '@/features/search/pages/ExpiringAccessPage'
 import { ActivityLogsPage } from '@/features/activity-logs/pages/ActivityLogsPage'
+import { SecurityAlertsPage } from '@/features/security-alerts/pages/SecurityAlertsPage'
+import { DevicesPage } from '@/features/security-alerts/pages/DevicesPage'
 
 function App() {
   return (
@@ -82,6 +84,8 @@ function App() {
           <Route path="/recent" element={<RecentItemsPage />} />
           <Route path="/expiring" element={<ExpiringAccessPage />} />
           <Route path="/activity" element={<ActivityLogsPage />} />
+          <Route path="/security-alerts" element={<SecurityAlertsPage />} />
+          <Route path="/settings/devices" element={<DevicesPage />} />
           <Route path="/admin" element={<CompanyDashboardPage />} />
           <Route path="/admin/teams" element={<TeamsListPage />} />
           <Route path="/admin/teams/:teamId/members" element={<TeamMembersPage />} />

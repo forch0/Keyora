@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Menu, Search, Bell } from 'lucide-react'
+import { Menu, Search } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { UserMenu } from './UserMenu'
 import { TenantSwitcher } from './TenantSwitcher'
 import { GlobalSearchModal } from '@/features/search/components/GlobalSearchModal'
+import { SecurityAlertsBell } from '@/features/security-alerts/components/SecurityAlertsBell'
 
 export function Navbar() {
   const { setMobileSidebarOpen } = useUIStore()
@@ -47,15 +48,7 @@ export function Navbar() {
         </button>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Security alerts bell (Module F20) */}
-          <button
-            className="relative rounded-md p-2 hover:bg-accent"
-            aria-label="Security alerts"
-            onClick={() => {/* TODO: Module F20 — open alerts dropdown */}}
-          >
-            <Bell className="h-5 w-5" />
-            {/* TODO: Badge with unread count from Module F20 */}
-          </button>
+          <SecurityAlertsBell />
 
           <UserMenu />
         </div>
