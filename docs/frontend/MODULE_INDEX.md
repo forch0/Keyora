@@ -33,7 +33,7 @@ This document tracks all frontend build modules in dependency order. Each module
 | F25 | Global Error Handling & Rate Limit UX | [F25-error-handling.md](modules/F25-error-handling.md) | Complete | F01 |
 | F26 | Auto-lock & Session Management | [F26-auto-lock.md](modules/F26-auto-lock.md) | Complete | F02 |
 | F27 | Responsive Design & Mobile | [F27-responsive.md](modules/F27-responsive.md) | Complete | All prior |
-| F28 | Testing & QA | [F28-testing.md](modules/F28-testing.md) | Not Started | All prior |
+| F28 | Testing & QA | [F28-testing.md](modules/F28-testing.md) | Complete | All prior |
 | F29 | Production Build & Deployment | [F29-deployment.md](modules/F29-deployment.md) | Not Started | F28 |
 
 ## Status Legend
