@@ -40,6 +40,7 @@ import { DevicesPage } from '@/features/security-alerts/pages/DevicesPage'
 import { TenantSettingsPage } from '@/features/admin/pages/TenantSettingsPage'
 import { MembersListPage } from '@/features/admin/pages/MembersListPage'
 import { MemberDetailPage } from '@/features/admin/pages/MemberDetailPage'
+import { SettingsPage } from '@/features/settings/pages/SettingsPage'
 
 function App() {
   return (
@@ -95,7 +96,7 @@ function App() {
           <Route path="/admin/members/:id" element={<MemberDetailPage />} />
           <Route path="/admin/teams" element={<TeamsListPage />} />
           <Route path="/admin/teams/:teamId/members" element={<TeamMembersPage />} />
-          <Route path="/settings" element={<PlaceholderPage title="Settings" module="Module F23" />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/tools" element={<ToolsPage />} />
         </Route>
 

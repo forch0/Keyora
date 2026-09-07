@@ -5,7 +5,7 @@
 | **Module** | F23 |
 | **Name** | Settings — Profile, Password & 2FA |
 | **Dependencies** | F02 |
-| **Status** | Not Started |
+| **Status** | Complete |
 
 ---
 
