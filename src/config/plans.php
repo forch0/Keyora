@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Plan limits for Keyora tenants.
+ * Plan limits for Zekura tenants.
  *
  * Used by the usage dashboard (Module 24) to compare actual usage
  * against plan limits. Module 25 (billing) may extend this with

@@ -11,7 +11,7 @@
 
 ## Goal
 
-Provide a documented, tested procedure and tooling for rotating `APP_KEY` without losing encrypted data. Keyora uses server-side AES-256-CBC encryption keyed by `APP_KEY` — if the key is lost, all encrypted data is unrecoverable. If the key is rotated naively, all existing ciphertext becomes undecryptable.
+Provide a documented, tested procedure and tooling for rotating `APP_KEY` without losing encrypted data. Zekura uses server-side AES-256-CBC encryption keyed by `APP_KEY` — if the key is lost, all encrypted data is unrecoverable. If the key is rotated naively, all existing ciphertext becomes undecryptable.
 
 ---
 

@@ -1,12 +1,12 @@
-# Keyora Frontend — Getting Started
+# Zekura Frontend — Getting Started
 
-> **For frontend developers** joining the Keyora project. This doc covers everything you need to start building against the API.
+> **For frontend developers** joining the Zekura project. This doc covers everything you need to start building against the API.
 
 ---
 
-## 1. What is Keyora?
+## 1. What is Zekura?
 
-Keyora is an internal password and secrets management platform. It serves ~100 authenticated staff behind a VPN/firewall. The backend is a Laravel 13 REST API. You are building the React SPA that consumes it.
+Zekura is an internal password and secrets management platform. It serves ~100 authenticated staff behind a VPN/firewall. The backend is a Laravel 13 REST API. You are building the React SPA that consumes it.
 
 **Read these first:**
 - `docs/PRD.md` — product requirements, what the product does
@@ -26,7 +26,7 @@ Keyora is an internal password and secrets management platform. It serves ~100 a
 ### Start the backend
 
 ```bash
-cd /path/to/Keyora
+cd /path/to/Zekura
 docker compose up -d
 ```
 
@@ -84,7 +84,7 @@ See `AUTH_FLOWS.md` for the complete auth state machine.
 
 ## 4. Tenant resolution
 
-Keyora is multi-tenant. Most endpoints require a tenant (workspace) context.
+Zekura is multi-tenant. Most endpoints require a tenant (workspace) context.
 
 ### How to set tenant context
 
@@ -228,7 +228,7 @@ Rate-limited responses include a `Retry-After` header (seconds). Show the user a
 See `CONVENTIONS.md` for the full project setup. Quick start:
 
 ```bash
-# From the Keyora repo root
+# From the Zekura repo root
 mkdir frontend && cd frontend
 npm create vite@latest . -- --template react-ts
 npm install

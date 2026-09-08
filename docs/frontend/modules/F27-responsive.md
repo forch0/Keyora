@@ -11,7 +11,7 @@
 
 ## Objective
 
-Ensure the entire app works on mobile devices and tablets. While Keyora is primarily a desktop tool (internal staff), it should be usable on mobile for emergency access.
+Ensure the entire app works on mobile devices and tablets. While Zekura is primarily a desktop tool (internal staff), it should be usable on mobile for emergency access.
 
 ---
 

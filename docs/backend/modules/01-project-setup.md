@@ -34,7 +34,7 @@ composer create-project laravel/laravel src
 **Project structure after this step:**
 
 ```
-Keyora/
+Zekura/
 ├── src/                  ← Laravel application
 │   ├── app/
 │   ├── bootstrap/
@@ -134,14 +134,14 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: keyora-app
+    container_name: zekura-app
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - ./src:/var/www/html
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
-      - keyora
+      - zekura
     depends_on:
       postgres:
         condition: service_healthy
@@ -150,7 +150,7 @@ services:
 
   nginx:
     image: nginx:1.25-alpine
-    container_name: keyora-nginx
+    container_name: zekura-nginx
     restart: unless-stopped
     ports:
       - "8080:80"
@@ -158,40 +158,40 @@ services:
       - ./src:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
-      - keyora
+      - zekura
     depends_on:
       - app
 
   postgres:
     image: postgres:16-alpine
-    container_name: keyora-postgres
+    container_name: zekura-postgres
     restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-keyora}
-      POSTGRES_USER: ${DB_USERNAME:-keyora}
+      POSTGRES_DB: ${DB_DATABASE:-zekura}
+      POSTGRES_USER: ${DB_USERNAME:-zekura}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
-      - keyora-postgres:/var/lib/postgresql/data
+      - zekura-postgres:/var/lib/postgresql/data
     networks:
-      - keyora
+      - zekura
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-keyora} -d ${DB_DATABASE:-keyora}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-zekura} -d ${DB_DATABASE:-zekura}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: keyora-redis
+    container_name: zekura-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - keyora-redis:/data
+      - zekura-redis:/data
     networks:
-      - keyora
+      - zekura
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -201,21 +201,21 @@ services:
   # Optional: Mailpit for local email testing
   mailpit:
     image: axllent/mailpit:latest
-    container_name: keyora-mailpit
+    container_name: zekura-mailpit
     restart: unless-stopped
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
     networks:
-      - keyora
+      - zekura
 
 networks:
-  keyora:
+  zekura:
     driver: bridge
 
 volumes:
-  keyora-postgres:
-  keyora-redis:
+  zekura-postgres:
+  zekura-redis:
 ```
 
 > **Day-to-day:** Only `postgres`, `redis`, and `mailpit` are started. The `app` and `nginx` services are kept for optional full-Docker mode but are not used during native PHP development.
@@ -284,8 +284,8 @@ APP_URL=http://localhost:8000
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=keyora
-DB_USERNAME=keyora
+DB_DATABASE=zekura
+DB_USERNAME=zekura
 DB_PASSWORD=secret
 
 QUEUE_CONNECTION=redis
@@ -296,7 +296,7 @@ REDIS_PORT=6379
 MAIL_MAILER=smtp
 MAIL_HOST=127.0.0.1
 MAIL_PORT=1025
-MAIL_FROM_ADDRESS=noreply@keyora.app
+MAIL_FROM_ADDRESS=noreply@zekura.app
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 

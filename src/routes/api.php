@@ -310,20 +310,8 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('rate.limit:write');
         Route::post('/bulk', [SecureFileController::class, 'bulkStore'])
             ->middleware('rate.limit:write');
-        Route::get('/{file}', [SecureFileController::class, 'show']);
-        Route::get('/{file}/download', [SecureFileController::class, 'download']);
-        Route::put('/{file}', [SecureFileController::class, 'update'])
-            ->middleware('rate.limit:write');
-        Route::post('/{file}/replace', [SecureFileController::class, 'replace'])
-            ->middleware('rate.limit:write');
-        Route::delete('/{file}', [SecureFileController::class, 'destroy'])
-            ->middleware('rate.limit:sensitive');
-        Route::post('/{file}/archive', [SecureFileController::class, 'archive'])
-            ->middleware('rate.limit:write');
-        Route::post('/{file}/restore', [SecureFileController::class, 'restore'])
-            ->middleware('rate.limit:write');
 
-        // File soft-delete management (Module 29)
+        // Static routes MUST come before /{file} wildcard to avoid matching
         Route::get('/trash', [SecureFileController::class, 'trash']);
         Route::post('/trash/{file}/restore', [SecureFileController::class, 'restoreFromTrash'])
             ->middleware('rate.limit:write');
@@ -338,6 +326,20 @@ Route::prefix('v1')->group(function (): void {
         Route::put('/folders/{folder}', [FileFolderController::class, 'update'])
             ->middleware('rate.limit:write');
         Route::delete('/folders/{folder}', [FileFolderController::class, 'destroy'])
+            ->middleware('rate.limit:write');
+
+        // Wildcard routes — must come after all static routes
+        Route::get('/{file}', [SecureFileController::class, 'show'])->whereNumber('file');
+        Route::get('/{file}/download', [SecureFileController::class, 'download']);
+        Route::put('/{file}', [SecureFileController::class, 'update'])
+            ->middleware('rate.limit:write');
+        Route::post('/{file}/replace', [SecureFileController::class, 'replace'])
+            ->middleware('rate.limit:write');
+        Route::delete('/{file}', [SecureFileController::class, 'destroy'])
+            ->middleware('rate.limit:sensitive');
+        Route::post('/{file}/archive', [SecureFileController::class, 'archive'])
+            ->middleware('rate.limit:write');
+        Route::post('/{file}/restore', [SecureFileController::class, 'restore'])
             ->middleware('rate.limit:write');
 
         // File access grants — sharing
@@ -363,15 +365,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/', [SecureNoteController::class, 'store'])
             ->middleware('rate.limit:write');
         Route::get('/search', [SecureNoteController::class, 'search']);
-        Route::get('/{note}', [SecureNoteController::class, 'show']);
-        Route::put('/{note}', [SecureNoteController::class, 'update'])
-            ->middleware('rate.limit:write');
-        Route::delete('/{note}', [SecureNoteController::class, 'destroy'])
-            ->middleware('rate.limit:sensitive');
-        Route::post('/{note}/pin', [SecureNoteController::class, 'togglePin'])
-            ->middleware('rate.limit:write');
 
-        // Note soft-delete management (Module 29)
+        // Static routes MUST come before /{note} wildcard to avoid matching
         Route::get('/trash', [SecureNoteController::class, 'trash']);
         Route::post('/trash/{note}/restore', [SecureNoteController::class, 'restoreFromTrash'])
             ->middleware('rate.limit:write');
@@ -379,6 +374,23 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('reauth', 'rate.limit:sensitive');
         Route::delete('/trash', [SecureNoteController::class, 'emptyTrash'])
             ->middleware('reauth', 'rate.limit:sensitive');
+
+        Route::get('/folders', [NoteFolderController::class, 'index']);
+        Route::post('/folders', [NoteFolderController::class, 'store'])
+            ->middleware('rate.limit:write');
+        Route::put('/folders/{folder}', [NoteFolderController::class, 'update'])
+            ->middleware('rate.limit:write');
+        Route::delete('/folders/{folder}', [NoteFolderController::class, 'destroy'])
+            ->middleware('rate.limit:write');
+
+        // Wildcard routes — must come after all static routes
+        Route::get('/{note}', [SecureNoteController::class, 'show'])->whereNumber('note');
+        Route::put('/{note}', [SecureNoteController::class, 'update'])
+            ->middleware('rate.limit:write');
+        Route::delete('/{note}', [SecureNoteController::class, 'destroy'])
+            ->middleware('rate.limit:sensitive');
+        Route::post('/{note}/pin', [SecureNoteController::class, 'togglePin'])
+            ->middleware('rate.limit:write');
 
         Route::get('/{note}/access', [NoteAccessController::class, 'index']);
         Route::post('/{note}/access', [NoteAccessController::class, 'store'])
@@ -394,14 +406,6 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/{note}/share-links', [SecureLinkController::class, 'indexForNote']);
         Route::post('/{note}/share-links', [SecureLinkController::class, 'storeForNote'])
             ->middleware('rate.limit:sensitive');
-
-        Route::get('/folders', [NoteFolderController::class, 'index']);
-        Route::post('/folders', [NoteFolderController::class, 'store'])
-            ->middleware('rate.limit:write');
-        Route::put('/folders/{folder}', [NoteFolderController::class, 'update'])
-            ->middleware('rate.limit:write');
-        Route::delete('/folders/{folder}', [NoteFolderController::class, 'destroy'])
-            ->middleware('rate.limit:write');
     });
 
     // Access requests — request workflow for resources users don't have access to

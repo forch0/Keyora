@@ -1,6 +1,6 @@
 # Architecture & Coding Guidelines
 
-# Keyora — Technical Architecture & Development Standards
+# Zekura — Technical Architecture & Development Standards
 
 | Field | Value |
 |---|---|
@@ -97,7 +97,7 @@
 
 **Context**
 
-Keyora is being built as a SaaS product. The initial deliverable is a RESTful API. A frontend (web, mobile, or browser extension) will consume this API later.
+Zekura is being built as a SaaS product. The initial deliverable is a RESTful API. A frontend (web, mobile, or browser extension) will consume this API later.
 
 **Decision**
 
@@ -125,7 +125,7 @@ Build an **API-first** architecture. All business logic lives behind API endpoin
 
 **Context**
 
-Keyora serves multiple companies (workspaces). Each company's data must be isolated. We need to decide between single-database with tenant scoping vs. database-per-tenant.
+Zekura serves multiple companies (workspaces). Each company's data must be isolated. We need to decide between single-database with tenant scoping vs. database-per-tenant.
 
 **Decision**
 
@@ -162,7 +162,7 @@ Use **single database with `tenant_id` column scoping**. Each company workspace 
 
 **Context**
 
-Keyora stores highly sensitive data (passwords, API keys, credentials). This data must be encrypted at rest.
+Zekura stores highly sensitive data (passwords, API keys, credentials). This data must be encrypted at rest.
 
 **Decision**
 
@@ -474,7 +474,7 @@ The MVP is API-only. A frontend will be built later to consume the API.
 
 **Context**
 
-Keyora was originally planned as a SaaS product with Paystack billing. The project direction has changed — it will be open-sourced with no billing.
+Zekura was originally planned as a SaaS product with Paystack billing. The project direction has changed — it will be open-sourced with no billing.
 
 **Decision**
 
@@ -965,7 +965,7 @@ $table->unsignedBigInteger('tenant_id');
 ### 5.2 URL Structure
 
 ```
-Base URL: https://api.keyora.app/api/v1
+Base URL: https://api.zekura.app/api/v1
 
 Resource endpoints:
 
@@ -1109,10 +1109,10 @@ All API responses use a consistent envelope:
     "last_page": 4
   },
   "links": {
-    "first": "https://api.keyora.app/api/v1/vault/items?page=1",
-    "last": "https://api.keyora.app/api/v1/vault/items?page=4",
+    "first": "https://api.zekura.app/api/v1/vault/items?page=1",
+    "last": "https://api.zekura.app/api/v1/vault/items?page=4",
     "prev": null,
-    "next": "https://api.keyora.app/api/v1/vault/items?page=2"
+    "next": "https://api.zekura.app/api/v1/vault/items?page=2"
   }
 }
 ```

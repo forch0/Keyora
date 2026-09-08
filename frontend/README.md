@@ -1,6 +1,6 @@
-# Keyora Frontend
+# Zekura Frontend
 
-React SPA for the Keyora password and secrets management platform.
+React SPA for the Zekura password and secrets management platform.
 
 ## Quick Start
 
@@ -27,7 +27,7 @@ npm run gen:api
 ## Prerequisites
 
 - Node.js 22+
-- The Keyora Laravel API running on `localhost:8000`
+- The Zekura Laravel API running on `localhost:8000`
 
 ## Tech Stack
 

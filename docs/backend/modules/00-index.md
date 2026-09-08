@@ -1,4 +1,4 @@
-# Keyora — Module Index
+# Zekura — Module Index
 
 This document tracks all build modules in dependency order. Each module is a single-responsibility unit of work. Complete modules in order — later modules depend on earlier ones.
 

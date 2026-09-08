@@ -1,4 +1,4 @@
-# Keyora Frontend — Auth Flows
+# Zekura Frontend — Auth Flows
 
 > Complete authentication state machine for the React SPA. Every flow, every endpoint, every edge case.
 

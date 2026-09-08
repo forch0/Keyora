@@ -104,13 +104,13 @@ class PersonalVaultItemTest extends TestCase
                     'db_type' => 'postgresql',
                     'host' => 'db.internal',
                     'port' => 5432,
-                    'database_name' => 'keyora_prod',
+                    'database_name' => 'zekura_prod',
                 ],
             ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('data.metadata.db_type', 'postgresql')
-            ->assertJsonPath('data.metadata.database_name', 'keyora_prod');
+            ->assertJsonPath('data.metadata.database_name', 'zekura_prod');
     }
 
     public function test_user_can_add_custom_fields(): void

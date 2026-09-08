@@ -37,7 +37,7 @@ class TwoFactorService
      */
     public function getQrCodeUri(User $user, string $secret): string
     {
-        $issuer = rawurlencode(config('app.name', 'Keyora'));
+        $issuer = rawurlencode(config('app.name', 'Zekura'));
         $label = rawurlencode($user->email);
 
         return "otpauth://totp/{$label}?secret={$secret}&issuer={$issuer}&digits=".self::TOTP_DIGITS.'&period='.self::TOTP_PERIOD;

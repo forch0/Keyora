@@ -7,10 +7,10 @@ import type { ApiError } from '@/types/api-error'
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 /** Event emitted when a 423 Locked response is received (re-auth required). */
-export const REAUTH_REQUIRED_EVENT = 'keyora:reauth-required'
+export const REAUTH_REQUIRED_EVENT = 'zekura:reauth-required'
 
 /** Event emitted when a 401 Unauthorized response is received (session expired). */
-export const SESSION_EXPIRED_EVENT = 'keyora:session-expired'
+export const SESSION_EXPIRED_EVENT = 'zekura:session-expired'
 
 /** Endpoints that are not tenant-scoped and should not send X-Tenant-ID. */
 const TENANT_AGNOSTIC_PATTERNS = [

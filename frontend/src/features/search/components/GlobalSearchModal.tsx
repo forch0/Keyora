@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useGlobalSearch } from '@/features/search/hooks/use-search'
 import type { SearchResults } from '@/types/search'
 
-const RECENT_SEARCHES_KEY = 'keyora_recent_searches'
+const RECENT_SEARCHES_KEY = 'zekura_recent_searches'
 const MAX_RECENT = 5
 
 function loadRecentSearches(): string[] {

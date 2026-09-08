@@ -1,4 +1,4 @@
-# Keyora Frontend — Conventions & Standards
+# Zekura Frontend — Conventions & Standards
 
 > Coding standards, project structure, and tooling for the React SPA.
 
@@ -435,7 +435,7 @@ const API_BASE = import.meta.env.VITE_API_URL ?? ''
 
 ## 12. Accessibility
 
-Keyora is an internal tool but accessibility still matters:
+Zekura is an internal tool but accessibility still matters:
 
 - All interactive elements must be keyboard-accessible
 - Forms must have proper labels (`<label>` or `aria-label`)

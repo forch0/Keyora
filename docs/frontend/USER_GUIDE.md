@@ -1,6 +1,6 @@
-# Keyora — User Guide
+# Zekura — User Guide
 
-A complete step-by-step manual for every feature in the Keyora password and secrets management platform.
+A complete step-by-step manual for every feature in the Zekura password and secrets management platform.
 
 ---
 
@@ -101,8 +101,8 @@ A complete step-by-step manual for every feature in the Keyora password and secr
 
 ### 1.1 Sign In
 
-1. Navigate to the Keyora URL in your browser.
-2. You will see the **Sign in to Keyora** page.
+1. Navigate to the Zekura URL in your browser.
+2. You will see the **Sign in to Zekura** page.
 3. Click the **Email** field and type your email address.
 4. Click the **Password** field and type your password.
 5. Click the **Sign in** button.
@@ -979,7 +979,7 @@ After enabling 2FA, your recovery codes are displayed once. Save them in a secur
 
 **Download recovery codes:**
 1. Click **Download**.
-2. A file named `keyora-recovery-codes.txt` is downloaded to your computer.
+2. A file named `zekura-recovery-codes.txt` is downloaded to your computer.
 
 > **Important:** Each recovery code can only be used once. Store them securely. If you lose both your authenticator device and your recovery codes, you will need to contact an administrator.
 

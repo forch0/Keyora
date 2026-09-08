@@ -10,7 +10,7 @@ interface LockState {
   setTimeout: (minutes: LockTimeout) => void
 }
 
-const LOCK_TIMEOUT_KEY = 'keyora_lock_timeout'
+const LOCK_TIMEOUT_KEY = 'zekura_lock_timeout'
 
 function getStoredTimeout(): LockTimeout {
   try {

@@ -45,11 +45,11 @@ return [
 
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
-        'description' => 'Keyora — Open-source password management API. Secure, multi-tenant vault for passwords, files, notes, and credentials with granular sharing, 2FA, and audit logging.',
+        'description' => 'Zekura — Open-source password management API. Secure, multi-tenant vault for passwords, files, notes, and credentials with granular sharing, 2FA, and audit logging.',
     ],
 
     'ui' => [
-        'title' => 'Keyora API Documentation',
+        'title' => 'Zekura API Documentation',
     ],
 
     /*

@@ -30,8 +30,8 @@ interface AuthState {
   clear: () => void
 }
 
-const TOKEN_KEY = 'keyora_token'
-const TENANT_KEY = 'keyora_tenant_id'
+const TOKEN_KEY = 'zekura_token'
+const TENANT_KEY = 'zekura_tenant_id'
 
 function getStoredToken(): string | null {
   try {

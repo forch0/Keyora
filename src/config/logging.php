@@ -76,7 +76,7 @@ return [
 
         'json' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/keyora.json.log'),
+            'path' => storage_path('logs/zekura.json.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,

@@ -395,11 +395,11 @@ function TwoFactorSection() {
   const handleDownloadCodes = () => {
     if (!recoveryCodes) return
     const codes = Array.isArray(recoveryCodes) ? recoveryCodes.join('\n') : recoveryCodes
-    const blob = new Blob([`Keyora Recovery Codes\n\n${codes}\n`], { type: 'text/plain' })
+    const blob = new Blob([`Zekura Recovery Codes\n\n${codes}\n`], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'keyora-recovery-codes.txt'
+    a.download = 'zekura-recovery-codes.txt'
     a.click()
     URL.revokeObjectURL(url)
   }

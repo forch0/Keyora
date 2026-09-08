@@ -1,4 +1,4 @@
-# Keyora Frontend — Module Index
+# Zekura Frontend — Module Index
 
 This document tracks all frontend build modules in dependency order. Each module is a single-responsibility unit of work. Complete modules in order — later modules depend on earlier ones being complete.
 
@@ -59,4 +59,4 @@ Each module is designed to be a **1-3 day unit of work**. Larger features (perso
 
 ## API Coverage
 
-These 29 modules cover **all 100+ API endpoints** in the Keyora backend. No endpoint is left unhandled. See `UI_ROADMAP.md` for the full endpoint-to-screen mapping.
+These 29 modules cover **all 100+ API endpoints** in the Zekura backend. No endpoint is left unhandled. See `UI_ROADMAP.md` for the full endpoint-to-screen mapping.

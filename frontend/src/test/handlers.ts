@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw'
 
 /**
  * Default MSW handlers for testing.
- * These mock the Keyora API endpoints used in tests.
+ * These mock the Zekura API endpoints used in tests.
  */
 export const handlers = [
   // ─── CSRF ────────────────────────────────────────────────────────────────

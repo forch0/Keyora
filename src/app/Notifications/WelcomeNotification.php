@@ -25,8 +25,8 @@ class WelcomeNotification extends Notification implements ShouldQueue
     public function toMail(User $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Welcome to Keyora')
-            ->line("Welcome to Keyora, {$notifiable->name}! Your account has been created successfully.")
+            ->subject('Welcome to Zekura')
+            ->line("Welcome to Zekura, {$notifiable->name}! Your account has been created successfully.")
             ->line('If you have any questions, feel free to reach out to our support team.');
     }
 }

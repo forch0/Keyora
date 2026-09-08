@@ -1,6 +1,6 @@
-# 🔐 Keyora
+# 🔐 Zekura
 
-**Keyora** is a secure, full-featured password and secrets management platform built with Laravel. It provides personal vaults for individuals and shared workspaces for teams and organizations — covering everything from credential storage and secure file sharing to granular access control, temporary access, and full audit trails.
+**Zekura** is a secure, full-featured password and secrets management platform built with Laravel. It provides personal vaults for individuals and shared workspaces for teams and organizations — covering everything from credential storage and secure file sharing to granular access control, temporary access, and full audit trails.
 
 ---
 
@@ -35,7 +35,7 @@
 
 ## Overview
 
-Keyora is designed to be a comprehensive secrets management solution that serves both individuals and organizations. It combines the convenience of a personal password manager with the governance, sharing, and auditing capabilities required by teams and enterprises.
+Zekura is designed to be a comprehensive secrets management solution that serves both individuals and organizations. It combines the convenience of a personal password manager with the governance, sharing, and auditing capabilities required by teams and enterprises.
 
 ### Core Value Propositions
 
@@ -47,9 +47,9 @@ Keyora is designed to be a comprehensive secrets management solution that serves
 
 ### Security Model
 
-Keyora uses **server-side encryption** (AES-256-CBC via Laravel's `Crypt` facade, keyed by `APP_KEY`). Sensitive fields — passwords, usernames, notes, file metadata — are encrypted at rest in the database. This is **not** zero-knowledge / client-side encryption: the server can decrypt stored values to serve them to authenticated users. Protect `APP_KEY` and database access accordingly.
+Zekura uses **server-side encryption** (AES-256-CBC via Laravel's `Crypt` facade, keyed by `APP_KEY`). Sensitive fields — passwords, usernames, notes, file metadata — are encrypted at rest in the database. This is **not** zero-knowledge / client-side encryption: the server can decrypt stored values to serve them to authenticated users. Protect `APP_KEY` and database access accordingly.
 
-**Threat model**: Keyora is designed as an **internal tool** for a single company and its subsidiaries (~100 authenticated staff), deployed behind a VPN/firewall with no public attack surface. All API endpoints (except health check and auth) require authentication via Laravel Sanctum.
+**Threat model**: Zekura is designed as an **internal tool** for a single company and its subsidiaries (~100 authenticated staff), deployed behind a VPN/firewall with no public attack surface. All API endpoints (except health check and auth) require authentication via Laravel Sanctum.
 
 ---
 
@@ -256,7 +256,7 @@ Extensible platform with API access and third-party integrations.
 
 ### Advanced / Differentiating Features
 
-Standout capabilities that set Keyora apart:
+Standout capabilities that set Zekura apart:
 
 - **Access starts when first viewed** — The clock starts ticking only when the recipient actually opens the shared resource.
 - **One-time secret & file access** — Access self-destructs after a single view.
@@ -310,8 +310,8 @@ Standout capabilities that set Keyora apart:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/keyora.git
-cd keyora
+git clone https://github.com/your-username/zekura.git
+cd zekura
 
 # Build and start all containers
 docker compose up -d --build
@@ -332,8 +332,8 @@ Navigate to `http://localhost:8080/api/v1/` to verify the API is running.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/keyora.git
-cd keyora
+git clone https://github.com/your-username/zekura.git
+cd zekura
 
 # Install PHP dependencies
 cd src && composer install
@@ -366,7 +366,7 @@ Navigate to `http://localhost:8000` to access the application.
 ## Project Structure
 
 ```
-keyora/
+zekura/
 ├── src/                        # Laravel application
 │   ├── app/
 │   │   ├── Actions/             # Single-action business logic classes

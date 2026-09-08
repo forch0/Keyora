@@ -65,7 +65,7 @@ function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sign in to Keyora</CardTitle>
+        <CardTitle>Sign in to Zekura</CardTitle>
         <CardDescription>Enter your credentials to access your vault</CardDescription>
       </CardHeader>
       <CardContent>

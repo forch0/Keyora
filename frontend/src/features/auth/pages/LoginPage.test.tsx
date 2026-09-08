@@ -12,7 +12,7 @@ describe('Login flow', () => {
 
   it('renders login form', () => {
     renderWithProviders(<LoginPage />)
-    expect(screen.getByText('Sign in to Keyora')).toBeInTheDocument()
+    expect(screen.getByText('Sign in to Zekura')).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
   })
@@ -25,7 +25,7 @@ describe('Login flow', () => {
     await user.click(submitButton)
 
     // HTML5 validation should prevent submission
-    expect(screen.getByText('Sign in to Keyora')).toBeInTheDocument()
+    expect(screen.getByText('Sign in to Zekura')).toBeInTheDocument()
   })
 
   it('logs in successfully with valid credentials', async () => {

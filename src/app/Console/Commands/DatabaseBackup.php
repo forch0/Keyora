@@ -30,7 +30,7 @@ class DatabaseBackup extends Command
         }
 
         $timestamp = now()->format('Y-m-d_His');
-        $filename = "keyora_backup_{$timestamp}.sql";
+        $filename = "zekura_backup_{$timestamp}.sql";
         $filepath = "{$backupDir}/{$filename}";
 
         try {

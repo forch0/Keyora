@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Rate limit profiles for Keyora API endpoints.
+ * Rate limit profiles for Zekura API endpoints.
  *
  * Used by the RateLimitByProfile middleware. Each profile defines
  * a limit (max requests) and window (in minutes).

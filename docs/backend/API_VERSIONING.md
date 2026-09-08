@@ -1,4 +1,4 @@
-# Keyora — API Versioning Strategy
+# Zekura — API Versioning Strategy
 
 > **Scope**: Internal tool for a single company with subsidiaries, max ~100 staff.
 > All API endpoints are under `/api/v1/`.
@@ -17,7 +17,7 @@
 
 ### URL-based versioning
 
-Keyora uses **URL-based versioning** (`/api/v1/`, `/api/v2/`, etc.) rather than header-based content negotiation. This is simpler for an internal tool and makes version explicit in client code.
+Zekura uses **URL-based versioning** (`/api/v1/`, `/api/v2/`, etc.) rather than header-based content negotiation. This is simpler for an internal tool and makes version explicit in client code.
 
 ### What counts as a breaking change
 
@@ -54,7 +54,7 @@ Keyora uses **URL-based versioning** (`/api/v1/`, `/api/v2/`, etc.) rather than 
 
 ### Deprecation communication
 
-Since Keyora is an internal tool with ~100 authenticated users, deprecation will be communicated via:
+Since Zekura is an internal tool with ~100 authenticated users, deprecation will be communicated via:
 
 1. A `Deprecation` HTTP header on affected `v1` responses.
 2. A `Sunset` HTTP header indicating when `v1` will be removed.
@@ -63,4 +63,4 @@ Since Keyora is an internal tool with ~100 authenticated users, deprecation will
 
 ### No auto-versioning
 
-Keyora does not auto-increment versions. Version bumps are deliberate, manual, and communicated ahead of time. There is no `Accept: application/vnd.keyora.v1+json` header strategy — the version is always in the URL.
+Zekura does not auto-increment versions. Version bumps are deliberate, manual, and communicated ahead of time. There is no `Accept: application/vnd.zekura.v1+json` header strategy — the version is always in the URL.

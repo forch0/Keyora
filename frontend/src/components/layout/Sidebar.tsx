@@ -62,7 +62,7 @@ export function Sidebar() {
         {/* Logo / app name */}
         <div className="flex h-14 items-center gap-2 border-b px-4">
           <Lock className="h-6 w-6 shrink-0 text-primary" />
-          {!sidebarCollapsed && <span className="font-bold text-lg">Keyora</span>}
+          {!sidebarCollapsed && <span className="font-bold text-lg">Zekura</span>}
           <button
             className="ml-auto lg:hidden"
             onClick={() => setMobileSidebarOpen(false)}

@@ -44,7 +44,7 @@ class DatabaseBackupTest extends TestCase
 
         // Create 5 backup files with different timestamps
         for ($i = 0; $i < 5; $i++) {
-            $filename = "keyora_backup_2026-09-0{$i}_000000.sql";
+            $filename = "zekura_backup_2026-09-0{$i}_000000.sql";
             File::put("{$this->backupDir}/{$filename}", '-- old backup --');
             // Slightly modify mtime so rotation order is deterministic
             touch("{$this->backupDir}/{$filename}", now()->subDays(5 - $i)->timestamp);

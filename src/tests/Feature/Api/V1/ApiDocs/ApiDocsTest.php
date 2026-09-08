@@ -28,7 +28,7 @@ class ApiDocsTest extends TestCase
         $response = $this->getJson('/docs/api.json');
 
         $response->assertStatus(200);
-        $response->assertJsonPath('info.title', 'Keyora API Documentation');
+        $response->assertJsonPath('info.title', 'Zekura API Documentation');
     }
 
     public function test_openapi_spec_has_correct_version(): void

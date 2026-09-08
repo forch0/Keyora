@@ -1,4 +1,4 @@
-# Keyora — Build Log
+# Zekura — Build Log
 
 > Track implementation progress across all modules. Update after each module is completed.
 

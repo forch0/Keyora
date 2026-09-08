@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 
-# Keyora — Secure Password & Secrets Management Platform
+# Zekura — Secure Password & Secrets Management Platform
 
 | Field | Value |
 |---|---|
-| **Product Name** | Keyora |
+| **Product Name** | Zekura |
 | **Document Version** | 1.0 |
 | **Status** | Draft |
 | **Last Updated** | 2026-08-31 |
@@ -14,7 +14,7 @@
 
 ## 1. Executive Summary
 
-Keyora is a secure, multi-tenant password and secrets management platform built with Laravel. It serves both individuals (personal vaults) and organizations (shared company workspaces) with granular access control, temporary access, secure file sharing, and full audit trails.
+Zekura is a secure, multi-tenant password and secrets management platform built with Laravel. It serves both individuals (personal vaults) and organizations (shared company workspaces) with granular access control, temporary access, secure file sharing, and full audit trails.
 
 The platform differentiates itself through time-bound and one-time access mechanisms, approval-based access workflows, dynamic document watermarking, and comprehensive employee lifecycle management — capabilities typically found only in enterprise-grade solutions.
 

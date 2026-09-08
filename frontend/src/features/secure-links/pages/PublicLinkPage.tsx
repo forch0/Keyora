@@ -179,7 +179,7 @@ export function PublicLinkPage() {
           </Card>
 
           <p className="text-center text-muted-foreground text-xs">
-            This resource was shared via Keyora secure link. Your access has been logged.
+            This resource was shared via Zekura secure link. Your access has been logged.
           </p>
         </div>
       </div>

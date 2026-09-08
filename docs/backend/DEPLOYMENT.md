@@ -1,4 +1,4 @@
-# Keyora — Deployment Runbook
+# Zekura — Deployment Runbook
 
 > **Scope**: Internal tool for a single company with subsidiaries, max ~100 staff.
 > **Threat model**: Behind VPN/firewall, authenticated employees, no public attack surface.
@@ -36,18 +36,18 @@ Copy `.env.example` to `.env` and configure the following:
 
 ```bash
 # Application
-APP_NAME=Keyora
+APP_NAME=Zekura
 APP_ENV=production
 APP_KEY=              # Generate with: php artisan key:generate
 APP_DEBUG=false
-APP_URL=https://keyora.your-company.internal
+APP_URL=https://zekura.your-company.internal
 
 # Database — PostgreSQL 16 is the primary and recommended engine
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=keyora
-DB_USERNAME=keyora
+DB_DATABASE=zekura
+DB_USERNAME=zekura
 DB_PASSWORD=<strong-password>
 
 # Redis (queue + cache)
@@ -68,7 +68,7 @@ MAIL_PORT=587
 MAIL_USERNAME=<smtp-user>
 MAIL_PASSWORD=<smtp-password>
 MAIL_FROM_ADDRESS="noreply@your-company.internal"
-MAIL_FROM_NAME="Keyora"
+MAIL_FROM_NAME="Zekura"
 
 # Filesystem — local private disk for encrypted files
 FILESYSTEM_DISK=local
@@ -89,8 +89,8 @@ FILESYSTEM_DISK=local
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url> /opt/keyora
-cd /opt/keyora/src
+git clone <repo-url> /opt/zekura
+cd /opt/zekura/src
 
 # 2. Install PHP dependencies (no dev packages in production)
 composer install --no-dev --optimize-autoloader
@@ -118,12 +118,12 @@ php artisan view:cache
 
 ### Queue Worker (Supervisor)
 
-Create `/etc/supervisor/conf.d/keyora-worker.conf`:
+Create `/etc/supervisor/conf.d/zekura-worker.conf`:
 
 ```ini
-[program:keyora-worker]
+[program:zekura-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /opt/keyora/src/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+command=php /opt/zekura/src/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -131,14 +131,14 @@ killasgroup=true
 user=www-data
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/opt/keyora/src/storage/logs/worker.log
+stdout_logfile=/opt/zekura/src/storage/logs/worker.log
 stopwaitsecs=3600
 ```
 
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start keyora-worker:*
+sudo supervisorctl start zekura-worker:*
 ```
 
 ### Scheduled Tasks (Cron)
@@ -146,7 +146,7 @@ sudo supervisorctl start keyora-worker:*
 Add to crontab for the `www-data` user:
 
 ```bash
-* * * * * cd /opt/keyora/src && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /opt/zekura/src && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 This runs the following scheduled tasks:
@@ -168,14 +168,14 @@ Backups run automatically via the scheduler at 2 AM daily. The `db:backup` comma
 - Rotates old backups (keeps 7 by default)
 - Supports MySQL (`mysqldump`), PostgreSQL (`pg_dump`), and SQLite
 
-**Backup location**: `storage/app/backups/keyora_backup_YYYY-MM-DD_HHMMSS.sql`
+**Backup location**: `storage/app/backups/zekura_backup_YYYY-MM-DD_HHMMSS.sql`
 
 ### Manual Backup
 
 ```bash
 php artisan db:backup --keep=7
 # Or with a custom path:
-php artisan db:backup --path=/mnt/backups/keyora --keep=30
+php artisan db:backup --path=/mnt/backups/zekura --keep=30
 ```
 
 ### Pre-Migration Backup
@@ -198,9 +198,9 @@ php artisan migrate --force
 
 ```bash
 # Sync backups to off-site storage daily
-rsync -avz /opt/keyora/src/storage/app/backups/ backup-server:/backups/keyora/
+rsync -avz /opt/zekura/src/storage/app/backups/ backup-server:/backups/zekura/
 # Sync encrypted files
-rsync -avz /opt/keyora/src/storage/app/private/ backup-server:/backups/keyora-files/
+rsync -avz /opt/zekura/src/storage/app/private/ backup-server:/backups/zekura-files/
 ```
 
 ---
@@ -213,47 +213,47 @@ rsync -avz /opt/keyora/src/storage/app/private/ backup-server:/backups/keyora-fi
 
 ```bash
 # 1. Stop the application (queue workers, web server)
-sudo supervisorctl stop keyora-worker:*
+sudo supervisorctl stop zekura-worker:*
 sudo systemctl stop nginx
 
 # 2. Drop and recreate the database
-psql -U postgres -c "DROP DATABASE keyora;"
-psql -U postgres -c "CREATE DATABASE keyora OWNER keyora;"
+psql -U postgres -c "DROP DATABASE zekura;"
+psql -U postgres -c "CREATE DATABASE zekura OWNER zekura;"
 
 # 3. Restore from backup
-psql -U keyora -d keyora < /opt/keyora/src/storage/app/backups/keyora_backup_YYYY-MM-DD_HHMMSS.sql
+psql -U zekura -d zekura < /opt/zekura/src/storage/app/backups/zekura_backup_YYYY-MM-DD_HHMMSS.sql
 
 # 4. Restart services
 sudo systemctl start nginx
-sudo supervisorctl start keyora-worker:*
+sudo supervisorctl start zekura-worker:*
 ```
 
 #### MySQL
 
 ```bash
 # 1. Stop services
-sudo supervisorctl stop keyora-worker:*
+sudo supervisorctl stop zekura-worker:*
 sudo systemctl stop nginx
 
 # 2. Drop and recreate
-mysql -u root -p -e "DROP DATABASE keyora; CREATE DATABASE keyora;"
+mysql -u root -p -e "DROP DATABASE zekura; CREATE DATABASE zekura;"
 
 # 3. Restore
-mysql -u keyora -p keyora < /opt/keyora/src/storage/app/backups/keyora_backup_YYYY-MM-DD_HHMMSS.sql
+mysql -u zekura -p zekura < /opt/zekura/src/storage/app/backups/zekura_backup_YYYY-MM-DD_HHMMSS.sql
 
 # 4. Restart
 sudo systemctl start nginx
-sudo supervisorctl start keyora-worker:*
+sudo supervisorctl start zekura-worker:*
 ```
 
 ### 5.2 File Restore
 
 ```bash
 # Restore encrypted files from backup
-rsync -avz backup-server:/backups/keyora-files/ /opt/keyora/src/storage/app/private/
+rsync -avz backup-server:/backups/zekura-files/ /opt/zekura/src/storage/app/private/
 
 # Fix permissions
-chown -R www-data:www-data /opt/keyora/src/storage/app/private/
+chown -R www-data:www-data /opt/zekura/src/storage/app/private/
 ```
 
 ### 5.3 APP_KEY Restore
@@ -267,10 +267,10 @@ If `APP_KEY` is lost, **all encrypted data is permanently unrecoverable**. There
 ### 6.1 Standard Update
 
 ```bash
-cd /opt/keyora
+cd /opt/zekura
 
 # 1. Put the app in maintenance mode
-php artisan down --message="Upgrading Keyora" --retry=60
+php artisan down --message="Upgrading Zekura" --retry=60
 
 # 2. Pull the latest code
 git pull origin main
@@ -292,7 +292,7 @@ php artisan view:cache
 php artisan event:cache
 
 # 7. Restart queue workers (to pick up code changes)
-sudo supervisorctl restart keyora-worker:*
+sudo supervisorctl restart zekura-worker:*
 
 # 8. Bring the app back up
 php artisan up
@@ -318,7 +318,7 @@ If key rotation is absolutely necessary:
 |---|---|---|
 | **500 errors on all requests** | `APP_KEY` missing or changed | Check `.env`, run `php artisan config:clear` |
 | **Email not sending** | `QUEUE_CONNECTION=sync` | Set to `redis`, restart queue workers |
-| **Queue jobs not processing** | Queue worker not running | `sudo supervisorctl status keyora-worker` |
+| **Queue jobs not processing** | Queue worker not running | `sudo supervisorctl status zekura-worker` |
 | **Decryption errors in logs** | `APP_KEY` changed or data corrupted | Check `Encryptable decryption failed` log entries — affected fields return `null` (fail-closed) |
 | **Dashboard not updating** | Cache not invalidated | `php artisan cache:clear` |
 | **Login fails after deploy** | Sanctum tokens invalidated | Users need to re-authenticate |
@@ -334,7 +334,7 @@ curl http://localhost/api/v1/health
 php artisan schedule:list
 
 # Check queue worker status
-sudo supervisorctl status keyora-worker
+sudo supervisorctl status zekura-worker
 
 # View failed jobs
 php artisan queue:failed

@@ -63,8 +63,8 @@ class PaystackService
 ```
 PAYSTACK_SECRET_KEY=sk_test_xxxxx
 PAYSTACK_PUBLIC_KEY=pk_test_xxxxx
-PAYSTACK_WEBHOOK_URL=https://api.keyora.app/api/v1/billing/webhook
-PAYSTACK_CALLBACK_URL=https://app.keyora.app/billing/callback
+PAYSTACK_WEBHOOK_URL=https://api.zekura.app/api/v1/billing/webhook
+PAYSTACK_CALLBACK_URL=https://app.zekura.app/billing/callback
 ```
 
 - [ ] Add to `config/services.php`:
@@ -81,13 +81,13 @@ PAYSTACK_CALLBACK_URL=https://app.keyora.app/billing/callback
 
 ### 26.3 Plan Codes
 
-- [ ] Create Paystack plans for each Keyora plan (one-time setup):
+- [ ] Create Paystack plans for each Zekura plan (one-time setup):
 
 ```php
 // Artisan command: php artisan paystack:create-plans
-$paystack->createPlan('Keyora Team', 49900, 'monthly', 'USD');    // $4.99 = 49900 kobo
-$paystack->createPlan('Keyora Business', 199900, 'monthly', 'USD'); // $19.99
-$paystack->createPlan('Keyora Enterprise', 499900, 'monthly', 'USD'); // $49.99
+$paystack->createPlan('Zekura Team', 49900, 'monthly', 'USD');    // $4.99 = 49900 kobo
+$paystack->createPlan('Zekura Business', 199900, 'monthly', 'USD'); // $19.99
+$paystack->createPlan('Zekura Enterprise', 499900, 'monthly', 'USD'); // $49.99
 ```
 
 - [ ] Store Paystack plan codes in config or database:
